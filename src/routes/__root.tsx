@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { Layout } from "@/components/Layout";
 
 function NotFoundComponent() {
   return (
@@ -72,11 +73,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
+      { name: "description", content: "Authentic hand-embroidered Lucknowi Chikankari kurtis, sarees, sharara sets & more. Trusted by 10,000+ customers since 2015." },
+      { name: "author", content: "Indian Handicraft Standards" },
+      { property: "og:title", content: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
+      { property: "og:description", content: "Authenticity woven in every thread." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -113,7 +114,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <Layout>
+        <Outlet />
+      </Layout>
     </QueryClientProvider>
   );
 }
