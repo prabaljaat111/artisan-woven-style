@@ -1,14 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/store/cart";
 
 export const Route = createFileRoute("/cart")({ component: CartPage });
 
 function CartPage() {
   const { items, removeItem, updateQty, totalPrice } = useCart();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const subtotal = totalPrice();
   const shipping = subtotal > 999 || subtotal === 0 ? 0 : 79;
   const gst = Math.round(subtotal * 0.05);
+  if (!mounted) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <h1 className="font-display text-3xl md:text-4xl text-primary text-center">Your Cart</h1>
+        <div className="gold-underline w-20 mx-auto mt-3 mb-8" />
+        <div className="text-center py-16 text-muted-foreground">Loading…</div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl md:text-4xl text-primary text-center">Your Cart</h1>
