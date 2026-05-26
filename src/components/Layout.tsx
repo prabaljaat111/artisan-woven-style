@@ -75,7 +75,7 @@ function Header() {
       </nav>
       <AnimatePresence>
         {menuOpen && (
-          <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-cream z-50 shadow-2xl md:hidden">
+          <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-background z-50 shadow-2xl md:hidden">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <span className="font-display text-lg text-primary">Menu</span>
               <button onClick={() => setMenuOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
