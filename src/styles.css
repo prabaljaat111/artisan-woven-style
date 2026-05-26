@@ -183,3 +183,8 @@
   .text-terracotta { color: var(--terracotta); }
   .bg-cream { background-color: var(--cream); }
 }
+
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
