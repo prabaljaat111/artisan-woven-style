@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useWishlist } from "@/store/wishlist";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,9 @@ interface CardProps {
 
 export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge }: CardProps) {
   const { ids, toggle } = useWishlist();
-  const wished = ids.includes(id);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const wished = mounted && ids.includes(id);
   const discount = originalPrice && originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
   return (
