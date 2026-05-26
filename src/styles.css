@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Lato:wght@300;400;500;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Lato:wght@300;400;500;700;900&family=Archivo+Black&display=swap");
 
 /*
  * Design system definition.
@@ -65,8 +65,9 @@
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
   --color-terracotta: var(--terracotta);
-  --font-display: "Playfair Display", serif;
+  --font-display: "Cormorant Garamond", serif;
   --font-body: "Lato", sans-serif;
+  --font-mega: "Archivo Black", "Lato", sans-serif;
 }
 
 :root {
