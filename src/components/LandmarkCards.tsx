@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import type { CardShape } from "@/data/products";
 import { useWishlist } from "@/store/wishlist";
 import { cn } from "@/lib/utils";
 
@@ -12,15 +11,9 @@ interface CardProps {
   title: string;
   price: number;
   originalPrice?: number;
-  shape: CardShape;
+  shape?: string;
   badge?: string;
 }
-
-const clipMap: Record<CardShape, string> = {
-  taj: "clip-taj",
-  imambara: "clip-arch",
-  clocktower: "clip-clocktower",
-};
 
 export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge }: CardProps) {
   const { ids, toggle } = useWishlist();
