@@ -72,30 +72,30 @@
 
 :root {
   --radius: 0.625rem;
-  /* Poshak-inspired palette — clean white, deep forest green, warm maroon accents */
-  --background: oklch(1 0 0);                    /* white */
-  --foreground: oklch(0.22 0.03 160);            /* deep ink */
+  /* Refined palette — soft ivory, deep emerald, warm terracotta */
+  --background: oklch(0.985 0.008 90);           /* warm ivory #FAF7F2 */
+  --foreground: oklch(0.24 0.025 160);           /* deep ink-green */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 160);
+  --card-foreground: oklch(0.24 0.025 160);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 160);
-  --primary: oklch(0.38 0.06 165);               /* #2D5547 forest green */
-  --primary-foreground: oklch(0.99 0.005 160);
-  --secondary: oklch(0.96 0.01 160);
-  --secondary-foreground: oklch(0.38 0.06 165);
-  --muted: oklch(0.96 0.008 160);
-  --muted-foreground: oklch(0.45 0.02 160);
-  --accent: oklch(0.4 0.13 25);                  /* maroon accent */
-  --accent-foreground: oklch(0.99 0.005 160);
+  --popover-foreground: oklch(0.24 0.025 160);
+  --primary: oklch(0.34 0.055 170);              /* deep emerald #1F4A3D */
+  --primary-foreground: oklch(0.98 0.01 90);
+  --secondary: oklch(0.95 0.018 85);             /* soft beige */
+  --secondary-foreground: oklch(0.34 0.055 170);
+  --muted: oklch(0.94 0.014 85);
+  --muted-foreground: oklch(0.5 0.02 100);
+  --accent: oklch(0.55 0.14 35);                 /* warm terracotta #C26A4A */
+  --accent-foreground: oklch(0.98 0.01 90);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.92 0.005 160);
-  --input: oklch(0.92 0.005 160);
-  --ring: oklch(0.38 0.06 165);
-  --gold: oklch(0.4 0.13 25);                   /* maroon-accent kept as 'gold' token */
-  --gold-soft: oklch(0.92 0.04 25);
-  --cream: oklch(1 0 0);
-  --terracotta: oklch(0.4 0.13 25);
+  --border: oklch(0.9 0.012 85);
+  --input: oklch(0.9 0.012 85);
+  --ring: oklch(0.34 0.055 170);
+  --gold: oklch(0.72 0.13 75);                   /* antique gold */
+  --gold-soft: oklch(0.9 0.06 80);
+  --cream: oklch(0.985 0.008 90);
+  --terracotta: oklch(0.55 0.14 35);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
