@@ -4,6 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Lato:wght@300;400;500;700;900&display=swap");
+
 /*
  * Design system definition.
  *
@@ -59,29 +61,40 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-cream: var(--cream);
+  --color-terracotta: var(--terracotta);
+  --font-display: "Playfair Display", serif;
+  --font-body: "Lato", sans-serif;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  /* Warm luxury palette — ivory, deep maroon, Lucknowi gold */
+  --background: oklch(0.975 0.018 80);          /* #FDF6EC cream */
+  --foreground: oklch(0.22 0.04 40);            /* warm dark brown */
+  --card: oklch(0.99 0.012 80);
+  --card-foreground: oklch(0.22 0.04 40);
+  --popover: oklch(0.99 0.012 80);
+  --popover-foreground: oklch(0.22 0.04 40);
+  --primary: oklch(0.36 0.12 18);               /* #6B1A2B deep maroon */
+  --primary-foreground: oklch(0.975 0.018 80);
+  --secondary: oklch(0.93 0.04 80);
+  --secondary-foreground: oklch(0.36 0.12 18);
+  --muted: oklch(0.93 0.03 80);
+  --muted-foreground: oklch(0.45 0.04 50);
+  --accent: oklch(0.74 0.13 80);                /* gold tint */
+  --accent-foreground: oklch(0.22 0.04 40);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0.01 80);
+  --border: oklch(0.87 0.04 75);                /* warm border */
+  --input: oklch(0.9 0.03 75);
+  --ring: oklch(0.74 0.13 80);
+  --gold: oklch(0.74 0.13 80);                  /* #C9A84C */
+  --gold-soft: oklch(0.85 0.09 85);
+  --cream: oklch(0.975 0.018 80);
+  --terracotta: oklch(0.6 0.13 45);             /* #C0714A */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +153,32 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-body);
   }
+
+  h1, h2, h3, h4, h5, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .clip-taj {
+    clip-path: path("M150 0 C 165 0 175 12 175 28 C 195 35 200 55 200 75 L 200 380 C 200 392 190 400 178 400 L 22 400 C 10 400 0 392 0 380 L 0 75 C 0 55 5 35 25 28 C 25 12 35 0 50 0 C 65 0 75 12 75 28 L 75 50 C 75 35 90 25 100 25 C 110 25 125 35 125 50 L 125 28 C 125 12 135 0 150 0 Z");
+  }
+  .clip-arch {
+    clip-path: path("M0 80 C 0 35 45 0 100 0 C 155 0 200 35 200 80 L 200 380 C 200 392 192 400 180 400 L 20 400 C 8 400 0 392 0 380 Z");
+  }
+  .clip-clocktower {
+    clip-path: path("M100 0 L 110 10 L 110 25 L 135 25 C 145 25 150 32 150 42 L 150 70 C 165 75 170 88 170 100 L 170 380 C 170 392 162 400 150 400 L 50 400 C 38 400 30 392 30 380 L 30 100 C 30 88 35 75 50 70 L 50 42 C 50 32 55 25 65 25 L 90 25 L 90 10 Z");
+  }
+  .gold-underline {
+    background-image: linear-gradient(90deg, transparent, var(--gold), transparent);
+    height: 2px;
+  }
+  .text-gold { color: var(--gold); }
+  .bg-gold { background-color: var(--gold); }
+  .border-gold { border-color: var(--gold); }
+  .text-terracotta { color: var(--terracotta); }
+  .bg-cream { background-color: var(--cream); }
 }
