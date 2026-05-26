@@ -42,6 +42,7 @@ function Header() {
   const wishCount = useWishlist((s) => s.ids.length);
   const [menuOpen, setMenuOpen] = useState(false);
   return (
+    <>
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 items-center gap-4">
         <div className="flex items-center gap-2 justify-self-start">
@@ -73,15 +74,18 @@ function Header() {
         <Link to="/faq" className="hover:text-primary transition">FAQs</Link>
         <Link to="/contact" className="hover:text-primary transition">Get in Touch</Link>
       </nav>
-      <AnimatePresence>
+    </header>
+    <AnimatePresence>
         {menuOpen && (
+          <>
+          <div className="fixed inset-0 bg-foreground/50 z-[60] md:hidden" onClick={() => setMenuOpen(false)} />
           <motion.div
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 220 }}
             style={{ backgroundColor: "#FFFFFF" }}
-            className="fixed inset-y-0 left-0 w-[88%] max-w-sm z-50 shadow-2xl md:hidden isolate flex flex-col"
+            className="fixed inset-y-0 left-0 w-[88%] max-w-sm z-[70] shadow-2xl md:hidden isolate flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border" style={{ backgroundColor: "#FFFFFF" }}>
@@ -179,10 +183,10 @@ function Header() {
               </div>
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
-      {menuOpen && <div className="fixed inset-0 bg-foreground/40 z-40 md:hidden" onClick={() => setMenuOpen(false)} />}
-    </header>
+    </>
   );
 }
 
