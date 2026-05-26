@@ -41,6 +41,8 @@ function Header() {
   const totalCount = useCart((s) => s.totalCount());
   const wishCount = useWishlist((s) => s.ids.length);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   return (
     <>
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
@@ -57,12 +59,12 @@ function Header() {
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
             <Heart className="h-5 w-5" />
-            {wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
+            {mounted && wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
           </Link>
           <Link to="/shop" aria-label="Search" className="md:hidden p-2 text-primary"><Search className="h-5 w-5" /></Link>
           <Link to="/cart" aria-label="Cart" className="relative p-2 text-primary hover:text-primary/80">
             <ShoppingBag className="h-5 w-5" />
-            {totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
+            {mounted && totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
           </Link>
         </div>
       </div>
