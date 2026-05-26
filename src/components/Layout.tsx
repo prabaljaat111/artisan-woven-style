@@ -67,10 +67,9 @@ function Header() {
       </div>
       <nav className="hidden md:flex items-center justify-center gap-8 text-sm pb-3 border-t border-border/60 pt-3">
         <Link to="/" className="hover:text-primary transition">Home</Link>
-        <Link to="/shop" className="hover:text-primary transition">Shop by Style</Link>
-        <Link to="/shop" className="hover:text-primary transition">Shop by Fabric</Link>
-        <Link to="/shop" className="hover:text-primary transition">Category</Link>
+        <Link to="/shop" className="hover:text-primary transition">Shop</Link>
         <Link to="/about" className="hover:text-primary transition">About us</Link>
+        <Link to="/track-order" className="hover:text-primary transition">Track Order</Link>
         <Link to="/faq" className="hover:text-primary transition">FAQs</Link>
         <Link to="/contact" className="hover:text-primary transition">Get in Touch</Link>
       </nav>
@@ -82,7 +81,16 @@ function Header() {
               <button onClick={() => setMenuOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
             </div>
             <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-60px)]">
-              {[{to:"/",label:"Home"},{to:"/shop",label:"Shop All"},{to:"/about",label:"About Us"},{to:"/contact",label:"Contact"},{to:"/faq",label:"FAQ"}].map((l) => (
+              {[
+                {to:"/",label:"Home"},
+                {to:"/shop",label:"Shop All"},
+                {to:"/about",label:"About Us"},
+                {to:"/track-order",label:"Track Order"},
+                {to:"/contact",label:"Contact"},
+                {to:"/faq",label:"FAQ"},
+                {to:"/wishlist",label:"Wishlist"},
+                {to:"/cart",label:"Cart"},
+              ].map((l) => (
                 <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)} className="block py-3 px-2 font-display text-base border-b border-border">{l.label}</Link>
               ))}
               <div className="pt-4 pb-2 text-xs uppercase tracking-wider text-muted-foreground">Categories</div>
