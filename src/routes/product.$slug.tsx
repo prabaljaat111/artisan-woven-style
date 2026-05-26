@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { findProduct, products, type Product } from "@/data/products";
@@ -31,7 +31,9 @@ function ProductPage() {
   const [imgIdx, setImgIdx] = useState(0);
   const addItem = useCart((s) => s.addItem);
   const { ids, toggle } = useWishlist();
-  const wished = ids.includes(p.id);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const wished = mounted && ids.includes(p.id);
   const related = products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4);
 
   const handleAdd = () => addItem({ id: p.id, name: p.name, slug: p.slug, price: p.price, image: p.images[0], size, color, qty });
