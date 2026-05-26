@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles } from "lucide-react";
+import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
@@ -75,28 +75,108 @@ function Header() {
       </nav>
       <AnimatePresence>
         {menuOpen && (
-          <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} style={{ backgroundColor: "#FFFFFF" }} className="fixed inset-y-0 left-0 w-[85%] max-w-sm z-50 shadow-2xl md:hidden isolate">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <span className="font-display text-lg text-primary">Menu</span>
-              <button onClick={() => setMenuOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            style={{ backgroundColor: "#FFFFFF" }}
+            className="fixed inset-y-0 left-0 w-[88%] max-w-sm z-50 shadow-2xl md:hidden isolate flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border" style={{ backgroundColor: "#FFFFFF" }}>
+              <div className="flex items-center gap-2">
+                <LotusMark className="h-5 w-5 text-gold" />
+                <span className="font-display italic text-lg text-primary">Menu</span>
+              </div>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-secondary transition"
+              >
+                <X className="h-5 w-5 text-primary" />
+              </button>
             </div>
-            <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-60px)]">
-              {[
-                {to:"/",label:"Home"},
-                {to:"/shop",label:"Shop All"},
-                {to:"/about",label:"About Us"},
-                {to:"/track-order",label:"Track Order"},
-                {to:"/contact",label:"Contact"},
-                {to:"/faq",label:"FAQ"},
-                {to:"/wishlist",label:"Wishlist"},
-                {to:"/cart",label:"Cart"},
-              ].map((l) => (
-                <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)} className="block py-3 px-2 font-display text-base border-b border-border">{l.label}</Link>
-              ))}
-              <div className="pt-4 pb-2 text-xs uppercase tracking-wider text-muted-foreground">Categories</div>
-              {categories.map((c) => (
-                <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }} onClick={() => setMenuOpen(false)} className="block py-2.5 px-2 text-sm border-b border-border/50">{c.name}</Link>
-              ))}
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto" style={{ backgroundColor: "#FFFFFF" }}>
+              {/* Primary nav */}
+              <div className="px-3 py-3">
+                {[
+                  { to: "/", label: "Home", icon: Home },
+                  { to: "/shop", label: "Shop All", icon: LayoutGrid },
+                  { to: "/about", label: "About Us", icon: Sparkles },
+                  { to: "/track-order", label: "Track Order", icon: Search },
+                  { to: "/contact", label: "Contact", icon: MessageCircle },
+                  { to: "/faq", label: "FAQ", icon: Tag },
+                ].map((l) => {
+                  const Icon = l.icon;
+                  return (
+                    <Link
+                      key={l.to}
+                      to={l.to}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg font-display text-[15px] text-primary hover:bg-secondary transition"
+                    >
+                      <Icon className="h-4 w-4 text-gold" />
+                      <span>{l.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Quick actions */}
+              <div className="mx-5 my-2 grid grid-cols-2 gap-2">
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-3 rounded-lg border border-border text-sm text-primary hover:bg-secondary transition"
+                >
+                  <Heart className="h-4 w-4" /> Wishlist
+                </Link>
+                <Link
+                  to="/cart"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-3 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition"
+                >
+                  <ShoppingBag className="h-4 w-4" /> Cart
+                </Link>
+              </div>
+
+              {/* Categories */}
+              <div className="px-5 pt-5 pb-2">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                  Shop by Category
+                </div>
+              </div>
+              <div className="px-3 pb-4">
+                {categories.map((c) => (
+                  <Link
+                    key={c.slug}
+                    to="/category/$slug"
+                    params={{ slug: c.slug }}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-secondary transition"
+                  >
+                    <span>{c.name}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                ))}
+              </div>
+
+              {/* Contact footer */}
+              <div className="mt-2 px-5 py-5 border-t border-border bg-secondary/40">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Need help?</div>
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 text-sm text-primary font-medium"
+                >
+                  <MessageCircle className="h-4 w-4 text-gold" />
+                  Chat with us on WhatsApp
+                </a>
+              </div>
             </div>
           </motion.div>
         )}
