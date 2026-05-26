@@ -77,10 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Authentic hand-embroidered Lucknowi Chikankari kurtis, sarees, sharara sets & more. Trusted by 10,000+ customers since 2015." },
       { name: "author", content: "Indian Handicraft Standards" },
       { property: "og:title", content: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
-      { property: "og:description", content: "Authenticity woven in every thread." },
+      { property: "og:description", content: "Authentic hand-embroidered Lucknowi Chikankari kurtis, sarees, sharara sets & more. Trusted by 10,000+ customers since 2015." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
+      { name: "twitter:description", content: "Authentic hand-embroidered Lucknowi Chikankari kurtis, sarees, sharara sets & more. Trusted by 10,000+ customers since 2015." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ae05ffb4-5e65-4994-9186-3bb0354f4448" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ae05ffb4-5e65-4994-9186-3bb0354f4448" },
     ],
     links: [
       {
