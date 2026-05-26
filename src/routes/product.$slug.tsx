@@ -2,7 +2,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { findProduct, products } from "@/data/products";
+import { findProduct, products, type Product } from "@/data/products";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { LandmarkCard } from "@/components/LandmarkCards";
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/product/$slug")({
       <Link to="/shop" className="text-gold mt-4 inline-block">Browse all →</Link>
     </div>
   ),
-  loader: ({ params }) => {
+  loader: ({ params }): Product => {
     const p = findProduct(params.slug);
     if (!p) throw notFound();
     return p;
