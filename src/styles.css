@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Lato:wght@300;400;500;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Lato:wght@300;400;500;700;900&family=Archivo+Black&display=swap");
 
 /*
  * Design system definition.
@@ -65,36 +65,37 @@
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
   --color-terracotta: var(--terracotta);
-  --font-display: "Playfair Display", serif;
+  --font-display: "Cormorant Garamond", serif;
   --font-body: "Lato", sans-serif;
+  --font-mega: "Archivo Black", "Lato", sans-serif;
 }
 
 :root {
   --radius: 0.625rem;
-  /* Warm luxury palette — ivory, deep maroon, Lucknowi gold */
-  --background: oklch(0.975 0.018 80);          /* #FDF6EC cream */
-  --foreground: oklch(0.22 0.04 40);            /* warm dark brown */
-  --card: oklch(0.99 0.012 80);
-  --card-foreground: oklch(0.22 0.04 40);
-  --popover: oklch(0.99 0.012 80);
-  --popover-foreground: oklch(0.22 0.04 40);
-  --primary: oklch(0.36 0.12 18);               /* #6B1A2B deep maroon */
-  --primary-foreground: oklch(0.975 0.018 80);
-  --secondary: oklch(0.93 0.04 80);
-  --secondary-foreground: oklch(0.36 0.12 18);
-  --muted: oklch(0.93 0.03 80);
-  --muted-foreground: oklch(0.45 0.04 50);
-  --accent: oklch(0.74 0.13 80);                /* gold tint */
-  --accent-foreground: oklch(0.22 0.04 40);
+  /* Poshak-inspired palette — clean white, deep forest green, warm maroon accents */
+  --background: oklch(1 0 0);                    /* white */
+  --foreground: oklch(0.22 0.03 160);            /* deep ink */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.03 160);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.03 160);
+  --primary: oklch(0.38 0.06 165);               /* #2D5547 forest green */
+  --primary-foreground: oklch(0.99 0.005 160);
+  --secondary: oklch(0.96 0.01 160);
+  --secondary-foreground: oklch(0.38 0.06 165);
+  --muted: oklch(0.96 0.008 160);
+  --muted-foreground: oklch(0.45 0.02 160);
+  --accent: oklch(0.4 0.13 25);                  /* maroon accent */
+  --accent-foreground: oklch(0.99 0.005 160);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.87 0.04 75);                /* warm border */
-  --input: oklch(0.9 0.03 75);
-  --ring: oklch(0.74 0.13 80);
-  --gold: oklch(0.74 0.13 80);                  /* #C9A84C */
-  --gold-soft: oklch(0.85 0.09 85);
-  --cream: oklch(0.975 0.018 80);
-  --terracotta: oklch(0.6 0.13 45);             /* #C0714A */
+  --border: oklch(0.92 0.005 160);
+  --input: oklch(0.92 0.005 160);
+  --ring: oklch(0.38 0.06 165);
+  --gold: oklch(0.4 0.13 25);                   /* maroon-accent kept as 'gold' token */
+  --gold-soft: oklch(0.92 0.04 25);
+  --cream: oklch(1 0 0);
+  --terracotta: oklch(0.4 0.13 25);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -181,4 +182,9 @@
   .border-gold { border-color: var(--gold); }
   .text-terracotta { color: var(--terracotta); }
   .bg-cream { background-color: var(--cream); }
+}
+
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }

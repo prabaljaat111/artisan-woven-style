@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Heart, Home, ShoppingBag, User, Search, Menu, X, MessageCircle } from "lucide-react";
+import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
@@ -31,8 +31,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function AnnouncementBar() {
   return (
-    <div className="bg-primary text-primary-foreground text-[11px] md:text-xs text-center py-2 px-3">
-      <span className="font-medium tracking-wide">Free shipping above ₹999 · Cash on Delivery Available · 10,000+ happy customers</span>
+    <div className="bg-primary text-primary-foreground text-[11px] md:text-xs text-center py-2.5 px-3">
+      <span className="font-medium tracking-[0.25em] uppercase">Worldwide Shipping</span>
     </div>
   );
 }
@@ -42,40 +42,38 @@ function Header() {
   const wishCount = useWishlist((s) => s.ids.length);
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        <button className="md:hidden p-2 -ml-2" onClick={() => setMenuOpen(true)} aria-label="Open menu">
-          <Menu className="h-5 w-5" />
-        </button>
-        <Link to="/" className="flex flex-col items-center md:items-start group">
-          <div className="flex items-center gap-2 text-primary">
-            <LotusMark className="h-5 w-5 text-gold" />
-            <span className="font-display text-base md:text-xl tracking-[0.15em] font-semibold">INDIAN HANDICRAFT</span>
-          </div>
-          <div className="flex flex-col items-center md:items-start mt-0.5">
-            <span className="font-display text-[10px] md:text-xs text-muted-foreground tracking-[0.3em]">STANDARDS · EST. 2015</span>
-            <div className="gold-underline w-24 md:w-32 mt-0.5" />
-          </div>
-        </Link>
-        <nav className="hidden md:flex items-center gap-7 text-sm">
-          <Link to="/" className="hover:text-primary transition">Home</Link>
-          <Link to="/shop" className="hover:text-primary transition">Shop</Link>
-          <Link to="/about" className="hover:text-primary transition">About</Link>
-          <Link to="/contact" className="hover:text-primary transition">Contact</Link>
-          <Link to="/faq" className="hover:text-primary transition">FAQ</Link>
-        </nav>
-        <div className="flex items-center gap-1 md:gap-3">
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 items-center gap-4">
+        <div className="flex items-center gap-2 justify-self-start">
+          <button className="md:hidden p-1 -ml-1" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+            <Menu className="h-6 w-6 text-primary" />
+          </button>
           <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
+        </div>
+        <Link to="/" className="justify-self-center text-center">
+          <span className="block font-display italic text-primary text-xl md:text-3xl leading-none">Indian Handicraft Standards</span>
+        </Link>
+        <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
             <Heart className="h-5 w-5" />
-            {wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
+            {wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
           </Link>
-          <Link to="/cart" aria-label="Cart" className="relative p-2 hover:text-primary">
+          <Link to="/shop" aria-label="Search" className="md:hidden p-2 text-primary"><Search className="h-5 w-5" /></Link>
+          <Link to="/cart" aria-label="Cart" className="relative p-2 text-primary hover:text-primary/80">
             <ShoppingBag className="h-5 w-5" />
-            {totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
+            {totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
           </Link>
         </div>
       </div>
+      <nav className="hidden md:flex items-center justify-center gap-8 text-sm pb-3 border-t border-border/60 pt-3">
+        <Link to="/" className="hover:text-primary transition">Home</Link>
+        <Link to="/shop" className="hover:text-primary transition">Shop by Style</Link>
+        <Link to="/shop" className="hover:text-primary transition">Shop by Fabric</Link>
+        <Link to="/shop" className="hover:text-primary transition">Category</Link>
+        <Link to="/about" className="hover:text-primary transition">About us</Link>
+        <Link to="/faq" className="hover:text-primary transition">FAQs</Link>
+        <Link to="/contact" className="hover:text-primary transition">Get in Touch</Link>
+      </nav>
       <AnimatePresence>
         {menuOpen && (
           <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-cream z-50 shadow-2xl md:hidden">
@@ -102,25 +100,22 @@ function Header() {
 
 function MobileBottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const totalCount = useCart((s) => s.totalCount());
-  const wishCount = useWishlist((s) => s.ids.length);
   const items = [
-    { to: "/", icon: Home, label: "Home", count: 0 },
-    { to: "/shop", icon: Search, label: "Shop", count: 0 },
-    { to: "/wishlist", icon: Heart, label: "Wishlist", count: wishCount },
-    { to: "/cart", icon: ShoppingBag, label: "Cart", count: totalCount },
-    { to: "/about", icon: User, label: "Account", count: 0 },
+    { to: "/", icon: Home, label: "Home" },
+    { to: "/shop", icon: LayoutGrid, label: "Category" },
+    { to: "/shop", icon: Play, label: "Watch & Buy" },
+    { to: "/shop", icon: Tag, label: "Sale" },
+    { to: "/shop", icon: Sparkles, label: "What's New" },
   ];
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-cream/95 backdrop-blur border-t border-border">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/98 backdrop-blur border-t border-border">
       <div className="grid grid-cols-5">
         {items.map((i) => {
           const active = pathname === i.to;
           const Icon = i.icon;
           return (
-            <Link key={i.to} to={i.to} className={cn("flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] relative", active ? "text-primary" : "text-muted-foreground")}>
+            <Link key={i.label} to={i.to} className={cn("flex flex-col items-center justify-center gap-1 py-2.5 min-h-[60px]", active ? "text-primary" : "text-foreground/70")}>
               <Icon className="h-5 w-5" />
-              {i.count > 0 && <span className="absolute top-1.5 right-1/3 text-[9px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{i.count}</span>}
               <span className="text-[10px] font-medium">{i.label}</span>
             </Link>
           );
