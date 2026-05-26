@@ -224,6 +224,7 @@ function Footer() {
             <li><Link to="/about">About Us</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
             <li><Link to="/contact">Contact</Link></li>
+            <li><Link to="/track-order">Track Order</Link></li>
           </ul>
         </div>
         <div>
@@ -235,12 +236,12 @@ function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-display text-sm mb-3 text-gold">Trust</h4>
+          <h4 className="font-display text-sm mb-3 text-gold">Policies</h4>
           <ul className="space-y-2 text-xs opacity-90">
-            <li>✓ Authentic Chikankari</li>
-            <li>🚚 Pan India Delivery</li>
-            <li>💬 WhatsApp Support</li>
-            <li>↩ Easy Returns</li>
+            <li><Link to="/shipping">Shipping Policy</Link></li>
+            <li><Link to="/returns">Returns & Exchange</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/terms">Terms of Service</Link></li>
           </ul>
         </div>
       </div>
