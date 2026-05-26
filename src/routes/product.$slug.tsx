@@ -44,7 +44,7 @@ function ProductPage() {
             <img src={p.images[imgIdx]} alt={p.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex gap-2 mt-3 overflow-x-auto">
-            {p.images.map((src, i) => (
+            {p.images.map((src: string, i: number) => (
               <button key={i} onClick={() => setImgIdx(i)} className={cn("h-20 w-16 flex-shrink-0 rounded-lg overflow-hidden border-2", i === imgIdx ? "border-gold" : "border-border")}>
                 <img src={src} alt="" className="w-full h-full object-cover" />
               </button>
@@ -66,13 +66,13 @@ function ProductPage() {
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><button className="text-xs text-gold underline">Size Guide</button></div>
             <div className="flex flex-wrap gap-2">
-              {p.sizes.map((s) => (<button key={s} onClick={() => setSize(s)} className={cn("min-w-[44px] h-11 px-3 border rounded-md text-sm", size === s ? "bg-primary text-primary-foreground border-primary" : "border-border")}>{s}</button>))}
+              {p.sizes.map((s: string) => (<button key={s} onClick={() => setSize(s)} className={cn("min-w-[44px] h-11 px-3 border rounded-md text-sm", size === s ? "bg-primary text-primary-foreground border-primary" : "border-border")}>{s}</button>))}
             </div>
           </div>
           <div className="mt-5">
             <span className="text-sm font-medium block mb-2">Color: <span className="text-muted-foreground">{color}</span></span>
             <div className="flex flex-wrap gap-2">
-              {p.colors.map((c) => (<button key={c} onClick={() => setColor(c)} className={cn("h-11 px-4 border rounded-md text-sm", color === c ? "bg-secondary border-primary" : "border-border")}>{c}</button>))}
+              {p.colors.map((c: string) => (<button key={c} onClick={() => setColor(c)} className={cn("h-11 px-4 border rounded-md text-sm", color === c ? "bg-secondary border-primary" : "border-border")}>{c}</button>))}
             </div>
           </div>
           <div className="mt-5 flex items-center gap-3">
