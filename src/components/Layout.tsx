@@ -1,0 +1,247 @@
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Heart, Home, ShoppingBag, User, Search, Menu, X, MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/store/cart";
+import { useWishlist } from "@/store/wishlist";
+import { useUI } from "@/store/ui";
+import { LotusMark } from "./LotusMark";
+import { categories } from "@/data/products";
+import { cn } from "@/lib/utils";
+
+const WHATSAPP_URL = "https://wa.me/919999999999";
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
+  if (isAdmin) return <>{children}</>;
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <AnnouncementBar />
+      <Header />
+      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      <Footer />
+      <MobileBottomNav />
+      <FloatingButtons />
+      <ChatWidget />
+      <ExitIntent />
+    </div>
+  );
+}
+
+function AnnouncementBar() {
+  return (
+    <div className="bg-primary text-primary-foreground text-[11px] md:text-xs text-center py-2 px-3">
+      <span className="font-medium tracking-wide">Free shipping above ₹999 · Cash on Delivery Available · 10,000+ happy customers</span>
+    </div>
+  );
+}
+
+function Header() {
+  const totalCount = useCart((s) => s.totalCount());
+  const wishCount = useWishlist((s) => s.ids.length);
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <header className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <button className="md:hidden p-2 -ml-2" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+          <Menu className="h-5 w-5" />
+        </button>
+        <Link to="/" className="flex flex-col items-center md:items-start group">
+          <div className="flex items-center gap-2 text-primary">
+            <LotusMark className="h-5 w-5 text-gold" />
+            <span className="font-display text-base md:text-xl tracking-[0.15em] font-semibold">INDIAN HANDICRAFT</span>
+          </div>
+          <div className="flex flex-col items-center md:items-start mt-0.5">
+            <span className="font-display text-[10px] md:text-xs text-muted-foreground tracking-[0.3em]">STANDARDS · EST. 2015</span>
+            <div className="gold-underline w-24 md:w-32 mt-0.5" />
+          </div>
+        </Link>
+        <nav className="hidden md:flex items-center gap-7 text-sm">
+          <Link to="/" className="hover:text-primary transition">Home</Link>
+          <Link to="/shop" className="hover:text-primary transition">Shop</Link>
+          <Link to="/about" className="hover:text-primary transition">About</Link>
+          <Link to="/contact" className="hover:text-primary transition">Contact</Link>
+          <Link to="/faq" className="hover:text-primary transition">FAQ</Link>
+        </nav>
+        <div className="flex items-center gap-1 md:gap-3">
+          <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
+          <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
+            <Heart className="h-5 w-5" />
+            {wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
+          </Link>
+          <Link to="/cart" aria-label="Cart" className="relative p-2 hover:text-primary">
+            <ShoppingBag className="h-5 w-5" />
+            {totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
+          </Link>
+        </div>
+      </div>
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-cream z-50 shadow-2xl md:hidden">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <span className="font-display text-lg text-primary">Menu</span>
+              <button onClick={() => setMenuOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-60px)]">
+              {[{to:"/",label:"Home"},{to:"/shop",label:"Shop All"},{to:"/about",label:"About Us"},{to:"/contact",label:"Contact"},{to:"/faq",label:"FAQ"}].map((l) => (
+                <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)} className="block py-3 px-2 font-display text-base border-b border-border">{l.label}</Link>
+              ))}
+              <div className="pt-4 pb-2 text-xs uppercase tracking-wider text-muted-foreground">Categories</div>
+              {categories.map((c) => (
+                <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }} onClick={() => setMenuOpen(false)} className="block py-2.5 px-2 text-sm border-b border-border/50">{c.name}</Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {menuOpen && <div className="fixed inset-0 bg-foreground/40 z-40 md:hidden" onClick={() => setMenuOpen(false)} />}
+    </header>
+  );
+}
+
+function MobileBottomNav() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const totalCount = useCart((s) => s.totalCount());
+  const wishCount = useWishlist((s) => s.ids.length);
+  const items = [
+    { to: "/", icon: Home, label: "Home", count: 0 },
+    { to: "/shop", icon: Search, label: "Shop", count: 0 },
+    { to: "/wishlist", icon: Heart, label: "Wishlist", count: wishCount },
+    { to: "/cart", icon: ShoppingBag, label: "Cart", count: totalCount },
+    { to: "/about", icon: User, label: "Account", count: 0 },
+  ];
+  return (
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-cream/95 backdrop-blur border-t border-border">
+      <div className="grid grid-cols-5">
+        {items.map((i) => {
+          const active = pathname === i.to;
+          const Icon = i.icon;
+          return (
+            <Link key={i.to} to={i.to} className={cn("flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] relative", active ? "text-primary" : "text-muted-foreground")}>
+              <Icon className="h-5 w-5" />
+              {i.count > 0 && <span className="absolute top-1.5 right-1/3 text-[9px] bg-primary text-primary-foreground rounded-full h-4 w-4 flex items-center justify-center">{i.count}</span>}
+              <span className="text-[10px] font-medium">{i.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function FloatingButtons() {
+  const setChatOpen = useUI((s) => s.setChatOpen);
+  return (
+    <div className="fixed right-3 bottom-24 md:bottom-6 z-40 flex flex-col gap-3">
+      <button onClick={() => setChatOpen(true)} aria-label="Open chat" className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition">
+        <MessageCircle className="h-5 w-5" />
+      </button>
+      <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="h-12 w-12 rounded-full bg-[#25D366] text-white shadow-lg flex items-center justify-center hover:scale-105 transition">
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.554-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.607z" /></path></svg>
+      </a>
+    </div>
+  );
+}
+
+function ChatWidget() {
+  const { isChatOpen, setChatOpen } = useUI();
+  const chips = ["Track Order", "Size Guide", "WhatsApp Us", "Return Policy"];
+  return (
+    <AnimatePresence>
+      {isChatOpen && (
+        <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="fixed right-3 bottom-44 md:bottom-24 z-50 w-[300px] bg-cream rounded-2xl shadow-2xl border border-border overflow-hidden">
+          <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
+            <div>
+              <div className="font-display text-base">Chikan Concierge</div>
+              <div className="text-[11px] opacity-80">Usually replies in minutes</div>
+            </div>
+            <button onClick={() => setChatOpen(false)} aria-label="Close chat"><X className="h-4 w-4" /></button>
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="bg-secondary rounded-2xl rounded-tl-sm p-3 text-sm">Hi! Ask us anything about our Chikankari collection 🌸</div>
+            <div className="flex flex-wrap gap-2">
+              {chips.map((c) => (
+                <a key={c} href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-xs border border-gold text-primary rounded-full px-3 py-1.5 hover:bg-gold/20 transition">{c}</a>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function ExitIntent() {
+  const { exitIntentShown, setExitIntentShown } = useUI();
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (exitIntentShown) return;
+    const handler = (e: MouseEvent) => {
+      if (e.clientY < 10) { setOpen(true); setExitIntentShown(true); }
+    };
+    document.addEventListener("mouseleave", handler);
+    return () => document.removeEventListener("mouseleave", handler);
+  }, [exitIntentShown, setExitIntentShown]);
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 bg-foreground/50 z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-cream max-w-md w-full rounded-2xl p-6 md:p-8 text-center relative border-2 border-gold">
+            <button onClick={() => setOpen(false)} className="absolute top-3 right-3"><X className="h-4 w-4" /></button>
+            <LotusMark className="h-8 w-8 text-gold mx-auto mb-3" />
+            <h3 className="font-display text-2xl text-primary">Wait — 10% off your first order</h3>
+            <p className="text-sm text-muted-foreground mt-2">Enter your WhatsApp number for an exclusive welcome discount and early access to new collections.</p>
+            <form onSubmit={(e) => { e.preventDefault(); setOpen(false); }} className="mt-4 flex gap-2">
+              <input type="tel" placeholder="+91 98765 43210" className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-background" />
+              <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium">Get 10% off</button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-primary text-primary-foreground mt-16">
+      <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="col-span-2 md:col-span-1">
+          <div className="flex items-center gap-2">
+            <LotusMark className="h-5 w-5 text-gold" />
+            <span className="font-display text-base tracking-wider">INDIAN HANDICRAFT</span>
+          </div>
+          <p className="text-xs mt-3 opacity-80 leading-relaxed">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
+        </div>
+        <div>
+          <h4 className="font-display text-sm mb-3 text-gold">Quick Links</h4>
+          <ul className="space-y-2 text-xs opacity-90">
+            <li><Link to="/shop">Shop All</Link></li>
+            <li><Link to="/about">About Us</Link></li>
+            <li><Link to="/faq">FAQ</Link></li>
+            <li><Link to="/contact">Contact</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-display text-sm mb-3 text-gold">Categories</h4>
+          <ul className="space-y-2 text-xs opacity-90">
+            {categories.slice(0, 5).map((c) => (
+              <li key={c.slug}><Link to="/category/$slug" params={{ slug: c.slug }}>{c.name}</Link></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-display text-sm mb-3 text-gold">Trust</h4>
+          <ul className="space-y-2 text-xs opacity-90">
+            <li>✓ Authentic Chikankari</li>
+            <li>🚚 Pan India Delivery</li>
+            <li>💬 WhatsApp Support</li>
+            <li>↩ Easy Returns</li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-primary-foreground/15 py-4 text-center text-[11px] opacity-75">© 2025 Indian Handicraft Standards · Crafted with ❤ in Lucknow</div>
+    </footer>
+  );
+}
