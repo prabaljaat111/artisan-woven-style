@@ -1,5 +1,20 @@
 export type CardShape = "taj" | "imambara" | "clocktower";
 
+import kurtiWhite from "@/assets/products/kurti-white.jpg";
+import kurtiMint from "@/assets/products/kurti-mint.jpg";
+import kurtaSetIvory from "@/assets/products/kurta-set-ivory.jpg";
+import kurtaSetMaroon from "@/assets/products/kurta-set-maroon.jpg";
+import palazzoCream from "@/assets/products/palazzo-cream.jpg";
+import shararaMaroon from "@/assets/products/sharara-maroon.jpg";
+import gararaGold from "@/assets/products/garara-gold.jpg";
+import sareeOffwhite from "@/assets/products/saree-offwhite.jpg";
+import sareePink from "@/assets/products/saree-pink.jpg";
+import unstitchedBeige from "@/assets/products/unstitched-beige.jpg";
+import tunicWhite from "@/assets/products/tunic-white.jpg";
+import noodleStrap from "@/assets/products/noodle-strap.jpg";
+import pantsWhite from "@/assets/products/pants-white.jpg";
+import anarkaliBridal from "@/assets/products/anarkali-bridal.jpg";
+
 export interface Product {
   id: string;
   name: string;
@@ -36,37 +51,32 @@ export const categories = [
 ];
 
 const shapes: CardShape[] = ["taj", "imambara", "clocktower"];
-const img = (seed: string, color = "f5e6d0", text = "6B1A2B") =>
-  `https://placehold.co/600x800/${color}/${text}?text=${encodeURIComponent(seed)}&font=playfair`;
 
 const base = [
-  { name: "Lucknowi Chikankari Cotton Kurti — White", category: "kurtis", price: 499, originalPrice: 799 },
-  { name: "Pastel Mint Chikan Kurti", category: "kurtis", price: 599, originalPrice: 999 },
-  { name: "Ivory Hand-Embroidered Kurta Set", category: "kurta-sets", price: 1499, originalPrice: 2499 },
-  { name: "Maroon Festive Kurta Set", category: "kurta-sets", price: 1899, originalPrice: 2999 },
-  { name: "Cream Chikankari Palazzo Set", category: "palazzo-sets", price: 1799, originalPrice: 2799 },
-  { name: "Peach Palazzo with Dupatta", category: "palazzo-sets", price: 1699, originalPrice: 2699 },
-  { name: "Royal Maroon Sharara Set", category: "sharara-sets", price: 2999, originalPrice: 4499 },
-  { name: "Mint Green Sharara Suit", category: "sharara-sets", price: 2799, originalPrice: 3999 },
-  { name: "Bridal Gold Garara Set", category: "garara-sets", price: 3999, originalPrice: 5999 },
-  { name: "Chikankari Cotton Saree — Off White", category: "sarees", price: 2499, originalPrice: 3999 },
-  { name: "Pastel Pink Georgette Saree", category: "sarees", price: 3299, originalPrice: 4999 },
-  { name: "Unstitched Cotton Suit Piece", category: "unstitched-suits", price: 899, originalPrice: 1499 },
-  { name: "Premium Unstitched Suit — Beige", category: "unstitched-suits", price: 1299, originalPrice: 1999 },
-  { name: "Short Chikan Tunic Top", category: "tops-tunics", price: 399, originalPrice: 699 },
-  { name: "Boho Chikankari Crop Top", category: "tops-tunics", price: 449, originalPrice: 799 },
-  { name: "Noodle Strap Chikan Top", category: "noodle-strap", price: 349, originalPrice: 599 },
-  { name: "Sleeveless Chikan Camisole", category: "noodle-strap", price: 299, originalPrice: 499 },
-  { name: "Chikankari Cotton Pants — White", category: "pants", price: 599, originalPrice: 999 },
-  { name: "Straight-Cut Embroidered Pants", category: "pants", price: 699, originalPrice: 1199 },
-  { name: "Heritage Bridal Anarkali", category: "kurta-sets", price: 4999, originalPrice: 7999 },
+  { name: "Lucknowi Chikankari Cotton Kurti — White", category: "kurtis", price: 499, originalPrice: 799, image: kurtiWhite },
+  { name: "Pastel Mint Chikan Kurti", category: "kurtis", price: 599, originalPrice: 999, image: kurtiMint },
+  { name: "Ivory Hand-Embroidered Kurta Set", category: "kurta-sets", price: 1499, originalPrice: 2499, image: kurtaSetIvory },
+  { name: "Maroon Festive Kurta Set", category: "kurta-sets", price: 1899, originalPrice: 2999, image: kurtaSetMaroon },
+  { name: "Cream Chikankari Palazzo Set", category: "palazzo-sets", price: 1799, originalPrice: 2799, image: palazzoCream },
+  { name: "Peach Palazzo with Dupatta", category: "palazzo-sets", price: 1699, originalPrice: 2699, image: palazzoCream },
+  { name: "Royal Maroon Sharara Set", category: "sharara-sets", price: 2999, originalPrice: 4499, image: shararaMaroon },
+  { name: "Mint Green Sharara Suit", category: "sharara-sets", price: 2799, originalPrice: 3999, image: palazzoCream },
+  { name: "Bridal Gold Garara Set", category: "garara-sets", price: 3999, originalPrice: 5999, image: gararaGold },
+  { name: "Chikankari Cotton Saree — Off White", category: "sarees", price: 2499, originalPrice: 3999, image: sareeOffwhite },
+  { name: "Pastel Pink Georgette Saree", category: "sarees", price: 3299, originalPrice: 4999, image: sareePink },
+  { name: "Unstitched Cotton Suit Piece", category: "unstitched-suits", price: 899, originalPrice: 1499, image: unstitchedBeige },
+  { name: "Premium Unstitched Suit — Beige", category: "unstitched-suits", price: 1299, originalPrice: 1999, image: unstitchedBeige },
+  { name: "Short Chikan Tunic Top", category: "tops-tunics", price: 399, originalPrice: 699, image: tunicWhite },
+  { name: "Boho Chikankari Crop Top", category: "tops-tunics", price: 449, originalPrice: 799, image: tunicWhite },
+  { name: "Noodle Strap Chikan Top", category: "noodle-strap", price: 349, originalPrice: 599, image: noodleStrap },
+  { name: "Sleeveless Chikan Camisole", category: "noodle-strap", price: 299, originalPrice: 499, image: noodleStrap },
+  { name: "Chikankari Cotton Pants — White", category: "pants", price: 599, originalPrice: 999, image: pantsWhite },
+  { name: "Straight-Cut Embroidered Pants", category: "pants", price: 699, originalPrice: 1199, image: pantsWhite },
+  { name: "Heritage Bridal Anarkali", category: "kurta-sets", price: 4999, originalPrice: 7999, image: anarkaliBridal },
 ];
-
-const palette = ["f5e6d0", "fdf6ec", "e8d5b7", "c0714a", "c9a84c", "8b7355"];
 
 export const products: Product[] = base.map((p, i) => {
   const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const color = palette[i % palette.length];
   return {
     id: String(i + 1),
     name: p.name,
@@ -74,12 +84,7 @@ export const products: Product[] = base.map((p, i) => {
     category: p.category,
     price: p.price,
     originalPrice: p.originalPrice,
-    images: [
-      img(p.name.split(" ").slice(0, 2).join(" "), color),
-      img("Detail", color),
-      img("Back", color),
-      img("Fabric", color),
-    ],
+    images: [p.image, p.image, p.image, p.image],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     colors: ["Ivory", "Maroon", "Mint", "Pastel Pink"],
     description:
