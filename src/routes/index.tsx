@@ -1,15 +1,98 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { ShieldCheck, Truck, RotateCcw, Sparkles, Star } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ShieldCheck, Truck, RotateCcw, Sparkles, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { products, categories } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import { LotusMark } from "@/components/LotusMark";
+import hero1 from "@/assets/hero/hero-1.jpg";
+import hero2 from "@/assets/hero/hero-2.jpg";
+import hero3 from "@/assets/hero/hero-3.jpg";
+import hero4 from "@/assets/hero/hero-4.jpg";
+import hero5 from "@/assets/hero/hero-5.jpg";
 
 export const Route = createFileRoute("/")({ component: Index });
 
+const HERO_SLIDES = [
+  { img: hero1, kicker: "New Collection", title: "Timeless Ivory", caption: "Hand-embroidered Chikankari classics" },
+  { img: hero2, kicker: "Bridal Edit", title: "Maroon & Gold", caption: "Heirloom craftsmanship, modern silhouettes" },
+  { img: hero3, kicker: "Summer Edit", title: "Pastel Whispers", caption: "Featherlight cotton, mint freshness" },
+  { img: hero4, kicker: "Festive 2026", title: "Blush Anarkali", caption: "Flowing grace with mukaish detail" },
+  { img: hero5, kicker: "Limited Edition", title: "Golden Couture", caption: "Regal zardozi for the modern bride" },
+];
+
+function HeroSlider() {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => setI((p) => (p + 1) % HERO_SLIDES.length), 4500);
+    return () => clearInterval(id);
+  }, [paused]);
+  const slide = HERO_SLIDES[i];
+  const go = (dir: number) => setI((p) => (p + dir + HERO_SLIDES.length) % HERO_SLIDES.length);
+  return (
+    <section
+      className="relative w-full h-[72vh] md:h-[92vh] overflow-hidden bg-secondary/40"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <AnimatePresence mode="sync">
+        <motion.img
+          key={i}
+          src={slide.img}
+          alt={slide.title}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.1, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </AnimatePresence>
+      {/* Bottom gradient for readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
+      {/* Caption */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`cap-${i}`}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="absolute inset-x-0 bottom-16 md:bottom-24 text-center text-white px-6"
+        >
+          <p className="text-[11px] md:text-sm uppercase tracking-[0.35em] opacity-90">{slide.kicker}</p>
+          <h1 className="font-display italic text-4xl md:text-7xl mt-3 drop-shadow-lg">{slide.title}</h1>
+          <p className="text-sm md:text-base mt-3 opacity-90">{slide.caption}</p>
+          <Link to="/shop" className="inline-block mt-5 bg-white text-primary px-7 py-2.5 rounded-full text-xs md:text-sm font-medium tracking-wider uppercase hover:bg-accent hover:text-white transition">
+            Shop Now
+          </Link>
+        </motion.div>
+      </AnimatePresence>
+      {/* Arrows desktop */}
+      <button onClick={() => go(-1)} aria-label="Previous" className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white/30 backdrop-blur hover:bg-white/60 text-white hover:text-primary items-center justify-center transition">
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button onClick={() => go(1)} aria-label="Next" className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white/30 backdrop-blur hover:bg-white/60 text-white hover:text-primary items-center justify-center transition">
+        <ChevronRight className="h-5 w-5" />
+      </button>
+      {/* Dots */}
+      <div className="absolute bottom-5 inset-x-0 flex justify-center gap-2 z-10">
+        {HERO_SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setI(idx)}
+            aria-label={`Slide ${idx + 1}`}
+            className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-white" : "w-2 bg-white/50"}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Index() {
   const featured = products.slice(0, 8);
-  const heroProduct = products.find((p) => p.name.toLowerCase().includes("maroon")) ?? products[3];
   const circleCats = [
     { label: "Sale", img: products[5].images[0], to: "/shop" },
     { label: "Sets", img: products[2].images[0], to: "/category/$slug", params: { slug: "kurta-sets" } },
@@ -23,47 +106,7 @@ function Index() {
 
   return (
     <div>
-      {/* Hero — giant NEW COLLECTION overlapping editorial */}
-      <section className="relative overflow-hidden bg-secondary/50">
-        <div className="relative max-w-7xl mx-auto">
-          <div className="relative aspect-[4/5] md:aspect-[16/9] w-full overflow-hidden">
-            {/* Background mega type */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center leading-[0.82]">
-                <div className="text-primary/90" style={{ fontFamily: "var(--font-mega)", fontSize: "clamp(7rem, 32vw, 22rem)" }}>
-                  NEW
-                </div>
-                <div className="text-primary/90 -mt-[0.18em]" style={{ fontFamily: "var(--font-mega)", fontSize: "clamp(2.4rem, 11vw, 7rem)", letterSpacing: "0.06em" }}>
-                  COLLECTION
-                </div>
-              </div>
-            </div>
-            {/* Product image floating on top */}
-            <motion.img
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: "easeOut" }}
-              src={heroProduct.images[0]}
-              alt={heroProduct.name}
-              className="relative z-10 mx-auto h-full w-auto object-contain object-bottom drop-shadow-[0_30px_40px_rgba(0,0,0,0.25)]"
-            />
-            {/* Cloud base */}
-            <div className="absolute bottom-0 inset-x-0 h-16 md:h-24 bg-gradient-to-t from-white to-transparent z-20" />
-            {/* Side captions */}
-            <div className="absolute left-3 md:left-6 bottom-20 md:bottom-28 z-30 text-[11px] md:text-sm text-accent">
-              <div className="font-display italic text-base md:text-2xl">Avika</div>
-              <div className="opacity-90">Rayon Mukaish Co-ord Set</div>
-            </div>
-            <div className="absolute right-3 md:right-6 bottom-20 md:bottom-28 z-30 text-right text-[11px] md:text-sm text-accent">
-              <div className="font-display italic">Collection is live</div>
-              <div className="font-semibold">Limited Edition</div>
-            </div>
-            <Link to="/shop" className="absolute left-1/2 -translate-x-1/2 bottom-6 z-30 font-display italic text-base md:text-lg text-primary border-b border-primary pb-0.5">
-              Shop Now
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSlider />
 
       {/* Marquee sale bar */}
       <div className="bg-background border-y border-border overflow-hidden">
