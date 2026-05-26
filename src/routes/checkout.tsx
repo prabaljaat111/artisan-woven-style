@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/store/cart";
 
 export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
@@ -7,8 +7,13 @@ export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
 function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const { items, totalPrice, clear } = useCart();
+  const [mounted, setMounted] = useState(false);
+  const [orderId, setOrderId] = useState("IHS00000");
+  useEffect(() => {
+    setMounted(true);
+    setOrderId("IHS" + Math.floor(Math.random() * 100000));
+  }, []);
   const total = totalPrice();
-  const orderId = "IHS" + Math.floor(Math.random() * 100000);
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl md:text-4xl text-primary text-center">Checkout</h1>
@@ -50,7 +55,7 @@ function CheckoutPage() {
           </div>
         )}
       </div>
-      {step !== 3 && items.length === 0 && <p className="text-center text-muted-foreground mt-6 text-sm">Your cart is empty. <Link to="/shop" className="text-gold">Shop now →</Link></p>}
+      {mounted && step !== 3 && items.length === 0 && <p className="text-center text-muted-foreground mt-6 text-sm">Your cart is empty. <Link to="/shop" className="text-gold">Shop now →</Link></p>}
     </div>
   );
 }
