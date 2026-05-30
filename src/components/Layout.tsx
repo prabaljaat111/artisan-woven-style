@@ -47,7 +47,7 @@ function Header() {
   return (
     <>
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 items-center gap-4 min-h-[112px] md:min-h-[160px]">
+      <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-3 items-center gap-4">
         <div className="flex items-center gap-2 justify-self-start">
           <button className="md:hidden p-1 -ml-1" onClick={() => setMenuOpen(true)} aria-label="Open menu">
             <Menu className="h-6 w-6 text-primary" />
@@ -58,7 +58,7 @@ function Header() {
           <img
             src={logoUrl}
             alt="Indian Handicraft Standards"
-            className="h-24 md:h-36 w-auto mx-auto shrink-0 object-contain max-w-none"
+            className="h-14 md:h-20 w-auto mx-auto shrink-0 object-contain max-w-none"
           />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
