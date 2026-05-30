@@ -55,7 +55,7 @@ function Header() {
           <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
         </div>
         <Link to="/" className="justify-self-center text-center">
-          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-16 md:h-24 w-auto mx-auto" />
+          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-24 md:h-36 w-auto mx-auto" />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
