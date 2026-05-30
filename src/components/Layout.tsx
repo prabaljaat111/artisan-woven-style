@@ -8,6 +8,7 @@ import { useUI } from "@/store/ui";
 import { LotusMark } from "./LotusMark";
 import { categories } from "@/data/products";
 import { cn } from "@/lib/utils";
+import logoUrl from "@/assets/logo.png";
 
 const WHATSAPP_URL = "https://wa.me/919999999999";
 
@@ -54,7 +55,7 @@ function Header() {
           <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
         </div>
         <Link to="/" className="justify-self-center text-center">
-          <span className="block font-display italic text-primary text-xl md:text-3xl leading-none">Indian Handicraft Standards</span>
+          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-12 md:h-16 w-auto mx-auto" />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
@@ -91,10 +92,7 @@ function Header() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border" style={{ backgroundColor: "#FFFFFF" }}>
-              <div className="flex items-center gap-2">
-                <LotusMark className="h-5 w-5 text-gold" />
-                <span className="font-display italic text-lg text-primary">Menu</span>
-              </div>
+              <img src={logoUrl} alt="Indian Handicraft Standards" className="h-10 w-auto" />
               <button
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
@@ -297,10 +295,7 @@ function Footer() {
     <footer className="bg-primary text-primary-foreground mt-16">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <div className="col-span-2 md:col-span-1">
-          <div className="flex items-center gap-2">
-            <LotusMark className="h-5 w-5 text-gold" />
-            <span className="font-display text-base tracking-wider">INDIAN HANDICRAFT</span>
-          </div>
+          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-16 w-auto bg-white rounded-md p-2" />
           <p className="text-xs mt-3 opacity-80 leading-relaxed">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
         </div>
         <div>
