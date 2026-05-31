@@ -46,7 +46,7 @@ function Header() {
   useEffect(() => setMounted(true), []);
   return (
     <>
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-3 items-center gap-4">
         <div className="flex items-center gap-2 justify-self-start">
           <button className="md:hidden p-1 -ml-1" onClick={() => setMenuOpen(true)} aria-label="Open menu">
