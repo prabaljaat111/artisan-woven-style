@@ -12,7 +12,7 @@ function ReturnsPage() {
       <p>We accept returns within <strong>7 days</strong> of delivery on unworn, unwashed items with original tags.</p>
       <h3>How to return</h3>
       <ol>
-        <li>WhatsApp us at +91 99999 99999 with your order ID.</li>
+        <li>WhatsApp us at +91 90444 66957 with your order ID.</li>
         <li>We arrange a reverse pickup from your address (free for prepaid orders).</li>
         <li>Once we receive and inspect the item, refund is issued within 5–7 business days.</li>
       </ol>

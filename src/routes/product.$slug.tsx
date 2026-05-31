@@ -98,7 +98,7 @@ function ProductPage() {
             <Link to="/checkout" onClick={handleAdd} className="flex-1 bg-gold text-primary text-center py-3 rounded-full font-medium hover:opacity-90">Buy Now</Link>
             <button onClick={handleWishlist} aria-label="Wishlist" className="h-12 w-12 border border-border rounded-full flex items-center justify-center"><Heart className={cn("h-5 w-5", wished && "fill-primary text-primary")} /></button>
           </div>
-          <a href={`https://wa.me/919999999999?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
+          <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
             <MessageCircle className="h-4 w-4" /> Ask about this product on WhatsApp
           </a>
           <div className="grid grid-cols-3 gap-3 mt-6 text-center">

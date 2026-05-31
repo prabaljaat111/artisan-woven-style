@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight, Instagram, Facebook, Youtube } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,11 +6,10 @@ import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { LotusMark } from "./LotusMark";
-import { categories } from "@/data/products";
+import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/logo.png";
-
-const WHATSAPP_URL = "https://wa.me/919999999999";
+import { WHATSAPP_URL } from "@/lib/contact";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -25,6 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <MobileBottomNav />
       <FloatingButtons />
       <ChatWidget />
+      <SearchOverlay />
       <ExitIntent />
     </div>
   );
@@ -52,7 +52,7 @@ function Header() {
           <button className="md:hidden p-1 -ml-1" onClick={() => setMenuOpen(true)} aria-label="Open menu">
             <Menu className="h-6 w-6 text-primary" />
           </button>
-          <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
+          <SearchTriggerDesktop />
         </div>
         <Link to="/" className="justify-self-center text-center shrink-0">
           <img
@@ -66,7 +66,7 @@ function Header() {
             <Heart className="h-5 w-5" />
             {mounted && wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
           </Link>
-          <Link to="/shop" aria-label="Search" className="md:hidden p-2 text-primary"><Search className="h-5 w-5" /></Link>
+          <SearchTriggerMobile />
           <Link to="/cart" aria-label="Cart" className="relative p-2 text-primary hover:text-primary/80">
             <ShoppingBag className="h-5 w-5" />
             {mounted && totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
@@ -456,5 +456,90 @@ function Footer() {
       </div>
       <div className="border-t border-primary-foreground/15 py-4 text-center text-[11px] opacity-75">© 2025 Indian Handicraft Standards · Crafted with ❤ in Lucknow</div>
     </footer>
+  );
+}
+
+function SearchTriggerDesktop() {
+  const setSearchOpen = useUI((s) => s.setSearchOpen);
+  return (
+    <button onClick={() => setSearchOpen(true)} aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary">
+      <Search className="h-5 w-5" />
+    </button>
+  );
+}
+
+function SearchTriggerMobile() {
+  const setSearchOpen = useUI((s) => s.setSearchOpen);
+  return (
+    <button onClick={() => setSearchOpen(true)} aria-label="Search" className="md:hidden p-2 text-primary">
+      <Search className="h-5 w-5" />
+    </button>
+  );
+}
+
+function SearchOverlay() {
+  const { isSearchOpen, setSearchOpen } = useUI();
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    setQ("");
+    const t = setTimeout(() => inputRef.current?.focus(), 50);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSearchOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => { clearTimeout(t); document.removeEventListener("keydown", onKey); };
+  }, [isSearchOpen, setSearchOpen]);
+
+  const needle = q.trim().toLowerCase();
+  const results = needle
+    ? products.filter((p) => p.name.toLowerCase().includes(needle) || p.category.toLowerCase().includes(needle)).slice(0, 6)
+    : [];
+
+  const goAll = () => {
+    setSearchOpen(false);
+    navigate({ to: "/shop", search: { q: needle } as never });
+  };
+
+  return (
+    <AnimatePresence>
+      {isSearchOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-foreground/50 z-[80]" onClick={() => setSearchOpen(false)} />
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed top-0 inset-x-0 z-[81] bg-cream shadow-xl border-b border-border">
+            <div className="max-w-3xl mx-auto px-4 py-4">
+              <form onSubmit={(e) => { e.preventDefault(); if (needle) goAll(); }} className="flex items-center gap-2">
+                <Search className="h-5 w-5 text-primary" />
+                <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search kurtis, sarees, sharara…" className="flex-1 bg-transparent text-base outline-none py-2" />
+                <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close" className="p-1.5"><X className="h-5 w-5" /></button>
+              </form>
+              {needle && (
+                <div className="mt-3 border-t border-border pt-3">
+                  {results.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">No matches. Try a different keyword.</p>
+                  ) : (
+                    <ul className="space-y-1 max-h-[60vh] overflow-y-auto">
+                      {results.map((p) => (
+                        <li key={p.id}>
+                          <Link to="/product/$slug" params={{ slug: p.slug }} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition">
+                            <img src={p.images[0]} alt={p.name} className="h-12 w-12 object-cover rounded-md" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-foreground truncate">{p.name}</div>
+                              <div className="text-xs text-muted-foreground">₹{p.price.toLocaleString("en-IN")}</div>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button onClick={goAll} className="mt-2 w-full text-xs uppercase tracking-[0.2em] text-gold py-2 hover:text-primary transition">View all results →</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

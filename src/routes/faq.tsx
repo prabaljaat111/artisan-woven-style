@@ -57,7 +57,7 @@ function FAQPage() {
         ))}
       </Accordion>
       <p className="text-center text-sm text-muted-foreground mt-8">
-        Still have questions? <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer" className="text-primary underline">Chat with us on WhatsApp</a>
+        Still have questions? <a href="https://wa.me/919044466957" target="_blank" rel="noreferrer" className="text-primary underline">Chat with us on WhatsApp</a>
       </p>
     </div>
   );

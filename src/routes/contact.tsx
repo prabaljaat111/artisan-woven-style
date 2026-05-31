@@ -28,8 +28,8 @@ function ContactPage() {
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-4">
           {[
-            { icon: MessageCircle, label: "WhatsApp", value: "+91 99999 99999", href: "https://wa.me/919999999999" },
-            { icon: Phone, label: "Call us", value: "+91 99999 99999", href: "tel:+919999999999" },
+            { icon: MessageCircle, label: "WhatsApp", value: "+91 90444 66957", href: "https://wa.me/919044466957" },
+            { icon: Phone, label: "Call us", value: "+91 90444 66957", href: "tel:+919044466957" },
             { icon: Mail, label: "Email", value: "hello@indianhandicraftstandards.com", href: "mailto:hello@indianhandicraftstandards.com" },
             { icon: MapPin, label: "Atelier", value: "Chowk, Lucknow, Uttar Pradesh, India 226003" },
             { icon: Instagram, label: "Instagram", value: "@indian_handicraft_standards", href: "https://www.instagram.com/indian_handicraft_standards" },
