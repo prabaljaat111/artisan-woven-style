@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight } from "lucide-react";
+import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight, Instagram, Facebook, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
@@ -325,9 +325,33 @@ function Footer() {
           <ul className="space-y-2 text-xs opacity-90">
             <li><Link to="/shipping">Shipping Policy</Link></li>
             <li><Link to="/returns">Returns & Exchange</Link></li>
+            <li><Link to="/size-guide">Size Guide</Link></li>
             <li><Link to="/privacy">Privacy Policy</Link></li>
             <li><Link to="/terms">Terms of Service</Link></li>
           </ul>
+        </div>
+      </div>
+      <div className="border-t border-primary-foreground/15">
+        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-4">
+            <span className="opacity-70 uppercase tracking-[0.2em]">Follow us</span>
+            <a href="https://www.instagram.com/indian_handicraft_standards" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:text-gold transition"><Instagram className="h-4 w-4" /></a>
+            <a href="https://www.facebook.com/share/18gmkPS1C4/" target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:text-gold transition"><Facebook className="h-4 w-4" /></a>
+            <a href="http://www.youtube.com/@indianhandicraftstandards8147" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover:text-gold transition"><Youtube className="h-4 w-4" /></a>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            <span className="opacity-70 uppercase tracking-[0.2em]">Also on Amazon</span>
+            {[
+              { id: "B0H2MVW5B9", label: "Kurti" },
+              { id: "B0H2MCF4X7", label: "Kurta Set" },
+              { id: "B0H2K5ZCNN", label: "Suit" },
+              { id: "B0H2DCZ1CL", label: "Saree" },
+            ].map((a) => (
+              <a key={a.id} href={`https://www.amazon.in/dp/${a.id}`} target="_blank" rel="noreferrer" className="border border-primary-foreground/30 rounded-full px-3 py-1 hover:bg-gold hover:text-primary hover:border-gold transition">
+                {a.label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
       <div className="border-t border-primary-foreground/15 py-4 text-center text-[11px] opacity-75">© 2025 Indian Handicraft Standards · Crafted with ❤ in Lucknow</div>

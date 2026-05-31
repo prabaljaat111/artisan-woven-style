@@ -119,6 +119,26 @@ function Index() {
         </div>
       </div>
 
+      {/* Trust strip */}
+      <section className="bg-cream border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+          {[
+            { icon: ShieldCheck, t: "10,000+", s: "Happy customers" },
+            { icon: Sparkles, t: "Since 2015", s: "Heritage brand" },
+            { icon: Truck, t: "Worldwide", s: "Shipping" },
+            { icon: RotateCcw, t: "Handmade", s: "in Lucknow" },
+          ].map((b) => (
+            <div key={b.s} className="flex items-center justify-center gap-2.5 py-1.5">
+              <b.icon className="h-5 w-5 text-gold shrink-0" />
+              <div className="text-left leading-tight">
+                <div className="text-sm font-display text-primary">{b.t}</div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{b.s}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Circular category strip */}
       <section className="bg-background">
         <div className="max-w-7xl mx-auto px-3 py-6 overflow-x-auto">
