@@ -161,7 +161,7 @@ function SizeGuidePage() {
       </section>
 
       <div className="text-center mt-10 text-sm text-muted-foreground">
-        Still unsure? <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer" className="text-primary underline">WhatsApp us your measurements</a> — we'll recommend the perfect size. Or <Link to="/contact" className="text-primary underline">contact our concierge</Link>.
+        Still unsure? <a href="https://wa.me/919044466957" target="_blank" rel="noreferrer" className="text-primary underline">WhatsApp us your measurements</a> — we'll recommend the perfect size. Or <Link to="/contact" className="text-primary underline">contact our concierge</Link>.
       </div>
     </div>
   );

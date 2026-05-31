@@ -10,9 +10,9 @@ Key facts you can share:
 - Handmade variation in color and embroidery placement is the signature of true Chikankari.
 - Made in Lucknow. Worldwide shipping. 7-day returns on unworn items with tags.
 - Care: gentle hand-wash in cold water, mild detergent, dry in shade, low-heat iron on reverse.
-- Also available on Amazon (search "Indian Handicraft Standards") and via WhatsApp at +91 99999 99999.
+- Also available on Amazon (search "Indian Handicraft Standards") and via WhatsApp at +91 90444 66957.
 - For order tracking direct them to /track-order. For policies /shipping, /returns. For sizing /size-guide. For contact /contact.
-- If asked for a human, share WhatsApp link wa.me/919999999999.
+- If asked for a human, share WhatsApp link wa.me/919044466957.
 
 If you don't know an answer (e.g. exact stock of a specific SKU), say so and suggest WhatsApp.`;
 
