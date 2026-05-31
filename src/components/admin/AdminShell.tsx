@@ -6,13 +6,13 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 const nav = [
-  { to: "/_admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/_admin/products", label: "Products", icon: Package },
-  { to: "/_admin/orders", label: "Orders", icon: ShoppingBag },
-  { to: "/_admin/customers", label: "Customers", icon: Users },
-  { to: "/_admin/categories", label: "Categories", icon: Folder },
-  { to: "/_admin/coupons", label: "Coupons", icon: Percent },
-  { to: "/_admin/reviews", label: "Reviews", icon: Star },
+  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/categories", label: "Categories", icon: Folder },
+  { to: "/admin/coupons", label: "Coupons", icon: Percent },
+  { to: "/admin/reviews", label: "Reviews", icon: Star },
 ];
 
 export function AdminShell() {

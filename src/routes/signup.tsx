@@ -18,7 +18,7 @@ function SignupPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/_admin", replace: true });
+    if (!loading && user) navigate({ to: "/admin", replace: true });
   }, [user, loading, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
