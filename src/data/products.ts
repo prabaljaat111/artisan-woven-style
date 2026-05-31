@@ -75,6 +75,10 @@ const base = [
   { name: "Heritage Bridal Anarkali", category: "kurta-sets", price: 4999, originalPrice: 7999, image: anarkaliBridal },
 ];
 
+// Deterministic ratings/reviews so SSR markup matches client render (no hydration flicker).
+const RATING_SEED = [4.6, 4.8, 4.5, 4.9, 4.4, 4.7, 4.85, 4.3, 4.6, 4.75, 4.5, 4.65, 4.55, 4.7, 4.8, 4.4, 4.6, 4.5, 4.75, 4.9];
+const REVIEW_SEED = [128, 412, 87, 356, 64, 245, 198, 73, 312, 156, 95, 234, 178, 289, 401, 52, 167, 110, 273, 388];
+
 export const products: Product[] = base.map((p, i) => {
   const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return {
@@ -90,8 +94,8 @@ export const products: Product[] = base.map((p, i) => {
     description:
       "Authentic hand-embroidered Lucknowi Chikankari crafted by master artisans in Lucknow. Pure breathable fabric with intricate floral and paisley motifs — a heritage piece for the modern wardrobe.",
     inStock: true,
-    rating: 4 + Math.random() * 0.9,
-    reviews: Math.floor(50 + Math.random() * 400),
+    rating: RATING_SEED[i % RATING_SEED.length],
+    reviews: REVIEW_SEED[i % REVIEW_SEED.length],
     isNew: i % 5 === 0,
     isBestseller: i % 4 === 0,
     cardShape: shapes[i % shapes.length],
