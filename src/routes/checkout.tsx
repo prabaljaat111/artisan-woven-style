@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useCart } from "@/store/cart";
+import { useCart, priceBreakdown } from "@/store/cart";
 
 export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
 
@@ -13,7 +13,7 @@ function CheckoutPage() {
     setMounted(true);
     setOrderId("IHS" + Math.floor(Math.random() * 100000));
   }, []);
-  const total = totalPrice();
+  const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl md:text-4xl text-primary text-center">Checkout</h1>
@@ -42,7 +42,13 @@ function CheckoutPage() {
                 <input type="radio" name="pay" defaultChecked={m.startsWith("Cash")} className="accent-primary" /> {m}
               </label>
             ))}
-            <button onClick={() => { clear(); setStep(3); }} className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3">Place Order · ₹{total.toLocaleString("en-IN")}</button>
+            <div className="bg-background border border-border rounded-md p-3 text-sm space-y-1.5">
+              <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
+              <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toLocaleString("en-IN")}</span></div>
+              <div className="flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
+              <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between font-semibold text-primary"><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
+            </div>
+            <button disabled={items.length === 0} onClick={() => { clear(); setStep(3); }} className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3 disabled:opacity-50">Place Order · ₹{total.toLocaleString("en-IN")}</button>
           </div>
         )}
         {step === 3 && (

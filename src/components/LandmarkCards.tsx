@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useWishlist } from "@/store/wishlist";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface CardProps {
   id: string;
@@ -34,7 +35,7 @@ export function LandmarkCard({ id, slug, image, title, price, originalPrice, bad
           {discount > 0 && (
             <span className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-1 rounded">-{discount}%</span>
           )}
-          <button aria-label="Toggle wishlist" onClick={(e) => { e.preventDefault(); toggle(id); }} className="absolute bottom-2 right-2 z-20 h-9 w-9 rounded-full bg-background/95 backdrop-blur flex items-center justify-center shadow hover:bg-background transition">
+          <button aria-label="Toggle wishlist" onClick={(e) => { e.preventDefault(); const wasWished = ids.includes(id); toggle(id); toast(wasWished ? "Removed from wishlist" : "Added to wishlist 🌸"); }} className="absolute bottom-2 right-2 z-20 h-9 w-9 rounded-full bg-background/95 backdrop-blur flex items-center justify-center shadow hover:bg-background transition">
             <Heart className={cn("h-4 w-4", wished ? "fill-accent text-accent" : "text-foreground")} />
           </button>
         </div>
