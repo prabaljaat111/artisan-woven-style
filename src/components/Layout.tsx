@@ -52,7 +52,7 @@ function Header() {
           <button className="md:hidden p-1 -ml-1" onClick={() => setMenuOpen(true)} aria-label="Open menu">
             <Menu className="h-6 w-6 text-primary" />
           </button>
-          <Link to="/shop" aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
+          <Link to="/shop" search={{ q: "" }} aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary"><Search className="h-5 w-5" /></Link>
         </div>
         <Link to="/" className="justify-self-center text-center shrink-0">
           <img
@@ -66,7 +66,7 @@ function Header() {
             <Heart className="h-5 w-5" />
             {mounted && wishCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{wishCount}</span>}
           </Link>
-          <Link to="/shop" aria-label="Search" className="md:hidden p-2 text-primary"><Search className="h-5 w-5" /></Link>
+          <Link to="/shop" search={{ q: "" }} aria-label="Search" className="md:hidden p-2 text-primary"><Search className="h-5 w-5" /></Link>
           <Link to="/cart" aria-label="Cart" className="relative p-2 text-primary hover:text-primary/80">
             <ShoppingBag className="h-5 w-5" />
             {mounted && totalCount > 0 && <span className="absolute top-0 right-0 text-[10px] bg-accent text-accent-foreground rounded-full h-4 w-4 flex items-center justify-center">{totalCount}</span>}
