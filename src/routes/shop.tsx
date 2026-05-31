@@ -1,18 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import { products, categories } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   head: () => ({ meta: [{ title: "Shop All — Indian Handicraft Standards" }, { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." }] }),
 });
 
 function ShopPage() {
-  const { q: initialQ } = Route.useSearch();
+  const search = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
+  const initialQ = typeof search?.q === "string" ? search.q : "";
   const [q, setQ] = useState(initialQ);
+  useEffect(() => { setQ(initialQ); }, [initialQ]);
   const [cats, setCats] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(6000);
   const [sort, setSort] = useState("popular");
