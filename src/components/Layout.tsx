@@ -58,7 +58,7 @@ function Header() {
           <img
             src={logoUrl}
             alt="Indian Handicraft Standards"
-            className="h-14 md:h-20 w-auto mx-auto shrink-0 object-contain max-w-none"
+            className="h-12 md:h-16 w-auto mx-auto shrink-0 object-contain max-w-none"
           />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
