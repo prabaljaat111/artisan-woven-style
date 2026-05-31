@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useCart } from "@/store/cart";
+import { useCart, priceBreakdown } from "@/store/cart";
 
 export const Route = createFileRoute("/cart")({ component: CartPage });
 
@@ -9,9 +9,7 @@ function CartPage() {
   const { items, removeItem, updateQty, totalPrice } = useCart();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const subtotal = totalPrice();
-  const shipping = subtotal > 999 || subtotal === 0 ? 0 : 79;
-  const gst = Math.round(subtotal * 0.05);
+  const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
   if (!mounted) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-10">
@@ -64,7 +62,7 @@ function CartPage() {
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
-              <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold text-base text-primary"><span>Total</span><span>₹{(subtotal + gst + shipping).toLocaleString("en-IN")}</span></div>
+              <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold text-base text-primary"><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
             </div>
             <Link to="/checkout" className="mt-5 block text-center bg-primary text-primary-foreground py-3 rounded-full font-medium">Checkout</Link>
             <Link to="/shop" className="block text-center text-xs text-muted-foreground mt-3">Continue Shopping</Link>
