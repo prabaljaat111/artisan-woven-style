@@ -57,3 +57,10 @@ export const useCart = create<CartState>()(
     { name: "ihs-cart" },
   ),
 );
+
+// Single source of truth for order pricing — used by both /cart and /checkout
+export function priceBreakdown(subtotal: number) {
+  const shipping = subtotal === 0 || subtotal > 999 ? 0 : 79;
+  const gst = Math.round(subtotal * 0.05);
+  return { subtotal, shipping, gst, total: subtotal + gst + shipping };
+}
