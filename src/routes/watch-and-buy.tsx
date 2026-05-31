@@ -60,7 +60,7 @@ function WatchAndBuy() {
         <div className="space-y-3">
           <div className="flex gap-2">
             <button
-              onClick={() => { addItem({ id: product.id, name: product.name, price: product.price, image: product.images[0], size: product.sizes[2], color: product.colors[0] }); toast("Added to cart 🛍️"); }}
+              onClick={() => { addItem({ id: product.id, slug: product.slug, name: product.name, price: product.price, image: product.images[0], size: product.sizes[2], color: product.colors[0], qty: 1 }); toast("Added to cart 🛍️"); }}
               className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-md py-3 text-sm font-medium hover:bg-primary/90 transition"
             >
               <ShoppingBag className="h-4 w-4" /> Add to cart
