@@ -1,63 +1,59 @@
+## 1. WhatsApp number — global update
 
-## What the PDF gives us
+Replace every occurrence of `919999999999` / `+91 99999 99999` with the new number `+91 90444 66957` (URL form: `919044466957`).
 
-The proposal contains concrete, applyable content (not just vibes). Filtering out pricing/agency notes, the useful pieces are:
+Files touched:
+- `src/components/Layout.tsx` — `WHATSAPP_URL` constant
+- `src/routes/contact.tsx` — WhatsApp + Call entries
+- `src/routes/faq.tsx`, `src/routes/size-guide.tsx`, `src/routes/returns.tsx`, `src/routes/product.$slug.tsx`
+- `src/routes/api/chat.ts` — system prompt mentions
 
-1. **Full Size Guide** — Top Wear (XS–3XL), Plus Size (4XL–7XL), Bottom Wear table, fit rules ("relaxed = bust + 4in"), measurement instructions, bottom length guide.
-2. **Real social handles** — Instagram `@indian_handicraft_standards`, Facebook share link, YouTube `@indianhandicraftstandards8147`.
-3. **Brand story / trust signals** — Founded 2015, paused, restarting; 10,000+ customers via Amazon/Flipkart; old seller rating 4.2, product rating 4.1; sourced from IndiaMART.
-4. **Amazon cross-listings** — 4 ASIN links (B0H2MVW5B9, B0H2MCF4X7, B0H2K5ZCNN, B0H2DCZ1CL) to display as "Also available on Amazon".
-5. **Categories confirmation** — kurti, kurta set, palazzo, sharara, garara, unstitched suits, sarees, short tops, noodle strap tops, tunics, pants, budget/mid/premium tiers (already match `categories` in `src/data/products.ts` ✅).
-6. **Design intent** — 95% mobile-first; product thumbnails shaped like Taj Mahal / Imambara / Clock Tower (already implemented as `clip-taj`/`clip-arch`/`clip-clocktower` ✅).
-7. **FAQ source** — modeled on poshakchikanstudio FAQs (shipping, returns, sizing, care, handmade variation).
+One constant (`WHATSAPP_NUMBER` / `WHATSAPP_URL`) will be exported from a small helper (`src/lib/contact.ts`) so future changes are one-line. Display string: `+91 90444 66957`; link: `https://wa.me/919044466957`.
 
-Pricing, hosting, delivery-time and agency proposal lines are dropped — not site content.
+## 2. Search button not working
 
-## Plan
+Today the header search icon is just `<Link to="/shop">`. If the user is already on `/shop`, nothing visible happens — feels broken.
 
-### 1. New `/size-guide` route (biggest content gap)
-Create `src/routes/size-guide.tsx` with:
-- TOP WEAR table (XS–3XL: bust/waist/hip)
-- PLUS SIZE table (4XL–7XL)
-- BOTTOM WEAR table (waist/hip/inseam) + length guide (palazzo ~38in, pant ~36in)
-- "Understand the fit" block (fitted = +2in, relaxed = +4in, example with 36in bust)
-- "How to measure" block (bust / waist / hip with the 8-inch hip rule)
-- Important tips list (handmade variation, size up if between sizes, etc.)
-- All measurements stated as inches, garment-flat
-- Link from product page ("Size guide"), footer Policies column, and FAQ.
+Fix: replace the icon with a real **search overlay**:
+- New `SearchOverlay` component inside `Layout.tsx` (controlled via `useUI` store — add `isSearchOpen`/`setSearchOpen`).
+- Both header search icons (desktop + mobile) open the overlay instead of navigating.
+- Overlay shows: autofocused input, live results (top 6 products matched by name/category from `products`), "View all results →" button that navigates to `/shop?q=...`.
+- Pressing Enter or clicking "View all" → `navigate({ to: "/shop", search: { q } })`.
+- `/shop` already reads `q` from search params, so results land filtered.
+- Close on Esc / backdrop click / result click.
 
-### 2. Footer + Contact: real social + Amazon
-- Replace placeholder socials in `Layout.tsx` footer with the three real URLs (Instagram, Facebook, YouTube).
-- Add a small "Also on Amazon" row linking the 4 ASIN URLs (icon + short label).
-- Update `contact.tsx` to surface the same socials.
+## 3. Product names vs images — accuracy pass
 
-### 3. About page: real brand story
-Rewrite `src/routes/about.tsx` to lead with:
-- "Indian Handicraft Standards — championing Lucknowi Chikankari since 2015."
-- The restart narrative (paused, returning with the same name).
-- Trust metrics: **10,000+ customers** served on Amazon/Flipkart, **4.2★** seller rating, **4.1★** product rating (clearly marked as historical marketplace ratings).
-- Sourcing line (Lucknow karigars, IndiaMART verified).
+Current `src/data/products.ts` reuses some images under mismatched names (e.g. *Mint Green Sharara* uses `palazzo-cream.jpg`; *Peach Palazzo* uses the cream palazzo image; two noodle-strap items share one photo with different colour labels).
 
-### 4. Trust strip on home + product page
-Add a thin trust bar (icons + numbers) used on home and PDP:
-`10,000+ Happy Customers · Since 2015 · Worldwide Shipping · Handmade in Lucknow`.
+Fix approach — rename items so each product's name truthfully describes the image it shows:
 
-### 5. FAQ rewrite
-Replace generic FAQs in `src/routes/faq.tsx` with a poshakchikanstudio-style set covering: order tracking, shipping timelines (domestic/international), returns & exchange, custom sizing, fabric care (Chikankari hand-wash), color/measurement variation disclaimer (handmade), bulk/wholesale enquiries, and how to contact (WhatsApp + the three socials).
+| Slot | Image | Corrected name |
+|---|---|---|
+| Kurti #1 | kurti-white.jpg | Lucknowi Chikankari Cotton Kurti — White |
+| Kurti #2 | kurti-mint.jpg | Pastel Mint Chikankari Kurti |
+| Kurta Set #1 | kurta-set-ivory.jpg | Ivory Hand-Embroidered Chikankari Kurta Set |
+| Kurta Set #2 | kurta-set-maroon.jpg | Maroon Festive Chikankari Kurta Set |
+| Palazzo #1 | palazzo-cream.jpg | Cream Chikankari Palazzo Set with Dupatta |
+| Palazzo #2 | palazzo-cream.jpg | *(remove duplicate)* |
+| Sharara #1 | sharara-maroon.jpg | Royal Maroon Chikankari Sharara Set |
+| Sharara #2 | palazzo-cream.jpg → **sharara-maroon.jpg** | Wine Festive Sharara Suit (re-image, not rename) |
+| Garara | garara-gold.jpg | Bridal Gold Chikankari Garara Set |
+| Saree #1 | saree-offwhite.jpg | Off-White Chikankari Cotton Saree |
+| Saree #2 | saree-pink.jpg | Pastel Pink Georgette Chikankari Saree |
+| Unstitched #1 | unstitched-beige.jpg | Beige Unstitched Chikankari Cotton Suit Piece |
+| Unstitched #2 | unstitched-beige.jpg | *(remove duplicate)* |
+| Tunic #1 | tunic-white.jpg | White Short Chikankari Tunic Top |
+| Tunic #2 | tunic-white.jpg → keep, rename | White Chikankari Crop Tunic |
+| Noodle #1 | noodle-strap.jpg | White Noodle-Strap Chikankari Top |
+| Noodle #2 | noodle-strap.jpg | *(remove duplicate)* |
+| Pants #1 | pants-white.jpg | White Chikankari Cotton Pants |
+| Pants #2 | pants-white.jpg | *(remove duplicate)* |
+| Anarkali | anarkali-bridal.jpg | Heritage Bridal Chikankari Anarkali |
 
-### 6. Product page polish
-- Add "Size guide" link beside the size selector → opens `/size-guide`.
-- Add "Handmade — slight variation may occur" microcopy (per PDF tip).
+Net result: ~15 products instead of 20, every name matches the photo, no "mint" or "peach" labels on cream images. Categories, sizes, descriptions and the seeded rating/review arrays stay (indexes just shorten). Detail-page colour swatches will be rewritten to a single accurate colour per product so the page doesn't claim 4 colours that don't exist.
 
-### Out of scope (intentionally not doing)
-- Cloning poshakchikanstudio's actual product catalog (legal/IP — current sample catalog stays).
-- Live chatbot backend (the WhatsApp + chat widget already cover the "100 queries" need; a real bot needs Cloud + AI gateway — can be a follow-up if you want).
-- Hosting/domain/agency-pricing content from the proposal.
+If you'd rather keep 20 SKUs, the alternative is generating 5 new product photos (mint sharara, peach palazzo, sleeveless camisole, premium beige unstitched, embroidered pants) — call it out and I'll add that step instead.
 
-### Technical notes
-- Pure frontend changes; no Cloud / DB required.
-- New route file follows TanStack flat routing (`size-guide.tsx`) with proper `head()` meta + `errorComponent` / `notFoundComponent`.
-- Size-chart tables use the existing emerald `--primary` token for headers (matches the PDF's `#2F5A53` header style ≈ current theme).
-- Footer/About edits stay inside `Layout.tsx` / `about.tsx`; no token or routing changes.
-
-Ready to switch to build mode and implement.
+## Out of scope
+No backend, no schema, no chatbot logic changes beyond the WhatsApp number string.
