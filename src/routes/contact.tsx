@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Mail, Phone, MapPin, MessageCircle, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, MessageCircle, Instagram, Facebook, Youtube } from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -32,7 +32,9 @@ function ContactPage() {
             { icon: Phone, label: "Call us", value: "+91 99999 99999", href: "tel:+919999999999" },
             { icon: Mail, label: "Email", value: "hello@indianhandicraftstandards.com", href: "mailto:hello@indianhandicraftstandards.com" },
             { icon: MapPin, label: "Atelier", value: "Chowk, Lucknow, Uttar Pradesh, India 226003" },
-            { icon: Instagram, label: "Instagram", value: "@indianhandicraftstandards", href: "https://instagram.com" },
+            { icon: Instagram, label: "Instagram", value: "@indian_handicraft_standards", href: "https://www.instagram.com/indian_handicraft_standards" },
+            { icon: Facebook, label: "Facebook", value: "Indian Handicraft Standards", href: "https://www.facebook.com/share/18gmkPS1C4/" },
+            { icon: Youtube, label: "YouTube", value: "@indianhandicraftstandards8147", href: "http://www.youtube.com/@indianhandicraftstandards8147" },
           ].map((c) => (
             <a key={c.label} href={c.href ?? "#"} target={c.href ? "_blank" : undefined} rel="noreferrer" className="flex items-start gap-4 bg-card border border-border rounded-2xl p-4 hover:border-primary transition">
               <c.icon className="h-5 w-5 text-primary mt-0.5" />
