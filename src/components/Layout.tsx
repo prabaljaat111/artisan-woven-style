@@ -458,3 +458,88 @@ function Footer() {
     </footer>
   );
 }
+
+function SearchTriggerDesktop() {
+  const setSearchOpen = useUI((s) => s.setSearchOpen);
+  return (
+    <button onClick={() => setSearchOpen(true)} aria-label="Search" className="hidden md:inline-flex p-2 hover:text-primary">
+      <Search className="h-5 w-5" />
+    </button>
+  );
+}
+
+function SearchTriggerMobile() {
+  const setSearchOpen = useUI((s) => s.setSearchOpen);
+  return (
+    <button onClick={() => setSearchOpen(true)} aria-label="Search" className="md:hidden p-2 text-primary">
+      <Search className="h-5 w-5" />
+    </button>
+  );
+}
+
+function SearchOverlay() {
+  const { isSearchOpen, setSearchOpen } = useUI();
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    setQ("");
+    const t = setTimeout(() => inputRef.current?.focus(), 50);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSearchOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => { clearTimeout(t); document.removeEventListener("keydown", onKey); };
+  }, [isSearchOpen, setSearchOpen]);
+
+  const needle = q.trim().toLowerCase();
+  const results = needle
+    ? products.filter((p) => p.name.toLowerCase().includes(needle) || p.category.toLowerCase().includes(needle)).slice(0, 6)
+    : [];
+
+  const goAll = () => {
+    setSearchOpen(false);
+    navigate({ to: "/shop", search: { q: needle } as never });
+  };
+
+  return (
+    <AnimatePresence>
+      {isSearchOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-foreground/50 z-[80]" onClick={() => setSearchOpen(false)} />
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed top-0 inset-x-0 z-[81] bg-cream shadow-xl border-b border-border">
+            <div className="max-w-3xl mx-auto px-4 py-4">
+              <form onSubmit={(e) => { e.preventDefault(); if (needle) goAll(); }} className="flex items-center gap-2">
+                <Search className="h-5 w-5 text-primary" />
+                <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search kurtis, sarees, sharara…" className="flex-1 bg-transparent text-base outline-none py-2" />
+                <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close" className="p-1.5"><X className="h-5 w-5" /></button>
+              </form>
+              {needle && (
+                <div className="mt-3 border-t border-border pt-3">
+                  {results.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">No matches. Try a different keyword.</p>
+                  ) : (
+                    <ul className="space-y-1 max-h-[60vh] overflow-y-auto">
+                      {results.map((p) => (
+                        <li key={p.id}>
+                          <Link to="/product/$slug" params={{ slug: p.slug }} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition">
+                            <img src={p.images[0]} alt={p.name} className="h-12 w-12 object-cover rounded-md" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-foreground truncate">{p.name}</div>
+                              <div className="text-xs text-muted-foreground">₹{p.price.toLocaleString("en-IN")}</div>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button onClick={goAll} className="mt-2 w-full text-xs uppercase tracking-[0.2em] text-gold py-2 hover:text-primary transition">View all results →</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
