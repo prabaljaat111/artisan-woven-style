@@ -198,11 +198,11 @@ function MobileBottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const items = [
     { to: "/", icon: Home, label: "Home" },
-    { to: "/shop", icon: LayoutGrid, label: "Category" },
-    { to: "/shop", icon: Play, label: "Watch & Buy" },
-    { to: "/shop", icon: Tag, label: "Sale" },
-    { to: "/shop", icon: Sparkles, label: "What's New" },
-  ];
+    { to: "/category", icon: LayoutGrid, label: "Category" },
+    { to: "/watch-and-buy", icon: Play, label: "Watch & Buy" },
+    { to: "/sale", icon: Tag, label: "Sale" },
+    { to: "/whats-new", icon: Sparkles, label: "What's New" },
+  ] as const;
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/98 backdrop-blur border-t border-border">
       <div className="grid grid-cols-5">
