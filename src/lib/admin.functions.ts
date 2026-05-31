@@ -88,14 +88,12 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => ProductInput.parse(i))
   .handler(async ({ data }) => {
-    const payload = { ...data };
-    if (data.id) {
-      const { id, ...rest } = payload;
+    const { id, ...rest } = data;
+    if (id) {
       const { error } = await supabaseAdmin.from("products").update(rest).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     } else {
-      const { id: _omit, ...rest } = payload;
       const { data: row, error } = await supabaseAdmin.from("products").insert(rest).select("id").single();
       if (error) throw new Error(error.message);
       return { id: row.id };
