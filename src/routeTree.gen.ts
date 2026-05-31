@@ -15,11 +15,13 @@ import { Route as WatchAndBuyRouteImport } from './routes/watch-and-buy'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -62,6 +64,11 @@ const SizeGuideRoute = SizeGuideRouteImport.update({
   path: '/size-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -85,6 +92,11 @@ const ReturnsRoute = ReturnsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -152,11 +164,13 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
@@ -176,11 +190,13 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
@@ -201,11 +217,13 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
@@ -227,11 +245,13 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
+    | '/signup'
     | '/size-guide'
     | '/terms'
     | '/track-order'
@@ -251,11 +271,13 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
+    | '/signup'
     | '/size-guide'
     | '/terms'
     | '/track-order'
@@ -275,11 +297,13 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
+    | '/signup'
     | '/size-guide'
     | '/terms'
     | '/track-order'
@@ -300,11 +324,13 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
   SaleRoute: typeof SaleRoute
   ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
+  SignupRoute: typeof SignupRoute
   SizeGuideRoute: typeof SizeGuideRoute
   TermsRoute: typeof TermsRoute
   TrackOrderRoute: typeof TrackOrderRoute
@@ -359,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SizeGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -392,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -495,11 +535,13 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
   SaleRoute: SaleRoute,
   ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
+  SignupRoute: SignupRoute,
   SizeGuideRoute: SizeGuideRoute,
   TermsRoute: TermsRoute,
   TrackOrderRoute: TrackOrderRoute,
@@ -512,3 +554,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
