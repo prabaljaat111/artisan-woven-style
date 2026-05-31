@@ -7,6 +7,8 @@ interface UIState {
   setMobileNavOpen: (v: boolean) => void;
   exitIntentShown: boolean;
   setExitIntentShown: (v: boolean) => void;
+  isSearchOpen: boolean;
+  setSearchOpen: (v: boolean) => void;
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -16,4 +18,6 @@ export const useUI = create<UIState>((set) => ({
   setMobileNavOpen: (v) => set({ isMobileNavOpen: v }),
   exitIntentShown: false,
   setExitIntentShown: (v) => set({ exitIntentShown: v }),
+  isSearchOpen: false,
+  setSearchOpen: (v) => set({ isSearchOpen: v }),
 }));
