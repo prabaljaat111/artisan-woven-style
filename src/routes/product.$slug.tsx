@@ -66,7 +66,7 @@ function ProductPage() {
           </div>
           <p className="text-[11px] text-terracotta mt-2">🔥 24 people viewed this in the last hour</p>
           <div className="mt-6">
-            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><button className="text-xs text-gold underline">Size Guide</button></div>
+            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><Link to="/size-guide" className="text-xs text-gold underline">Size Guide</Link></div>
             <div className="flex flex-wrap gap-2">
               {p.sizes.map((s: string) => (<button key={s} onClick={() => setSize(s)} className={cn("min-w-[44px] h-11 px-3 border rounded-md text-sm", size === s ? "bg-primary text-primary-foreground border-primary" : "border-border")}>{s}</button>))}
             </div>
@@ -99,6 +99,7 @@ function ProductPage() {
             ))}
           </div>
           <div className="mt-8"><h2 className="font-display text-lg text-primary mb-2">Description</h2><p className="text-sm text-foreground/85 leading-relaxed">{p.description}</p></div>
+          <p className="text-[11px] text-muted-foreground italic mt-2">Handmade in Lucknow — slight variation in colour and embroidery placement is the signature of true Chikankari.</p>
           <Accordion type="single" collapsible className="mt-6">
             <AccordionItem value="fabric"><AccordionTrigger>Fabric & Care</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Premium cotton / georgette. Gentle hand wash separately in cold water. Dry in shade. Iron on reverse.</AccordionContent></AccordionItem>
             <AccordionItem value="ship"><AccordionTrigger>Shipping & Returns</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Ships in 2–4 business days. Free shipping above ₹999. 7-day easy returns on unworn items.</AccordionContent></AccordionItem>
