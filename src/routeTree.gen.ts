@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as WatchAndBuyRouteImport } from './routes/watch-and-buy'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
@@ -39,6 +40,11 @@ const WishlistRoute = WishlistRouteImport.update({
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
   path: '/whats-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WatchAndBuyRoute = WatchAndBuyRouteImport.update({
+  id: '/watch-and-buy',
+  path: '/watch-and-buy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackOrderRoute = TrackOrderRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
     | '/api/chat'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
     | '/api/chat'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
     | '/api/chat'
@@ -296,6 +308,7 @@ export interface RootRouteChildren {
   SizeGuideRoute: typeof SizeGuideRoute
   TermsRoute: typeof TermsRoute
   TrackOrderRoute: typeof TrackOrderRoute
+  WatchAndBuyRoute: typeof WatchAndBuyRoute
   WhatsNewRoute: typeof WhatsNewRoute
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -316,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/watch-and-buy': {
+      id: '/watch-and-buy'
+      path: '/watch-and-buy'
+      fullPath: '/watch-and-buy'
+      preLoaderRoute: typeof WatchAndBuyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track-order': {
@@ -483,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   SizeGuideRoute: SizeGuideRoute,
   TermsRoute: TermsRoute,
   TrackOrderRoute: TrackOrderRoute,
+  WatchAndBuyRoute: WatchAndBuyRoute,
   WhatsNewRoute: WhatsNewRoute,
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
