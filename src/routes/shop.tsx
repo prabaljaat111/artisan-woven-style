@@ -1,27 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X, Search } from "lucide-react";
 import { products, categories } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   head: () => ({ meta: [{ title: "Shop All — Indian Handicraft Standards" }, { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." }] }),
 });
 
 function ShopPage() {
+  const { q: initialQ } = Route.useSearch();
+  const [q, setQ] = useState(initialQ);
   const [cats, setCats] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(6000);
   const [sort, setSort] = useState("popular");
   const [open, setOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    let list = products.filter((p) => p.price <= maxPrice && (cats.length === 0 || cats.includes(p.category)));
+    const needle = q.trim().toLowerCase();
+    let list = products.filter((p) =>
+      p.price <= maxPrice
+      && (cats.length === 0 || cats.includes(p.category))
+      && (needle === "" || p.name.toLowerCase().includes(needle) || p.category.toLowerCase().includes(needle))
+    );
     if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "new") list = [...list].sort((a, b) => Number(b.isNew ?? 0) - Number(a.isNew ?? 0));
     return list;
-  }, [cats, maxPrice, sort]);
+  }, [cats, maxPrice, sort, q]);
 
   const FilterPanel = (
     <div className="space-y-6">
@@ -49,6 +57,20 @@ function ShopPage() {
         <h1 className="font-display text-3xl md:text-5xl text-primary">The Collection</h1>
         <div className="gold-underline w-24 mx-auto mt-3" />
         <p className="text-sm text-muted-foreground mt-3">{filtered.length} pieces</p>
+      </div>
+      <div className="relative max-w-md mx-auto mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search kurtis, sarees, sharara…"
+          className="w-full pl-9 pr-9 py-2.5 border border-border rounded-full text-sm bg-background focus:outline-none focus:border-gold"
+        />
+        {q && (
+          <button onClick={() => setQ("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
       <div className="flex items-center justify-between mb-6 gap-3">
         <button onClick={() => setOpen(true)} className="md:hidden flex items-center gap-2 text-sm border border-border rounded-full px-4 py-2">
