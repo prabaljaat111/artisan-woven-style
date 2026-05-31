@@ -19,7 +19,7 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate({ to: isAdmin ? "/_admin" : "/", replace: true });
+      navigate({ to: isAdmin ? "/admin" : "/", replace: true });
     }
   }, [user, isAdmin, loading, navigate]);
 
