@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight, Instagram, Facebook, Youtube } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,11 +6,10 @@ import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { LotusMark } from "./LotusMark";
-import { categories } from "@/data/products";
+import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/logo.png";
-
-const WHATSAPP_URL = "https://wa.me/919999999999";
+import { WHATSAPP_URL } from "@/lib/contact";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -25,6 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <MobileBottomNav />
       <FloatingButtons />
       <ChatWidget />
+      <SearchOverlay />
       <ExitIntent />
     </div>
   );
