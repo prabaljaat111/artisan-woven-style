@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as WhatsNewRouteImport } from './routes/whats-new'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
@@ -33,6 +34,11 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WhatsNewRoute = WhatsNewRouteImport.update({
+  id: '/whats-new',
+  path: '/whats-new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackOrderRoute = TrackOrderRouteImport.update({
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
+  '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/whats-new'
     | '/wishlist'
     | '/api/chat'
     | '/category/$slug'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/whats-new'
     | '/wishlist'
     | '/api/chat'
     | '/category/$slug'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/size-guide'
     | '/terms'
     | '/track-order'
+    | '/whats-new'
     | '/wishlist'
     | '/api/chat'
     | '/category/$slug'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   SizeGuideRoute: typeof SizeGuideRoute
   TermsRoute: typeof TermsRoute
   TrackOrderRoute: typeof TrackOrderRoute
+  WhatsNewRoute: typeof WhatsNewRoute
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
   ProductSlugRoute: typeof ProductSlugRoute
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/whats-new': {
+      id: '/whats-new'
+      path: '/whats-new'
+      fullPath: '/whats-new'
+      preLoaderRoute: typeof WhatsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track-order': {
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   SizeGuideRoute: SizeGuideRoute,
   TermsRoute: TermsRoute,
   TrackOrderRoute: TrackOrderRoute,
+  WhatsNewRoute: WhatsNewRoute,
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
   ProductSlugRoute: ProductSlugRoute,
