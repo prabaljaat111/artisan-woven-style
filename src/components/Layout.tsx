@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight, Instagram, Facebook, Youtube } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
@@ -237,26 +237,126 @@ function FloatingButtons() {
 
 function ChatWidget() {
   const { isChatOpen, setChatOpen } = useUI();
-  const chips = ["Track Order", "Size Guide", "WhatsApp Us", "Return Policy"];
+  type Msg = { role: "user" | "assistant"; content: string };
+  const [messages, setMessages] = useState<Msg[]>([
+    { role: "assistant", content: "Hi! I'm your Chikan Concierge 🌸 Ask me about sizes, fabrics, shipping, or our handcrafted Chikankari pieces." },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const chips = ["What sizes do you offer?", "How do I track my order?", "Care instructions?", "Return policy?"];
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const send = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading) return;
+    const userMsg: Msg = { role: "user", content: trimmed };
+    const next = [...messages, userMsg];
+    setMessages(next);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const resp = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        let errMsg = "Something went wrong. Please try again or chat with us on WhatsApp.";
+        try {
+          const j = await resp.json();
+          if (j?.error) errMsg = j.error;
+        } catch {}
+        setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
+        setIsLoading(false);
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let assistant = "";
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      const flush = (chunk: string) => {
+        assistant += chunk;
+        setMessages((prev) => {
+          const copy = [...prev];
+          copy[copy.length - 1] = { role: "assistant", content: assistant };
+          return copy;
+        });
+      };
+
+      let done = false;
+      while (!done) {
+        const { done: d, value } = await reader.read();
+        if (d) break;
+        buffer += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, nl);
+          buffer = buffer.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line || line.startsWith(":")) continue;
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") { done = true; break; }
+          try {
+            const parsed = JSON.parse(json);
+            const c = parsed.choices?.[0]?.delta?.content;
+            if (c) flush(c);
+          } catch {
+            buffer = line + "\n" + buffer;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("chat error", e);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Connection lost. Please try WhatsApp for now." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isChatOpen && (
-        <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="fixed right-3 bottom-44 md:bottom-24 z-50 w-[300px] bg-cream rounded-2xl shadow-2xl border border-border overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="fixed right-3 bottom-44 md:bottom-24 z-50 w-[320px] max-w-[calc(100vw-1.5rem)] bg-cream rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col" style={{ maxHeight: "min(70vh, 520px)" }}>
           <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
             <div>
               <div className="font-display text-base">Chikan Concierge</div>
-              <div className="text-[11px] opacity-80">Usually replies in minutes</div>
+              <div className="text-[11px] opacity-80">AI assistant · Replies instantly</div>
             </div>
             <button onClick={() => setChatOpen(false)} aria-label="Close chat"><X className="h-4 w-4" /></button>
           </div>
-          <div className="p-4 space-y-3">
-            <div className="bg-secondary rounded-2xl rounded-tl-sm p-3 text-sm">Hi! Ask us anything about our Chikankari collection 🌸</div>
-            <div className="flex flex-wrap gap-2">
-              {chips.map((c) => (
-                <a key={c} href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-xs border border-gold text-primary rounded-full px-3 py-1.5 hover:bg-gold/20 transition">{c}</a>
-              ))}
-            </div>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((m, i) => (
+              <div key={i} className={cn("rounded-2xl p-3 text-sm whitespace-pre-wrap leading-relaxed max-w-[85%]", m.role === "assistant" ? "bg-secondary rounded-tl-sm" : "bg-primary text-primary-foreground rounded-tr-sm ml-auto")}>
+                {m.content || (isLoading && i === messages.length - 1 ? <span className="opacity-60">…</span> : "")}
+              </div>
+            ))}
+            {messages.length <= 1 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {chips.map((c) => (
+                  <button key={c} onClick={() => send(c)} className="text-xs border border-gold text-primary rounded-full px-3 py-1.5 hover:bg-gold/20 transition">{c}</button>
+                ))}
+              </div>
+            )}
           </div>
+          <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="border-t border-border p-2 flex gap-2 bg-background">
+            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about sizes, shipping…" className="flex-1 bg-transparent text-sm px-3 py-2 outline-none" disabled={isLoading} />
+            <button type="submit" disabled={isLoading || !input.trim()} className="bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-md disabled:opacity-50">Send</button>
+          </form>
+          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-[11px] text-center py-1.5 bg-secondary text-primary hover:underline">Prefer WhatsApp? Chat with a human →</a>
         </motion.div>
       )}
     </AnimatePresence>
