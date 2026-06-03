@@ -1,4 +1,4 @@
-import ihsMark from "@/assets/brand/ihs-mark.png.asset.json";
+import ihsLetters from "@/assets/brand/ihs-letters.png.asset.json";
 import ihsFull from "@/assets/brand/ihs-full-logo.png.asset.json";
 
 interface BrandLogoProps {
@@ -41,7 +41,7 @@ export function BrandLogo({
       aria-label="Indian Handicraft Standards — The Art of Chikankari"
     >
       <img
-        src={ihsMark.url}
+        src={ihsLetters.url}
         alt=""
         aria-hidden="true"
         className={`${s.mark} object-contain shrink-0 ${
