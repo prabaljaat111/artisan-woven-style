@@ -36,6 +36,7 @@ import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 
@@ -174,6 +175,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/leads'
     | '/admin/orders'
+    | '/admin/products'
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/leads'
     | '/admin/orders'
+    | '/admin/products'
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/leads'
     | '/admin/orders'
+    | '/admin/products'
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
@@ -590,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/products': {
+      id: '/admin/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/orders'
@@ -610,6 +629,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminProductsRoute: typeof AdminProductsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShipmentsRoute: typeof AdminShipmentsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -618,6 +638,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLeadsRoute: AdminLeadsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
+  AdminProductsRoute: AdminProductsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShipmentsRoute: AdminShipmentsRoute,
   AdminIndexRoute: AdminIndexRoute,
