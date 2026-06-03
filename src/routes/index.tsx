@@ -42,6 +42,9 @@ function HeroSlider() {
           key={i}
           src={slide.img}
           alt={slide.title}
+          loading={i === 0 ? "eager" : "lazy"}
+          decoding="async"
+          {...(i === 0 ? { fetchpriority: "high" as never } : {})}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
@@ -146,7 +149,7 @@ function Index() {
             {circleCats.map((c) => (
               <Link key={c.label} to={c.to as "/shop"} params={c.params as never} className="flex flex-col items-center gap-2.5 min-w-[72px] group">
                 <div className="relative h-20 w-20 md:h-[5.5rem] md:w-[5.5rem] rounded-full overflow-hidden bg-secondary/40 ring-1 ring-border group-hover:ring-primary group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300">
-                  <img src={c.img} alt={c.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={c.img} alt={c.label} loading="lazy" decoding="async" width={88} height={88} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 <span className="text-[11px] md:text-xs font-medium text-foreground/70 group-hover:text-primary transition-colors text-center leading-tight">{c.label}</span>
               </Link>
