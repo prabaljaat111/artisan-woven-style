@@ -112,7 +112,7 @@ export const products: Product[] = base.map((p, i) => {
     isNew: i % 5 === 0,
     isBestseller: i % 4 === 0,
     isSale: p.originalPrice - p.price >= 1000,
-    isDemo: true,
+    isDemo: i >= 14,
     cardShape: shapes[i % shapes.length],
   };
 });
