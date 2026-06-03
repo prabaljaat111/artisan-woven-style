@@ -33,7 +33,7 @@ export async function setShiprocketSettings(patch: Partial<SrSettings>): Promise
   const next = { ...current, ...patch };
   await supabaseAdmin
     .from("app_settings")
-    .upsert({ key: "shiprocket", value: next as unknown as Record<string, unknown> });
+    .upsert({ key: "shiprocket", value: next as never });
   return next;
 }
 
@@ -56,7 +56,7 @@ async function readCachedToken(): Promise<CachedToken | null> {
 async function writeCachedToken(token: string, expires_at: number) {
   await supabaseAdmin
     .from("app_settings")
-    .upsert({ key: "shiprocket_token", value: { token, expires_at } });
+    .upsert({ key: "shiprocket_token", value: { token, expires_at } as never });
 }
 
 export async function getShiprocketToken(forceRefresh = false): Promise<string> {
@@ -239,7 +239,7 @@ export async function createSrOrderForOrder(orderId: string) {
       sr_order_id,
       sr_shipment_id,
       status: sr_shipment_id ? "created" : "failed",
-      raw: resp as unknown as Record<string, unknown>,
+      raw: resp as never,
       error: sr_shipment_id ? null : (resp.message ?? "Shiprocket did not return shipment_id"),
     },
     { onConflict: "order_id" },
@@ -277,7 +277,7 @@ export async function assignAwbForShipment(shipmentId: string, courierId?: numbe
       courier_company_id: d.courier_company_id ?? null,
       courier_name: d.courier_name ?? null,
       status: "awb_assigned",
-      raw: resp as unknown as Record<string, unknown>,
+      raw: resp as never,
     })
     .eq("id", shipmentId);
 
@@ -317,7 +317,7 @@ export async function generatePickupForShipment(shipmentId: string) {
       status: "pickup_scheduled",
       pickup_scheduled_date: r?.pickup_scheduled_date ?? null,
       pickup_token_number: r?.pickup_token_number ? String(r.pickup_token_number) : null,
-      raw: resp as unknown as Record<string, unknown>,
+      raw: resp as never,
     })
     .eq("id", shipmentId);
   return resp;
@@ -335,7 +335,7 @@ async function generateUrl(
     body: JSON.stringify(payload),
   });
   const url = resp[responseField] as string | undefined;
-  if (url) await supabaseAdmin.from("shipments").update({ [field]: url }).eq("id", shipmentId);
+  if (url) await supabaseAdmin.from("shipments").update({ [field]: url } as never).eq("id", shipmentId);
   return { url: url ?? null, raw: resp };
 }
 
