@@ -32,7 +32,9 @@ export function useAuth(): AuthState {
         setState({ loading: false, user: null, session: null, isAdmin: false });
         return;
       }
-      setState((s) => ({ ...s, loading: false, user: session.user, session }));
+      // Keep loading=true until the role check resolves so consumers
+      // (e.g. /login redirect) don't act on a stale isAdmin=false.
+      setState((s) => ({ ...s, loading: true, user: session.user, session }));
       // Defer role lookup so it doesn't deadlock the listener
       setTimeout(async () => {
         const isAdmin = await checkRole(session.user.id);
