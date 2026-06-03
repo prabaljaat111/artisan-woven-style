@@ -14,6 +14,14 @@ import tunicWhite from "@/assets/products/tunic-white.jpg";
 import noodleStrap from "@/assets/products/noodle-strap.jpg";
 import pantsWhite from "@/assets/products/pants-white.jpg";
 import anarkaliBridal from "@/assets/products/anarkali-bridal.jpg";
+import coordPeach from "@/assets/products/coord-peach.jpg";
+import coordBlue from "@/assets/products/coord-blue.jpg";
+import kurtaSetSage from "@/assets/products/kurta-set-sage.jpg";
+import kurtaSetLavender from "@/assets/products/kurta-set-lavender.jpg";
+import kurtiBlack from "@/assets/products/kurti-black.jpg";
+import kurtiYellow from "@/assets/products/kurti-yellow.jpg";
+import sareeTurquoise from "@/assets/products/saree-turquoise.jpg";
+import sareeRed from "@/assets/products/saree-red.jpg";
 
 export interface Product {
   id: string;
@@ -31,12 +39,15 @@ export interface Product {
   reviews: number;
   isNew?: boolean;
   isBestseller?: boolean;
+  isSale?: boolean;
+  isDemo?: boolean;
   cardShape: CardShape;
 }
 
 export const categories = [
   { slug: "kurtis", name: "Kurtis" },
   { slug: "kurta-sets", name: "Kurta Sets" },
+  { slug: "co-ord-sets", name: "Co-ord Sets" },
   { slug: "palazzo-sets", name: "Palazzo Sets" },
   { slug: "sharara-sets", name: "Sharara Sets" },
   { slug: "garara-sets", name: "Garara Sets" },
@@ -67,6 +78,14 @@ const base = [
   { name: "White Noodle-Strap Chikankari Top", category: "noodle-strap", price: 349, originalPrice: 599, image: noodleStrap, color: "White" },
   { name: "White Chikankari Cotton Pants", category: "pants", price: 599, originalPrice: 999, image: pantsWhite, color: "White" },
   { name: "Heritage Bridal Chikankari Anarkali", category: "kurta-sets", price: 4999, originalPrice: 7999, image: anarkaliBridal, color: "Bridal Red" },
+  { name: "Pastel Peach Chikankari Co-ord Set", category: "co-ord-sets", price: 1799, originalPrice: 2899, image: coordPeach, color: "Peach" },
+  { name: "Powder Blue Chikankari Co-ord Set", category: "co-ord-sets", price: 1899, originalPrice: 2999, image: coordBlue, color: "Powder Blue" },
+  { name: "Sage Green Chikankari Kurta Set with Dupatta", category: "kurta-sets", price: 1699, originalPrice: 2699, image: kurtaSetSage, color: "Sage Green" },
+  { name: "Lavender Mukaish Chikankari Kurta Set", category: "kurta-sets", price: 1999, originalPrice: 3199, image: kurtaSetLavender, color: "Lavender" },
+  { name: "Midnight Black Silver-Thread Chikankari Kurti", category: "kurtis", price: 899, originalPrice: 1499, image: kurtiBlack, color: "Black" },
+  { name: "Sunshine Yellow Cotton Chikankari Kurti", category: "kurtis", price: 649, originalPrice: 999, image: kurtiYellow, color: "Yellow" },
+  { name: "Turquoise Georgette Chikankari Saree", category: "sarees", price: 2799, originalPrice: 4199, image: sareeTurquoise, color: "Turquoise" },
+  { name: "Royal Red Silk Chikankari Saree with Zari Border", category: "sarees", price: 3499, originalPrice: 5499, image: sareeRed, color: "Red" },
 ];
 
 // Deterministic ratings/reviews so SSR markup matches client render (no hydration flicker).
@@ -92,6 +111,8 @@ export const products: Product[] = base.map((p, i) => {
     reviews: REVIEW_SEED[i % REVIEW_SEED.length],
     isNew: i % 5 === 0,
     isBestseller: i % 4 === 0,
+    isSale: p.originalPrice - p.price >= 1000,
+    isDemo: true,
     cardShape: shapes[i % shapes.length],
   };
 });

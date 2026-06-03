@@ -88,7 +88,7 @@ function ShopPage() {
         <aside className="hidden md:block">{FilterPanel}</aside>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {filtered.map((p) => (
-            <LandmarkCard key={p.id} id={p.id} slug={p.slug} title={p.name} price={p.price} originalPrice={p.originalPrice} image={p.images[0]} shape={p.cardShape} badge={p.isBestseller ? "Bestseller" : p.isNew ? "New" : undefined} />
+            <LandmarkCard key={p.id} id={p.id} slug={p.slug} title={p.name} price={p.price} originalPrice={p.originalPrice} image={p.images[0]} shape={p.cardShape} isDemo={p.isDemo} badge={p.isBestseller ? "Bestseller" : p.isNew ? "New" : undefined} />
           ))}
         </div>
       </div>

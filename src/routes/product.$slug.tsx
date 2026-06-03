@@ -64,6 +64,11 @@ function ProductPage() {
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-gold">{p.category}</p>
           <h1 className="font-display text-3xl md:text-4xl text-primary mt-2">{p.name}</h1>
+          {p.isDemo && (
+            <p className="mt-2 inline-block text-[10px] uppercase tracking-[0.2em] bg-secondary/70 border border-border text-foreground/70 px-2 py-1 rounded">
+              Sample product · For preview only
+            </p>
+          )}
           <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
             <Star className="h-4 w-4 fill-gold text-gold" /> {p.rating.toFixed(1)} ({p.reviews} reviews)
           </div>
@@ -119,7 +124,7 @@ function ProductPage() {
         <section className="max-w-7xl mx-auto px-4 py-12 border-t border-border">
           <h2 className="font-display text-2xl md:text-3xl text-primary text-center mb-8">You May Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {related.map((r) => (<LandmarkCard key={r.id} id={r.id} slug={r.slug} title={r.name} price={r.price} originalPrice={r.originalPrice} image={r.images[0]} shape={r.cardShape} />))}
+            {related.map((r) => (<LandmarkCard key={r.id} id={r.id} slug={r.slug} title={r.name} price={r.price} originalPrice={r.originalPrice} image={r.images[0]} shape={r.cardShape} isDemo={r.isDemo} />))}
           </div>
         </section>
       )}

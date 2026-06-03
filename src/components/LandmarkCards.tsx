@@ -15,9 +15,10 @@ interface CardProps {
   originalPrice?: number;
   shape?: string;
   badge?: string;
+  isDemo?: boolean;
 }
 
-export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge }: CardProps) {
+export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge, isDemo }: CardProps) {
   const { ids, toggle } = useWishlist();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -34,6 +35,9 @@ export function LandmarkCard({ id, slug, image, title, price, originalPrice, bad
           )}
           {discount > 0 && (
             <span className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-1 rounded">-{discount}%</span>
+          )}
+          {isDemo && (
+            <span className="absolute bottom-2 left-2 z-10 bg-background/85 backdrop-blur text-foreground/80 text-[9px] font-medium px-1.5 py-0.5 rounded tracking-wider uppercase border border-border">Sample</span>
           )}
           <button aria-label="Toggle wishlist" onClick={(e) => { e.preventDefault(); const wasWished = ids.includes(id); toggle(id); toast(wasWished ? "Removed from wishlist" : "Added to wishlist 🌸"); }} className="absolute bottom-2 right-2 z-20 h-9 w-9 rounded-full bg-background/95 backdrop-blur flex items-center justify-center shadow hover:bg-background transition">
             <Heart className={cn("h-4 w-4", wished ? "fill-accent text-accent" : "text-foreground")} />
