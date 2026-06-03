@@ -140,15 +140,15 @@ function Index() {
       </section>
 
       {/* Circular category strip */}
-      <section className="bg-background">
-        <div className="max-w-7xl mx-auto px-3 py-6 overflow-x-auto">
-          <div className="flex gap-5 md:gap-8 min-w-max md:justify-center">
+      <section className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-3 py-8 overflow-x-auto">
+          <div className="flex gap-5 md:gap-10 min-w-max md:justify-center">
             {circleCats.map((c) => (
-              <Link key={c.label} to={c.to as "/shop"} params={c.params as never} className="flex flex-col items-center gap-2 min-w-[72px] group">
-                <div className="h-20 w-20 md:h-24 md:w-24 rounded-full overflow-hidden border border-border bg-secondary/60 group-hover:border-primary transition">
-                  <img src={c.img} alt={c.label} className="w-full h-full object-cover" />
+              <Link key={c.label} to={c.to as "/shop"} params={c.params as never} className="flex flex-col items-center gap-2.5 min-w-[72px] group">
+                <div className="relative h-20 w-20 md:h-[5.5rem] md:w-[5.5rem] rounded-full overflow-hidden bg-secondary/40 ring-1 ring-border group-hover:ring-primary group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300">
+                  <img src={c.img} alt={c.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
-                <span className="text-xs text-foreground/80">{c.label}</span>
+                <span className="text-[11px] md:text-xs font-medium text-foreground/70 group-hover:text-primary transition-colors text-center leading-tight">{c.label}</span>
               </Link>
             ))}
           </div>
