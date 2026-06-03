@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
+import { BrandLogo } from "./BrandLogo";
 import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
-import logoUrl from "@/assets/logo.png";
 import { WHATSAPP_URL } from "@/lib/contact";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -55,11 +55,7 @@ function Header() {
           <SearchTriggerDesktop />
         </div>
         <Link to="/" className="justify-self-center text-center shrink-0">
-          <img
-            src={logoUrl}
-            alt="Indian Handicraft Standards"
-            className="h-12 md:h-16 w-auto mx-auto shrink-0 object-contain max-w-none"
-          />
+          <BrandLogo size="lg" />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
@@ -96,7 +92,7 @@ function Header() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border" style={{ backgroundColor: "#FFFFFF" }}>
-              <img src={logoUrl} alt="Indian Handicraft Standards" className="h-14 w-auto" />
+              <BrandLogo size="md" />
               <button
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
@@ -399,7 +395,9 @@ function Footer() {
     <footer className="bg-primary text-primary-foreground mt-16">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <div className="col-span-2 md:col-span-1">
-          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-24 w-auto bg-white rounded-md p-2" />
+          <div className="inline-block bg-white rounded-md px-3 py-2">
+            <BrandLogo size="lg" />
+          </div>
           <p className="text-xs mt-3 opacity-80 leading-relaxed">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
         </div>
         <div>
