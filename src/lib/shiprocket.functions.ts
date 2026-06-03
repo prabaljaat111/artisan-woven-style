@@ -90,7 +90,8 @@ export const adminCreateShipment = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ order_id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
     const { createSrOrderForOrder } = await import("./shiprocket.server");
-    return createSrOrderForOrder(data.order_id);
+    const r = await createSrOrderForOrder(data.order_id);
+    return { sr_order_id: r.sr_order_id, sr_shipment_id: r.sr_shipment_id };
   });
 
 export const adminAssignAwb = createServerFn({ method: "POST" })
@@ -103,7 +104,12 @@ export const adminAssignAwb = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { assignAwbForShipment } = await import("./shiprocket.server");
-    return assignAwbForShipment(data.shipment_id, data.courier_id);
+    const r = await assignAwbForShipment(data.shipment_id, data.courier_id);
+    return {
+      awb_code: r.awb_code ?? null,
+      courier_company_id: r.courier_company_id ?? null,
+      courier_name: r.courier_name ?? null,
+    };
   });
 
 export const adminGeneratePickup = createServerFn({ method: "POST" })
@@ -111,7 +117,11 @@ export const adminGeneratePickup = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ shipment_id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
     const { generatePickupForShipment } = await import("./shiprocket.server");
-    return generatePickupForShipment(data.shipment_id);
+    const r = await generatePickupForShipment(data.shipment_id);
+    return {
+      pickup_scheduled_date: r.response?.pickup_scheduled_date ?? null,
+      pickup_token_number: r.response?.pickup_token_number ? String(r.response.pickup_token_number) : null,
+    };
   });
 
 export const adminGenerateLabel = createServerFn({ method: "POST" })
