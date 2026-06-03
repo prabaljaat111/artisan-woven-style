@@ -6,6 +6,7 @@ import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { BrandLogo } from "./BrandLogo";
+import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
