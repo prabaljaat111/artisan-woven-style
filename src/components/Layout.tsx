@@ -433,12 +433,41 @@ function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
             {/* Social */}
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <span className="opacity-70 uppercase tracking-[0.2em] text-[11px]">Follow us</span>
-              <div className="flex items-center gap-4">
-                <a href="https://www.instagram.com/indian_handicraft_standards" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:text-gold transition hover:scale-110 duration-300"><Instagram className="h-5 w-5" /></a>
-                <a href="https://www.facebook.com/share/18gmkPS1C4/" target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:text-gold transition hover:scale-110 duration-300"><Facebook className="h-5 w-5" /></a>
-                <a href="http://www.youtube.com/@indianhandicraftstandards8147" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover:text-gold transition hover:scale-110 duration-300"><Youtube className="h-5 w-5" /></a>
+            <div className="flex flex-col items-center md:items-start gap-5">
+              <div className="flex flex-col items-center md:items-start gap-2.5">
+                <span className="font-display text-sm md:text-[15px] font-semibold uppercase tracking-[0.25em] text-gold">
+                  Follow Us
+                </span>
+                <div className="gold-underline w-10" />
+              </div>
+              <div className="flex items-center gap-5 md:gap-6">
+                <a
+                  href="https://www.instagram.com/indian_handicraft_standards"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Instagram"
+                  className="group relative flex items-center justify-center h-[52px] w-[52px] rounded-full border border-primary-foreground/15 bg-primary-foreground/[0.06] text-primary-foreground/75 backdrop-blur-sm transition-all duration-500 ease-out hover:scale-[1.12] hover:border-gold/50 hover:bg-gold/10 hover:text-gold hover:shadow-[0_0_30px_rgba(201,168,76,0.2)] active:scale-95"
+                >
+                  <Instagram className="h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} />
+                </a>
+                <a
+                  href="https://www.facebook.com/share/18gmkPS1C4/"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook"
+                  className="group relative flex items-center justify-center h-[52px] w-[52px] rounded-full border border-primary-foreground/15 bg-primary-foreground/[0.06] text-primary-foreground/75 backdrop-blur-sm transition-all duration-500 ease-out hover:scale-[1.12] hover:border-gold/50 hover:bg-gold/10 hover:text-gold hover:shadow-[0_0_30px_rgba(201,168,76,0.2)] active:scale-95"
+                >
+                  <Facebook className="h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} />
+                </a>
+                <a
+                  href="http://www.youtube.com/@indianhandicraftstandards8147"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="YouTube"
+                  className="group relative flex items-center justify-center h-[52px] w-[52px] rounded-full border border-primary-foreground/15 bg-primary-foreground/[0.06] text-primary-foreground/75 backdrop-blur-sm transition-all duration-500 ease-out hover:scale-[1.12] hover:border-gold/50 hover:bg-gold/10 hover:text-gold hover:shadow-[0_0_30px_rgba(201,168,76,0.2)] active:scale-95"
+                >
+                  <Youtube className="h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110" strokeWidth={1.5} />
+                </a>
               </div>
             </div>
 
