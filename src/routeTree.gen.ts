@@ -33,6 +33,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -155,6 +157,16 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminShipmentsRoute = AdminShipmentsRouteImport.update({
+  id: '/shipments',
+  path: '/shipments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -184,6 +196,8 @@ export interface FileRoutesByFullPath {
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -211,6 +225,8 @@ export interface FileRoutesByTo {
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -239,6 +255,8 @@ export interface FileRoutesById {
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -268,6 +286,8 @@ export interface FileRouteTypes {
     | '/whats-new'
     | '/wishlist'
     | '/admin/leads'
+    | '/admin/settings'
+    | '/admin/shipments'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -295,6 +315,8 @@ export interface FileRouteTypes {
     | '/whats-new'
     | '/wishlist'
     | '/admin/leads'
+    | '/admin/settings'
+    | '/admin/shipments'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -322,6 +344,8 @@ export interface FileRouteTypes {
     | '/whats-new'
     | '/wishlist'
     | '/admin/leads'
+    | '/admin/settings'
+    | '/admin/shipments'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -523,6 +547,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/shipments': {
+      id: '/admin/shipments'
+      path: '/shipments'
+      fullPath: '/admin/shipments'
+      preLoaderRoute: typeof AdminShipmentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/leads': {
       id: '/admin/leads'
       path: '/leads'
@@ -535,10 +573,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminLeadsRoute: typeof AdminLeadsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminShipmentsRoute: typeof AdminShipmentsRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLeadsRoute: AdminLeadsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminShipmentsRoute: AdminShipmentsRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
