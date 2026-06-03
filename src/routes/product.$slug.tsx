@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { findProduct, products, type Product } from "@/data/products";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
+import { useUI } from "@/store/ui";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -34,6 +35,11 @@ function ProductPage() {
   const { ids, toggle } = useWishlist();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const incrementProductView = useUI((s) => s.incrementProductView);
+  useEffect(() => {
+    incrementProductView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
   const wished = mounted && ids.includes(p.id);
   const related = products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4);
 

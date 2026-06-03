@@ -1,5 +1,5 @@
 import { Link, useRouterState, Outlet, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, Users, Percent, Star, LogOut, Folder } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, Percent, Star, LogOut, Folder, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/leads", label: "Leads", icon: MessageSquare },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { to: "/admin/customers", label: "Customers", icon: Users },
