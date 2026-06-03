@@ -87,7 +87,7 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
       .from("orders")
       .update({
         payment_status: "paid",
-        status: "confirmed",
+        status: "paid",
         payment_reference: data.razorpay_payment_id,
       })
       .eq("id", data.order_id)
