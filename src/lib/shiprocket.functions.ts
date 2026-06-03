@@ -156,7 +156,7 @@ export const adminTrackShipment = createServerFn({ method: "POST" })
       .from("shipments")
       .update({ last_tracking: tracking as never })
       .eq("id", data.shipment_id);
-    return JSON.parse(JSON.stringify(tracking)) as unknown;
+    return { tracking: JSON.stringify(tracking) };
   });
 
 export const adminCancelShipment = createServerFn({ method: "POST" })
@@ -174,7 +174,7 @@ export const adminCancelShipment = createServerFn({ method: "POST" })
       .from("shipments").update({ status: "cancelled" }).eq("id", data.shipment_id);
     await supabaseAdmin
       .from("orders").update({ status: "cancelled" }).eq("id", r.order_id);
-    return { ok: true, response: JSON.parse(JSON.stringify(resp)) as unknown };
+    return { ok: true, response: JSON.stringify(resp) };
   });
 
 // ----- ADMIN SETTINGS -----
