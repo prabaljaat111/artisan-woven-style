@@ -1,19 +1,148 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
+import { createOrder } from "@/lib/orders.functions";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 
 export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
+
+declare global {
+  interface Window {
+    Razorpay?: new (opts: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
+
+interface AddressForm {
+  name: string;
+  email: string;
+  phone: string;
+  line1: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
 
 function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const { items, totalPrice, clear } = useCart();
   const [mounted, setMounted] = useState(false);
-  const [orderId, setOrderId] = useState("IHS00000");
-  useEffect(() => {
-    setMounted(true);
-    setOrderId("IHS" + Math.floor(Math.random() * 100000));
-  }, []);
+  const [orderNumber, setOrderNumber] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState<AddressForm>({
+    name: "", email: "", phone: "", line1: "", city: "", state: "", pincode: "",
+  });
+  useEffect(() => { setMounted(true); }, []);
   const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
+
+  const handlePlaceOrder = async () => {
+    setError(null);
+    setProcessing(true);
+    try {
+      const orderItems = items.map((i) => ({
+        product_id: null,
+        product_name: i.name,
+        product_slug: i.slug,
+        image: i.image,
+        size: i.size,
+        color: i.color,
+        qty: i.qty,
+        price: i.price,
+      }));
+      const created = await createOrder({
+        data: {
+          customer_name: address.name,
+          customer_email: address.email,
+          customer_phone: address.phone,
+          shipping_address: {
+            line1: address.line1,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+            country: "India",
+          },
+          items: orderItems,
+          payment_method: paymentMethod,
+        },
+      });
+
+      if (paymentMethod === "cod") {
+        setOrderNumber(created.order_number);
+        clear();
+        setStep(3);
+        return;
+      }
+
+      // Razorpay flow
+      const loaded = await loadRazorpayScript();
+      if (!loaded || !window.Razorpay) throw new Error("Unable to load payment gateway");
+
+      const rzp = await createRazorpayOrder({
+        data: { order_id: created.id, amount: Math.round(created.total * 100) },
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        const inst = new window.Razorpay!({
+          key: rzp.key_id,
+          amount: rzp.amount,
+          currency: rzp.currency,
+          name: "Indian Handicraft Standards",
+          description: `Order ${rzp.order_number ?? ""}`,
+          order_id: rzp.razorpay_order_id,
+          prefill: {
+            name: address.name,
+            email: address.email,
+            contact: address.phone,
+          },
+          theme: { color: "#1f3d2b" },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled")),
+          },
+          handler: async (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              const v = await verifyRazorpayPayment({
+                data: {
+                  order_id: created.id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+              });
+              setOrderNumber(v.order_number ?? created.order_number);
+              clear();
+              setStep(3);
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
+          },
+        });
+        inst.open();
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Payment failed");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl md:text-4xl text-primary text-center">Checkout</h1>
@@ -25,37 +154,49 @@ function CheckoutPage() {
       <div className="mt-8 bg-cream border border-border rounded-xl p-6">
         {step === 1 && (
           <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-3">
-            <input required placeholder="Full name" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <input required placeholder="Phone" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <input required placeholder="Address" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <div className="grid grid-cols-2 gap-3">
-              <input required placeholder="City" className="border border-border rounded-md px-3 py-2 bg-background" />
-              <input required placeholder="PIN code" className="border border-border rounded-md px-3 py-2 bg-background" />
+            <input required value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} placeholder="Full name" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <input required type="email" value={address.email} onChange={(e) => setAddress({ ...address, email: e.target.value })} placeholder="Email" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <input required value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} placeholder="Phone" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <input required value={address.line1} onChange={(e) => setAddress({ ...address, line1: e.target.value })} placeholder="Address" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <div className="grid grid-cols-3 gap-3">
+              <input required value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="City" className="border border-border rounded-md px-3 py-2 bg-background" />
+              <input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} placeholder="State" className="border border-border rounded-md px-3 py-2 bg-background" />
+              <input required value={address.pincode} onChange={(e) => setAddress({ ...address, pincode: e.target.value })} placeholder="PIN code" className="border border-border rounded-md px-3 py-2 bg-background" />
             </div>
             <button className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-2">Continue to Payment</button>
           </form>
         )}
         {step === 2 && (
           <div className="space-y-3">
-            {["Cash on Delivery (recommended)", "UPI", "Card", "Net Banking"].map((m) => (
-              <label key={m} className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
-                <input type="radio" name="pay" defaultChecked={m.startsWith("Cash")} className="accent-primary" /> {m}
-              </label>
-            ))}
+            <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
+              <input type="radio" name="pay" checked={paymentMethod === "razorpay"} onChange={() => setPaymentMethod("razorpay")} className="accent-primary" />
+              <span><span className="font-medium">Pay Online</span> <span className="text-xs text-muted-foreground">— UPI, Cards, Net Banking, Wallets (via Razorpay)</span></span>
+            </label>
+            <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
+              <input type="radio" name="pay" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
+              <span className="font-medium">Cash on Delivery</span>
+            </label>
             <div className="bg-background border border-border rounded-md p-3 text-sm space-y-1.5">
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
               <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between font-semibold text-primary"><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
             </div>
-            <button disabled={items.length === 0} onClick={() => { clear(); setStep(3); }} className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3 disabled:opacity-50">Place Order · ₹{total.toLocaleString("en-IN")}</button>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              disabled={items.length === 0 || processing}
+              onClick={handlePlaceOrder}
+              className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3 disabled:opacity-50"
+            >
+              {processing ? "Processing…" : paymentMethod === "razorpay" ? `Pay ₹${total.toLocaleString("en-IN")}` : `Place Order · ₹${total.toLocaleString("en-IN")}`}
+            </button>
           </div>
         )}
         {step === 3 && (
           <div className="text-center py-6">
             <div className="text-5xl">🌸</div>
             <h2 className="font-display text-2xl text-primary mt-3">Order Confirmed!</h2>
-            <p className="text-sm text-muted-foreground mt-2">Order ID: <span className="text-primary font-semibold">{orderId}</span></p>
+            <p className="text-sm text-muted-foreground mt-2">Order ID: <span className="text-primary font-semibold">{orderNumber}</span></p>
             <p className="text-xs text-muted-foreground mt-4">A confirmation has been sent on WhatsApp.</p>
             <Link to="/shop" className="inline-block mt-6 bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm">Continue Shopping</Link>
           </div>
