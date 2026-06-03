@@ -395,7 +395,9 @@ function Footer() {
     <footer className="bg-primary text-primary-foreground mt-16">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <div className="col-span-2 md:col-span-1">
-          <img src={logoUrl} alt="Indian Handicraft Standards" className="h-24 w-auto bg-white rounded-md p-2" />
+          <div className="inline-block bg-white rounded-md px-3 py-2">
+            <BrandLogo size="lg" />
+          </div>
           <p className="text-xs mt-3 opacity-80 leading-relaxed">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
         </div>
         <div>
