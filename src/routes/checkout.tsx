@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
 import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
+import { checkServiceability } from "@/lib/shiprocket.functions";
 
 export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
 
@@ -42,11 +43,45 @@ function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceCheck, setServiceCheck] = useState<{
+    checking: boolean;
+    result: null | {
+      serviceable: boolean;
+      cheapest: { name: string; rate: number; days: string } | null;
+      fastest: { name: string; rate: number; days: string } | null;
+      error?: string;
+    };
+  }>({ checking: false, result: null });
   const [address, setAddress] = useState<AddressForm>({
     name: "", email: "", phone: "", line1: "", city: "", state: "", pincode: "",
   });
   useEffect(() => { setMounted(true); }, []);
   const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
+
+  // Auto-check serviceability when PIN is 6 digits
+  useEffect(() => {
+    if (!/^\d{6}$/.test(address.pincode)) {
+      setServiceCheck({ checking: false, result: null });
+      return;
+    }
+    let cancelled = false;
+    setServiceCheck({ checking: true, result: null });
+    const t = setTimeout(async () => {
+      try {
+        const r = await checkServiceability({
+          data: { delivery_postcode: address.pincode, cod: false, declared_value: total },
+        });
+        if (!cancelled) setServiceCheck({ checking: false, result: r });
+      } catch (e) {
+        if (!cancelled)
+          setServiceCheck({
+            checking: false,
+            result: { serviceable: false, cheapest: null, fastest: null, error: e instanceof Error ? e.message : "Failed" },
+          });
+      }
+    }, 400);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [address.pincode, total]);
 
   const handlePlaceOrder = async () => {
     setError(null);
@@ -163,6 +198,24 @@ function CheckoutPage() {
               <input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} placeholder="State" className="border border-border rounded-md px-3 py-2 bg-background" />
               <input required value={address.pincode} onChange={(e) => setAddress({ ...address, pincode: e.target.value })} placeholder="PIN code" className="border border-border rounded-md px-3 py-2 bg-background" />
             </div>
+            {serviceCheck.checking && (
+              <div className="text-xs text-muted-foreground">Checking delivery to {address.pincode}…</div>
+            )}
+            {serviceCheck.result && !serviceCheck.checking && (
+              serviceCheck.result.serviceable && serviceCheck.result.cheapest ? (
+                <div className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-md p-2.5 space-y-0.5">
+                  <div className="font-semibold">✓ Delivers to {address.pincode}</div>
+                  <div>Cheapest: {serviceCheck.result.cheapest.name} · ₹{serviceCheck.result.cheapest.rate} · {serviceCheck.result.cheapest.days} days</div>
+                  {serviceCheck.result.fastest && serviceCheck.result.fastest.name !== serviceCheck.result.cheapest.name && (
+                    <div>Fastest: {serviceCheck.result.fastest.name} · ₹{serviceCheck.result.fastest.rate} · {serviceCheck.result.fastest.days} days</div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-md p-2.5">
+                  Delivery to {address.pincode} unavailable right now. Try another PIN or contact us.
+                </div>
+              )
+            )}
             <button className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-2">Continue to Payment</button>
           </form>
         )}
