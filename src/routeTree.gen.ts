@@ -40,6 +40,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -196,6 +197,11 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/leads'
     | '/admin/orders'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/leads'
     | '/admin/orders'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/leads'
     | '/admin/orders'
@@ -642,10 +654,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -656,6 +676,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminLeadsRoute: AdminLeadsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
