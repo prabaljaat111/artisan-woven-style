@@ -95,13 +95,13 @@ function Index() {
   const featured = products.slice(0, 8);
   const circleCats = [
     { label: "Sale", img: products[5].images[0], to: "/shop" },
-    { label: "Sets", img: products[2].images[0], to: "/category/$slug", params: { slug: "kurta-sets" } },
-    { label: "Kurtas", img: products[3].images[0], to: "/category/$slug", params: { slug: "kurtis" } },
-    { label: "Tops", img: products[11]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "tops-tunics" } },
-    { label: "Bottoms", img: products[4].images[0], to: "/category/$slug", params: { slug: "pants" } },
-    { label: "Inners", img: products[12]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "noodle-strap" } },
+    { label: "Kurtis", img: products[0].images[0], to: "/category/$slug", params: { slug: "kurtis" } },
+    { label: "Kurta Sets", img: products[2].images[0], to: "/category/$slug", params: { slug: "kurta-sets" } },
+    { label: "Suits", img: products[9].images[0], to: "/category/$slug", params: { slug: "unstitched-suits" } },
     { label: "Sarees", img: products[7].images[0], to: "/category/$slug", params: { slug: "sarees" } },
-    { label: "Bridal", img: products[13]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "kurta-sets" } },
+    { label: "Tops", img: products[10]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "tops-tunics" } },
+    { label: "Bottoms", img: products[12]?.images[0] ?? products[4].images[0], to: "/category/$slug", params: { slug: "pants" } },
+    { label: "Inners", img: products[11]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "noodle-strap" } },
   ];
 
   return (
