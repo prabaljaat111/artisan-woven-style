@@ -55,11 +55,7 @@ function Header() {
           <SearchTriggerDesktop />
         </div>
         <Link to="/" className="justify-self-center text-center shrink-0">
-          <img
-            src={logoUrl}
-            alt="Indian Handicraft Standards"
-            className="h-12 md:h-16 w-auto mx-auto shrink-0 object-contain max-w-none"
-          />
+          <BrandLogo size="lg" />
         </Link>
         <div className="flex items-center gap-1 md:gap-3 justify-self-end">
           <Link to="/wishlist" aria-label="Wishlist" className="hidden md:inline-flex relative p-2 hover:text-primary">
@@ -96,7 +92,7 @@ function Header() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border" style={{ backgroundColor: "#FFFFFF" }}>
-              <img src={logoUrl} alt="Indian Handicraft Standards" className="h-14 w-auto" />
+              <BrandLogo size="md" />
               <button
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
