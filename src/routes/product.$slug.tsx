@@ -57,12 +57,12 @@ function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-12 grid md:grid-cols-2 gap-8 md:gap-14">
         <div>
           <div className="aspect-[4/5] bg-secondary rounded-2xl overflow-hidden border border-gold/30">
-            <img src={p.images[imgIdx]} alt={p.name} className="w-full h-full object-cover" />
+            <img src={p.images[imgIdx]} alt={p.name} decoding="async" {...({ fetchpriority: "high" } as never)} className="w-full h-full object-cover" />
           </div>
           <div className="flex gap-2 mt-3 overflow-x-auto">
             {p.images.map((src: string, i: number) => (
               <button key={i} onClick={() => setImgIdx(i)} className={cn("h-20 w-16 flex-shrink-0 rounded-lg overflow-hidden border-2", i === imgIdx ? "border-gold" : "border-border")}>
-                <img src={src} alt="" className="w-full h-full object-cover" />
+                <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
