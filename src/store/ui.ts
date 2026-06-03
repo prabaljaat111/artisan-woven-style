@@ -9,6 +9,12 @@ interface UIState {
   setExitIntentShown: (v: boolean) => void;
   isSearchOpen: boolean;
   setSearchOpen: (v: boolean) => void;
+  /** Number of product detail pages this visitor has opened in the session. */
+  productViewCount: number;
+  incrementProductView: () => void;
+  /** True once we've already auto-nudged the user (so we don't spam). */
+  proactiveNudgeShown: boolean;
+  setProactiveNudgeShown: (v: boolean) => void;
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -20,4 +26,8 @@ export const useUI = create<UIState>((set) => ({
   setExitIntentShown: (v) => set({ exitIntentShown: v }),
   isSearchOpen: false,
   setSearchOpen: (v) => set({ isSearchOpen: v }),
+  productViewCount: 0,
+  incrementProductView: () => set((s) => ({ productViewCount: s.productViewCount + 1 })),
+  proactiveNudgeShown: false,
+  setProactiveNudgeShown: (v) => set({ proactiveNudgeShown: v }),
 }));

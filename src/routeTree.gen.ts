@@ -33,6 +33,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -154,11 +155,16 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLeadsRoute = AdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -184,7 +191,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -211,7 +219,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/leads'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/leads'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/leads'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -318,7 +330,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CategoryRoute: typeof CategoryRouteWithChildren
   CheckoutRoute: typeof CheckoutRoute
@@ -511,8 +523,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/leads': {
+      id: '/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminLeadsRoute: typeof AdminLeadsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminLeadsRoute: AdminLeadsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface CategoryRouteChildren {
   CategorySlugRoute: typeof CategorySlugRoute
@@ -529,7 +558,7 @@ const CategoryRouteWithChildren = CategoryRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CategoryRoute: CategoryRouteWithChildren,
   CheckoutRoute: CheckoutRoute,
@@ -554,3 +583,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -10,6 +10,7 @@ import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
+import { ChatWidget } from "./ChatWidget";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -26,6 +27,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <ChatWidget />
       <SearchOverlay />
       <ExitIntent />
+      <ProactiveNudge />
     </div>
   );
 }
@@ -231,129 +233,50 @@ function FloatingButtons() {
   );
 }
 
-function ChatWidget() {
-  const { isChatOpen, setChatOpen } = useUI();
-  type Msg = { role: "user" | "assistant"; content: string };
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Hi! I'm your Chikan Concierge 🌸 Ask me about sizes, fabrics, shipping, or our handcrafted Chikankari pieces." },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+function ProactiveNudge() {
+  const { isChatOpen, setChatOpen, proactiveNudgeShown, setProactiveNudgeShown, productViewCount } = useUI();
+  const [nudge, setNudge] = useState<string | null>(null);
 
-  const chips = ["What sizes do you offer?", "How do I track my order?", "Care instructions?", "Return policy?"];
-
+  // 30-second timer + multi-product visit trigger
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (proactiveNudgeShown || isChatOpen) return;
+    if (productViewCount >= 3) {
+      setNudge("Loving anything in particular? I can help you pick the right one. 🌸");
+      setProactiveNudgeShown(true);
+      return;
     }
-  }, [messages, isLoading]);
-
-  const send = async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
-    const userMsg: Msg = { role: "user", content: trimmed };
-    const next = [...messages, userMsg];
-    setMessages(next);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const resp = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        let errMsg = "Something went wrong. Please try again or chat with us on WhatsApp.";
-        try {
-          const j = await resp.json();
-          if (j?.error) errMsg = j.error;
-        } catch {}
-        setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
-        setIsLoading(false);
-        return;
+    const t = setTimeout(() => {
+      if (!isChatOpen) {
+        setNudge("👋 Looking for a Kurti, Kurta Set or Saree? I can curate it in 30 seconds.");
+        setProactiveNudgeShown(true);
       }
+    }, 30000);
+    return () => clearTimeout(t);
+  }, [isChatOpen, proactiveNudgeShown, productViewCount, setProactiveNudgeShown]);
 
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let assistant = "";
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      const flush = (chunk: string) => {
-        assistant += chunk;
-        setMessages((prev) => {
-          const copy = [...prev];
-          copy[copy.length - 1] = { role: "assistant", content: assistant };
-          return copy;
-        });
-      };
-
-      let done = false;
-      while (!done) {
-        const { done: d, value } = await reader.read();
-        if (d) break;
-        buffer += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, nl);
-          buffer = buffer.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line || line.startsWith(":")) continue;
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
-          try {
-            const parsed = JSON.parse(json);
-            const c = parsed.choices?.[0]?.delta?.content;
-            if (c) flush(c);
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      console.error("chat error", e);
-      setMessages((prev) => [...prev, { role: "assistant", content: "Connection lost. Please try WhatsApp for now." }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Auto-dismiss after 12s
+  useEffect(() => {
+    if (!nudge) return;
+    const t = setTimeout(() => setNudge(null), 12000);
+    return () => clearTimeout(t);
+  }, [nudge]);
 
   return (
     <AnimatePresence>
-      {isChatOpen && (
-        <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="fixed right-3 bottom-44 md:bottom-24 z-50 w-[320px] max-w-[calc(100vw-1.5rem)] bg-cream rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col" style={{ maxHeight: "min(70vh, 520px)" }}>
-          <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
-            <div>
-              <div className="font-display text-base">Chikan Concierge</div>
-              <div className="text-[11px] opacity-80">AI assistant · Replies instantly</div>
-            </div>
-            <button onClick={() => setChatOpen(false)} aria-label="Close chat"><X className="h-4 w-4" /></button>
-          </div>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((m, i) => (
-              <div key={i} className={cn("rounded-2xl p-3 text-sm whitespace-pre-wrap leading-relaxed max-w-[85%]", m.role === "assistant" ? "bg-secondary rounded-tl-sm" : "bg-primary text-primary-foreground rounded-tr-sm ml-auto")}>
-                {m.content || (isLoading && i === messages.length - 1 ? <span className="opacity-60">…</span> : "")}
-              </div>
-            ))}
-            {messages.length <= 1 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {chips.map((c) => (
-                  <button key={c} onClick={() => send(c)} className="text-xs border border-gold text-primary rounded-full px-3 py-1.5 hover:bg-gold/20 transition">{c}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="border-t border-border p-2 flex gap-2 bg-background">
-            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about sizes, shipping…" className="flex-1 bg-transparent text-sm px-3 py-2 outline-none" disabled={isLoading} />
-            <button type="submit" disabled={isLoading || !input.trim()} className="bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-md disabled:opacity-50">Send</button>
-          </form>
-          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-[11px] text-center py-1.5 bg-secondary text-primary hover:underline">Prefer WhatsApp? Chat with a human →</a>
-        </motion.div>
+      {nudge && !isChatOpen && (
+        <motion.button
+          initial={{ opacity: 0, y: 12, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.96 }}
+          onClick={() => {
+            setNudge(null);
+            setChatOpen(true);
+          }}
+          className="fixed right-16 bottom-24 md:bottom-7 z-40 max-w-[260px] text-left bg-background border border-gold/60 shadow-xl rounded-2xl rounded-br-sm px-3.5 py-2.5 text-xs text-foreground hover:bg-cream transition"
+        >
+          <span className="block font-display text-primary text-[13px] leading-snug">{nudge}</span>
+          <span className="block text-[10px] text-muted-foreground mt-0.5">Tap to chat</span>
+        </motion.button>
       )}
     </AnimatePresence>
   );

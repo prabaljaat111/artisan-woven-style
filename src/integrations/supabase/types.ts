@@ -77,6 +77,63 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          budget: string | null
+          category: string | null
+          conversation: Json
+          created_at: string
+          for_self: boolean | null
+          id: string
+          interest: string | null
+          name: string
+          notes: string | null
+          occasion: string | null
+          page_url: string | null
+          phone: string
+          source: string
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          budget?: string | null
+          category?: string | null
+          conversation?: Json
+          created_at?: string
+          for_self?: boolean | null
+          id?: string
+          interest?: string | null
+          name: string
+          notes?: string | null
+          occasion?: string | null
+          page_url?: string | null
+          phone: string
+          source?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          budget?: string | null
+          category?: string | null
+          conversation?: Json
+          created_at?: string
+          for_self?: boolean | null
+          id?: string
+          interest?: string | null
+          name?: string
+          notes?: string | null
+          occasion?: string | null
+          page_url?: string | null
+          phone?: string
+          source?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string | null
