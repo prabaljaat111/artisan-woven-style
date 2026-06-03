@@ -29,7 +29,7 @@ export function LandmarkCard({ id, slug, image, title, price, originalPrice, bad
     <motion.div whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 220, damping: 20 }} className="group relative">
       <Link to="/product/$slug" params={{ slug }} className="block">
         <div className="relative overflow-hidden rounded-xl bg-secondary/60 aspect-[3/4]">
-          <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+          <img src={image} alt={title} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
           {badge && (
             <span className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-1 rounded uppercase tracking-wider">{badge}</span>
           )}
