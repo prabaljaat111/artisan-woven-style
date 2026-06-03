@@ -488,7 +488,7 @@ function SearchOverlay() {
                       {results.map((p) => (
                         <li key={p.id}>
                           <Link to="/product/$slug" params={{ slug: p.slug }} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition">
-                            <img src={p.images[0]} alt={p.name} className="h-12 w-12 object-cover rounded-md" />
+                            <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async" className="h-12 w-12 object-cover rounded-md" />
                             <div className="flex-1 min-w-0">
                               <div className="text-sm text-foreground truncate">{p.name}</div>
                               <div className="text-xs text-muted-foreground">₹{p.price.toLocaleString("en-IN")}</div>
