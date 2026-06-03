@@ -94,5 +94,13 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
       .select("order_number")
       .single();
 
+    // Auto-create Shiprocket shipment (non-blocking failure)
+    try {
+      const { createSrOrderForOrder } = await import("./shiprocket.server");
+      await createSrOrderForOrder(data.order_id);
+    } catch (e) {
+      console.error("Auto Shiprocket create failed:", e);
+    }
+
     return { success: true, order_number: order?.order_number ?? null };
   });
