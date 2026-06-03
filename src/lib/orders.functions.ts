@@ -79,6 +79,16 @@ export const createOrder = createServerFn({ method: "POST" })
     const { error: ie } = await supabaseAdmin.from("order_items").insert(items);
     if (ie) throw new Error(ie.message);
 
+    // For COD orders, auto-push to Shiprocket immediately
+    if (data.payment_method === "cod") {
+      try {
+        const { createSrOrderForOrder } = await import("./shiprocket.server");
+        await createSrOrderForOrder(order.id);
+      } catch (e) {
+        console.error("Auto Shiprocket create (COD) failed:", e);
+      }
+    }
+
     return { order_number: order.order_number, id: order.id, total };
   });
 
