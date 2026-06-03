@@ -119,7 +119,8 @@ export const adminGenerateLabel = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ shipment_id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
     const { generateLabel } = await import("./shiprocket.server");
-    return generateLabel(data.shipment_id);
+    const r = await generateLabel(data.shipment_id);
+    return { url: r.url };
   });
 
 export const adminGenerateManifest = createServerFn({ method: "POST" })
@@ -127,7 +128,8 @@ export const adminGenerateManifest = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ shipment_id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
     const { generateManifest } = await import("./shiprocket.server");
-    return generateManifest(data.shipment_id);
+    const r = await generateManifest(data.shipment_id);
+    return { url: r.url };
   });
 
 export const adminGenerateInvoice = createServerFn({ method: "POST" })
@@ -135,7 +137,8 @@ export const adminGenerateInvoice = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ shipment_id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
     const { generateInvoice } = await import("./shiprocket.server");
-    return generateInvoice(data.shipment_id);
+    const r = await generateInvoice(data.shipment_id);
+    return { url: r.url };
   });
 
 export const adminTrackShipment = createServerFn({ method: "POST" })
@@ -153,7 +156,7 @@ export const adminTrackShipment = createServerFn({ method: "POST" })
       .from("shipments")
       .update({ last_tracking: tracking as never })
       .eq("id", data.shipment_id);
-    return tracking;
+    return JSON.parse(JSON.stringify(tracking)) as unknown;
   });
 
 export const adminCancelShipment = createServerFn({ method: "POST" })
@@ -171,7 +174,7 @@ export const adminCancelShipment = createServerFn({ method: "POST" })
       .from("shipments").update({ status: "cancelled" }).eq("id", data.shipment_id);
     await supabaseAdmin
       .from("orders").update({ status: "cancelled" }).eq("id", r.order_id);
-    return resp;
+    return { ok: true, response: JSON.parse(JSON.stringify(resp)) as unknown };
   });
 
 // ----- ADMIN SETTINGS -----
