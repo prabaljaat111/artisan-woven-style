@@ -38,7 +38,7 @@ function WatchAndBuy() {
 
       <section className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-2 gap-6 items-start">
         <div className="relative rounded-2xl overflow-hidden bg-secondary aspect-[3/4] max-h-[70vh] mx-auto w-full">
-          <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+          <img src={product.images[0]} alt={product.name} decoding="async" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 bg-background/90 backdrop-blur rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-primary">
             <Play className="h-3 w-3 fill-primary" /> Reel {active + 1}/{all.length}
@@ -78,7 +78,7 @@ function WatchAndBuy() {
                 className={`relative aspect-[3/4] rounded-md overflow-hidden border-2 transition ${i === active ? "border-gold" : "border-transparent opacity-70 hover:opacity-100"}`}
                 aria-label={`Show ${p.name}`}
               >
-                <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />
+                <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
               </button>
             ))}
           </div>

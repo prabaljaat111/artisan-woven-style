@@ -33,7 +33,7 @@ function CartPage() {
           <div className="space-y-4">
             {items.map((i) => (
               <div key={`${i.id}|${i.size}|${i.color}`} className="flex gap-4 bg-cream border border-border rounded-xl p-3">
-                <img src={i.image} alt={i.name} className="h-24 w-20 object-cover rounded" />
+                <img src={i.image} alt={i.name} loading="lazy" decoding="async" className="h-24 w-20 object-cover rounded" />
                 <div className="flex-1 min-w-0">
                   <Link to="/product/$slug" params={{ slug: i.slug }} className="font-display text-sm text-primary line-clamp-2">{i.name}</Link>
                   <p className="text-xs text-muted-foreground mt-1">{i.size} · {i.color}</p>

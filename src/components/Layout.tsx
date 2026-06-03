@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Heart, Home, ShoppingBag, Search, Menu, X, MessageCircle, LayoutGrid, Play, Tag, Sparkles, ChevronRight, Instagram, Facebook, Youtube } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
@@ -10,7 +10,26 @@ import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
-import { ChatWidget } from "./ChatWidget";
+
+const ChatWidget = lazy(() =>
+  import("./ChatWidget").then((m) => ({ default: m.ChatWidget }))
+);
+
+function DeferredChatWidget() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    const trigger = () => setShow(true);
+    if (w.requestIdleCallback) w.requestIdleCallback(trigger);
+    else setTimeout(trigger, 1500);
+  }, []);
+  if (!show) return null;
+  return (
+    <Suspense fallback={null}>
+      <ChatWidget />
+    </Suspense>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -24,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <Footer />
       <MobileBottomNav />
       <FloatingButtons />
-      <ChatWidget />
+      <DeferredChatWidget />
       <SearchOverlay />
       <ExitIntent />
       <ProactiveNudge />
@@ -488,7 +507,7 @@ function SearchOverlay() {
                       {results.map((p) => (
                         <li key={p.id}>
                           <Link to="/product/$slug" params={{ slug: p.slug }} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition">
-                            <img src={p.images[0]} alt={p.name} className="h-12 w-12 object-cover rounded-md" />
+                            <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async" className="h-12 w-12 object-cover rounded-md" />
                             <div className="flex-1 min-w-0">
                               <div className="text-sm text-foreground truncate">{p.name}</div>
                               <div className="text-xs text-muted-foreground">₹{p.price.toLocaleString("en-IN")}</div>
