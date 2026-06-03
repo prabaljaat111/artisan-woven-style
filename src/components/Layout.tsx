@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
-import { LotusMark } from "./LotusMark";
+import { BrandLogo } from "./BrandLogo";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
-import logoUrl from "@/assets/logo.png";
 import { WHATSAPP_URL } from "@/lib/contact";
 
 export function Layout({ children }: { children: React.ReactNode }) {
