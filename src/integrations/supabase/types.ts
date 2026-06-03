@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -404,6 +422,83 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipments: {
+        Row: {
+          awb_code: string | null
+          courier_company_id: number | null
+          courier_name: string | null
+          created_at: string
+          error: string | null
+          id: string
+          invoice_url: string | null
+          label_url: string | null
+          last_tracking: Json | null
+          manifest_url: string | null
+          order_id: string
+          pickup_scheduled_date: string | null
+          pickup_token_number: string | null
+          provider: string
+          raw: Json | null
+          sr_order_id: string | null
+          sr_shipment_id: string | null
+          status: string
+          tracking_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          awb_code?: string | null
+          courier_company_id?: number | null
+          courier_name?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          invoice_url?: string | null
+          label_url?: string | null
+          last_tracking?: Json | null
+          manifest_url?: string | null
+          order_id: string
+          pickup_scheduled_date?: string | null
+          pickup_token_number?: string | null
+          provider?: string
+          raw?: Json | null
+          sr_order_id?: string | null
+          sr_shipment_id?: string | null
+          status?: string
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          awb_code?: string | null
+          courier_company_id?: number | null
+          courier_name?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          invoice_url?: string | null
+          label_url?: string | null
+          last_tracking?: Json | null
+          manifest_url?: string | null
+          order_id?: string
+          pickup_scheduled_date?: string | null
+          pickup_token_number?: string | null
+          provider?: string
+          raw?: Json | null
+          sr_order_id?: string | null
+          sr_shipment_id?: string | null
+          status?: string
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
