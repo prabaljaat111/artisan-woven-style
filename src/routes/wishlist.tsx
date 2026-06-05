@@ -4,7 +4,10 @@ import { useWishlist } from "@/store/wishlist";
 import { products } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
-export const Route = createFileRoute("/wishlist")({ component: WishlistPage });
+export const Route = createFileRoute("/wishlist")({
+  head: () => ({ meta: [{ title: "Your Wishlist — Indian Handicraft Standards" }, { name: "description", content: "Pieces you've saved for later." }, { name: "robots", content: "noindex,nofollow" }] }),
+  component: WishlistPage,
+});
 
 function WishlistPage() {
   const ids = useWishlist((s) => s.ids);
