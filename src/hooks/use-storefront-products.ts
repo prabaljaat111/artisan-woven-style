@@ -19,7 +19,7 @@ export function useStorefrontProducts(): Product[] {
 
   useEffect(() => {
     const ch = supabase
-      .channel("storefront-products")
+      .channel(`storefront-products-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, () => refetch())
       .subscribe();
