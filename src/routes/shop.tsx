@@ -52,7 +52,11 @@ function ShopPage() {
   // Debounced push of search query to URL.
   useEffect(() => {
     if (qLocal === q) return;
-    const t = setTimeout(() => { navigate({ search: (prev) => ({ ...prev, q: qLocal }) as never, replace: true }); }, 250);
+    const t = setTimeout(() => { navigate({ search: ((prev: Record<string, unknown>) => {
+      const next: Record<string, unknown> = { ...(prev ?? {}) };
+      if (qLocal) next.q = qLocal; else delete next.q;
+      return next;
+    }) as never, replace: true }); }, 250);
     return () => clearTimeout(t);
   }, [qLocal, q, navigate]);
 
