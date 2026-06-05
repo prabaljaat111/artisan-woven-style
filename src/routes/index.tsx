@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { products, categories } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import { LotusMark } from "@/components/LotusMark";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import hero1 from "@/assets/hero/hero-1.jpg";
 import hero2 from "@/assets/hero/hero-2.jpg";
 import hero3 from "@/assets/hero/hero-3.jpg";
