@@ -502,6 +502,7 @@ function SearchOverlay() {
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const products = useStorefrontProducts();
 
   useEffect(() => {
     if (!isSearchOpen) return;
