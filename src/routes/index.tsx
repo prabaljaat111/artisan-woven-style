@@ -98,6 +98,35 @@ function HeroSlider() {
 
 function Index() {
   const featured = products.slice(0, 8);
+  const [news, setNews] = useState({ email: "", wa: false, sending: false, sent: false });
+  async function subscribe(e: React.FormEvent) {
+    e.preventDefault();
+    const email = news.email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return toast.error("Please enter a valid email");
+    }
+    setNews((n) => ({ ...n, sending: true }));
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name: email.split("@")[0].slice(0, 60),
+        phone: email,
+        whatsapp: null,
+        interest: "Newsletter signup",
+        page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+        source: news.wa ? "newsletter+whatsapp" : "newsletter",
+        status: "new",
+        notes: `Email: ${email}\nWantsWhatsApp: ${news.wa}`,
+        conversation: [],
+      });
+      if (error) throw error;
+      setNews({ email: "", wa: false, sending: false, sent: true });
+      toast.success("You're on the list — welcome 🌸");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't subscribe right now.");
+      setNews((n) => ({ ...n, sending: false }));
+    }
+  }
   const circleCats = [
     { label: "Sale", img: products[5].images[0], to: "/shop" },
     { label: "Kurtis", img: products[0].images[0], to: "/category/$slug", params: { slug: "kurtis" } },
