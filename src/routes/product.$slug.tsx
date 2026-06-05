@@ -398,17 +398,94 @@ function ProductPage() {
           <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
             <MessageCircle className="h-4 w-4" /> Ask about this product on WhatsApp
           </a>
-          <div className="grid grid-cols-3 gap-3 mt-6 text-center">
-            {[{ icon: Truck, label: "Free shipping ₹999+" },{ icon: RotateCcw, label: "7-day returns" },{ icon: ShieldCheck, label: "Authentic craft" }].map((b) => (
-              <div key={b.label} className="bg-secondary/50 rounded-lg p-3"><b.icon className="h-4 w-4 text-gold mx-auto" /><p className="text-[11px] mt-1 text-muted-foreground leading-tight">{b.label}</p></div>
+          {/* Delivery & service info */}
+          <div className="mt-6 grid sm:grid-cols-2 gap-2 text-xs">
+            {[
+              { icon: Truck, t: "Delivery", d: "3–5 business days across India" },
+              { icon: PackageCheck, t: "Dispatch", d: "Ships within 24–48 hours" },
+              { icon: Banknote, t: "COD Available", d: "Cash on delivery on most PINs" },
+              { icon: Globe2, t: "International", d: "Worldwide shipping on request" },
+            ].map((x) => (
+              <div key={x.t} className="flex items-start gap-2 border border-border rounded-lg p-2.5 bg-background">
+                <x.icon className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+                <div><p className="font-semibold text-primary">{x.t}</p><p className="text-muted-foreground">{x.d}</p></div>
+              </div>
             ))}
           </div>
+
+          {/* Trust icons (5) */}
+          <div className="grid grid-cols-5 gap-2 mt-4 text-center">
+            {[
+              { icon: ShieldCheck, label: "Secure Payments" },
+              { icon: Banknote, label: "COD Available" },
+              { icon: Truck, label: "Free Shipping" },
+              { icon: RotateCcw, label: "Easy Returns" },
+              { icon: Zap, label: "Fast Delivery" },
+            ].map((b) => (
+              <div key={b.label} className="bg-secondary/50 rounded-lg p-2.5"><b.icon className="h-4 w-4 text-gold mx-auto" /><p className="text-[10px] mt-1 text-muted-foreground leading-tight">{b.label}</p></div>
+            ))}
+          </div>
+
+          {/* Description */}
           <div className="mt-8"><h2 className="font-display text-lg text-primary mb-2">Description</h2><p className="text-sm text-foreground/85 leading-relaxed">{p.description}</p></div>
           <p className="text-[11px] text-muted-foreground italic mt-2">Handmade in Lucknow — slight variation in colour and embroidery placement is the signature of true Chikankari.</p>
-          <Accordion type="single" collapsible className="mt-6">
-            <AccordionItem value="fabric"><AccordionTrigger>Fabric & Care</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Premium cotton / georgette. Gentle hand wash separately in cold water. Dry in shade. Iron on reverse.</AccordionContent></AccordionItem>
-            <AccordionItem value="ship"><AccordionTrigger>Shipping & Returns</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Ships in 2–4 business days. Free shipping above ₹999. 7-day easy returns on unworn items.</AccordionContent></AccordionItem>
-            <AccordionItem value="auth"><AccordionTrigger>Authenticity</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent></AccordionItem>
+
+          {/* Expandable product info */}
+          <Accordion type="single" collapsible defaultValue="specs" className="mt-6">
+            <AccordionItem value="specs">
+              <AccordionTrigger>Specifications</AccordionTrigger>
+              <AccordionContent>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {[
+                    ["Fabric", inferFabric(p.category)],
+                    ["Embroidery", "Hand Chikankari"],
+                    ["Sleeve Length", "3/4 Sleeve"],
+                    ["Neck Style", "Round Neck"],
+                    ["Pattern", "Embroidered"],
+                    ["Occasion", "Festive · Daily · Office"],
+                    ["Color", color],
+                    ["Craft Type", "Handcrafted in Lucknow"],
+                    ["Country of Origin", "India"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
+                      <dt className="text-muted-foreground">{k}</dt>
+                      <dd className="text-foreground font-medium text-right">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="ship">
+              <AccordionTrigger>Shipping Information</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· Delivered in 3–5 business days across India.</p>
+                <p>· Free shipping on orders above ₹999.</p>
+                <p>· Cash on Delivery available on most pincodes.</p>
+                <p>· Dispatched within 24–48 hours of order confirmation.</p>
+                <p>· International shipping available on request via WhatsApp.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="returns">
+              <AccordionTrigger>Return Policy</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· 7-day easy returns on unworn, unwashed items with original tags.</p>
+                <p>· Refund processed within 5–7 business days after pickup.</p>
+                <p>· Sale and customised pieces are non-returnable.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="care">
+              <AccordionTrigger>Care Instructions</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· Gentle hand wash separately in cold water.</p>
+                <p>· Do not bleach. Dry in shade to preserve colour.</p>
+                <p>· Iron on reverse on medium heat.</p>
+                <p>· Store folded with a muslin cloth between pieces.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="auth">
+              <AccordionTrigger>Authenticity</AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>
