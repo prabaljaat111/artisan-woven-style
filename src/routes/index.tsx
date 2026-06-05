@@ -21,6 +21,10 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "preload", as: "image", href: hero1, fetchpriority: "high" } as never,
+      { rel: "prefetch", as: "image", href: hero2 } as never,
+      { rel: "prefetch", as: "image", href: hero3 } as never,
+      { rel: "prefetch", as: "image", href: hero4 } as never,
+      { rel: "prefetch", as: "image", href: hero5 } as never,
       { rel: "canonical", href: "https://indianhandicraft.revnlabel.in/" },
     ],
   }),
