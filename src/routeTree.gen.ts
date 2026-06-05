@@ -160,9 +160,9 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => CategoryRoute,
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
@@ -455,6 +455,7 @@ export interface RootRouteChildren {
   WhatsNewRoute: typeof WhatsNewRoute
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
+  CategorySlugRoute: typeof CategorySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
   CategoryIndexRoute: typeof CategoryIndexRoute
 }
@@ -624,10 +625,10 @@ declare module '@tanstack/react-router' {
     }
     '/category/$slug': {
       id: '/category/$slug'
-      path: '/$slug'
+      path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
-      parentRoute: typeof CategoryRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
       id: '/api/chat'
@@ -752,6 +753,7 @@ const rootRouteChildren: RootRouteChildren = {
   WhatsNewRoute: WhatsNewRoute,
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
+  CategorySlugRoute: CategorySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
   CategoryIndexRoute: CategoryIndexRoute,
 }
