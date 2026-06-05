@@ -35,6 +35,14 @@ function colorToHex(name: string): string {
   return `hsl(${h % 360}, 35%, 60%)`;
 }
 
+function inferFabric(category: string): string {
+  if (category.includes("saree")) return "Pure Georgette / Cotton";
+  if (category.includes("palazzo") || category.includes("pants")) return "Cotton";
+  if (category.includes("sharara") || category.includes("garara")) return "Georgette";
+  if (category.includes("unstitched")) return "Cotton (Unstitched)";
+  return "Premium Cotton / Rayon";
+}
+
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
