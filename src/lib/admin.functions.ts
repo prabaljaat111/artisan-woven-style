@@ -8,13 +8,14 @@ export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
     const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
-    const [orders30, ordersAll, products, customers, recentOrders, lowStock] = await Promise.all([
+    const [orders30, ordersAll, products, customers, recentOrders, lowStock, leadsCount] = await Promise.all([
       supabaseAdmin.from("orders").select("total, created_at, status").gte("created_at", since),
       supabaseAdmin.from("orders").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("products").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("orders").select("id, order_number, customer_name, total, status, created_at").order("created_at", { ascending: false }).limit(8),
       supabaseAdmin.from("products").select("id, name, stock, images").lt("stock", 10).order("stock").limit(8),
+      supabaseAdmin.from("leads").select("id", { count: "exact", head: true }),
     ]);
 
     const rev30 = (orders30.data ?? []).reduce((s, o: any) => s + Number(o.total), 0);
@@ -40,6 +41,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       ordersTotal: ordersAll.count ?? 0,
       productsTotal: products.count ?? 0,
       customersTotal: customers.count ?? 0,
+      leadsTotal: leadsCount.count ?? 0,
       recentOrders: recentOrders.data ?? [],
       lowStock: lowStock.data ?? [],
       daily: days,
@@ -107,6 +109,34 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+const BulkInput = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(500),
+  action: z.enum(["publish", "unpublish", "delete", "bestseller_on", "bestseller_off", "new_on", "new_off"]),
+});
+
+export const adminBulkProducts = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((i) => BulkInput.parse(i))
+  .handler(async ({ data }) => {
+    const { ids, action } = data;
+    if (action === "delete") {
+      const { error } = await supabaseAdmin.from("products").delete().in("id", ids);
+      if (error) throw new Error(error.message);
+      return { ok: true, count: ids.length };
+    }
+    const patches = {
+      publish: { is_published: true },
+      unpublish: { is_published: false },
+      bestseller_on: { is_bestseller: true },
+      bestseller_off: { is_bestseller: false },
+      new_on: { is_new: true },
+      new_off: { is_new: false },
+    } as const;
+    const { error } = await supabaseAdmin.from("products").update(patches[action]).in("id", ids);
+    if (error) throw new Error(error.message);
+    return { ok: true, count: ids.length };
   });
 
 // ============== ORDERS ==============

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants } from "@/lib/admin.functions";
+import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,11 @@ function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<any | null>(null);
   const [q, setQ] = useState("");
+  const [catFilter, setCatFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
+  const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -50,7 +55,32 @@ function ProductsPage() {
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   }
 
-  const filtered = rows.filter((r) => !q || r.name.toLowerCase().includes(q.toLowerCase()) || r.slug.includes(q.toLowerCase()));
+  const filtered = rows.filter((r) => {
+    if (q && !(r.name.toLowerCase().includes(q.toLowerCase()) || r.slug.includes(q.toLowerCase()))) return false;
+    if (catFilter && r.category_id !== catFilter) return false;
+    if (statusFilter === "published" && !r.is_published) return false;
+    if (statusFilter === "draft" && r.is_published) return false;
+    const s = Number(r.stock ?? 0);
+    if (stockFilter === "in" && s < 10) return false;
+    if (stockFilter === "low" && (s === 0 || s >= 10)) return false;
+    if (stockFilter === "out" && s > 0) return false;
+    return true;
+  });
+  const selectedIds = Object.keys(selected).filter((k) => selected[k]);
+  const allShownSelected = filtered.length > 0 && filtered.every((r) => selected[r.id]);
+
+  async function runBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
+    if (selectedIds.length === 0) return;
+    if (action === "delete" && !confirm(`Delete ${selectedIds.length} product(s)? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    try {
+      await adminBulkProducts({ data: { ids: selectedIds, action } });
+      toast.success(`Updated ${selectedIds.length} product(s)`);
+      setSelected({});
+      load();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Bulk action failed"); }
+    finally { setBulkBusy(false); }
+  }
 
   return (
     <div className="space-y-4">
@@ -65,18 +95,58 @@ function ProductsPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="border border-border rounded-md px-2 py-1.5 bg-background">
+          <option value="">All categories</option>
+          {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="border border-border rounded-md px-2 py-1.5 bg-background">
+          <option value="all">Any status</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+        </select>
+        <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value as any)} className="border border-border rounded-md px-2 py-1.5 bg-background">
+          <option value="all">Any stock</option>
+          <option value="in">In stock (10+)</option>
+          <option value="low">Low (1–9)</option>
+          <option value="out">Out of stock</option>
+        </select>
+        <span className="text-muted-foreground">{filtered.length} of {rows.length}</span>
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-1 ml-auto flex-wrap">
+            <span className="text-muted-foreground mr-1">{selectedIds.length} selected:</span>
+            <button disabled={bulkBusy} onClick={() => runBulk("publish")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">Publish</button>
+            <button disabled={bulkBusy} onClick={() => runBulk("unpublish")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">Unpublish</button>
+            <button disabled={bulkBusy} onClick={() => runBulk("bestseller_on")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">★ Bestseller</button>
+            <button disabled={bulkBusy} onClick={() => runBulk("new_on")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">New</button>
+            <button disabled={bulkBusy} onClick={() => runBulk("delete")} className="px-2 py-1 border border-red-500/40 text-red-500 rounded-md hover:bg-red-500/10">Delete</button>
+          </div>
+        )}
+      </div>
+
       {loading ? <div className="text-sm text-muted-foreground">Loading…</div> : (
         <div className="bg-card border border-border rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground">
-              <tr><th className="text-left p-2">Product</th><th className="text-left p-2">Category</th><th className="text-right p-2">Price</th><th className="text-right p-2">Stock</th><th className="text-left p-2">Status</th><th className="p-2"></th></tr>
+              <tr>
+                <th className="p-2 w-8"><input type="checkbox" checked={allShownSelected} onChange={(e) => {
+                  const next = { ...selected };
+                  filtered.forEach((r) => { next[r.id] = e.target.checked; });
+                  setSelected(next);
+                }} /></th>
+                <th className="text-left p-2">Product</th><th className="text-left p-2">Category</th><th className="text-right p-2">Price</th><th className="text-right p-2">Stock</th><th className="text-left p-2">Status</th><th className="p-2"></th>
+              </tr>
             </thead>
             <tbody>
               {filtered.map((p) => (
                 <tr key={p.id} className="border-t border-border hover:bg-secondary/30">
+                  <td className="p-2"><input type="checkbox" checked={!!selected[p.id]} onChange={(e) => setSelected((s) => ({ ...s, [p.id]: e.target.checked }))} /></td>
                   <td className="p-2 flex items-center gap-2">
                     {p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded object-cover" />}
-                    <div><div className="font-medium">{p.name}</div><div className="text-[10px] text-muted-foreground">{p.slug}</div></div>
+                    <div>
+                      <div className="font-medium">{p.name}{p.is_bestseller && <span className="ml-1 text-[9px] text-amber-500">★</span>}{p.is_new && <span className="ml-1 text-[9px] text-emerald-500">NEW</span>}</div>
+                      <div className="text-[10px] text-muted-foreground">{p.slug}</div>
+                    </div>
                   </td>
                   <td className="p-2 text-xs">{p.category?.name ?? "—"}</td>
                   <td className="p-2 text-right">₹{Number(p.price).toLocaleString("en-IN")}</td>
@@ -88,7 +158,7 @@ function ProductsPage() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-xs text-muted-foreground">No products.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-xs text-muted-foreground">No products match these filters.</td></tr>}
             </tbody>
           </table>
         </div>

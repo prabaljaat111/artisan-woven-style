@@ -38,6 +38,10 @@ function DashboardPage() {
         <Stat icon={ShoppingBag} label="Orders (30d)" value={stats.orders30} />
         <Stat icon={TrendingUp} label="AOV (30d)" value={`₹${stats.aov30.toLocaleString("en-IN")}`} />
         <Stat icon={Users} label="Customers" value={stats.customersTotal} />
+        <Stat icon={Package} label="Products" value={stats.productsTotal} />
+        <Stat icon={ShoppingBag} label="All Orders" value={stats.ordersTotal} />
+        <Stat icon={Users} label="Leads" value={stats.leadsTotal ?? 0} />
+        <Stat icon={AlertTriangle} label="Low stock" value={stats.lowStock?.length ?? 0} />
       </div>
 
       <div className="bg-card border border-border rounded-xl p-5">
