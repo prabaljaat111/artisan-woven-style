@@ -54,10 +54,6 @@ function CartPage() {
           </div>
           <aside className="bg-cream border border-border rounded-xl p-5 h-fit sticky top-24">
             <h2 className="font-display text-lg text-primary mb-4">Order Summary</h2>
-            <div className="flex gap-2 mb-4">
-              <input placeholder="Coupon code" className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-background" />
-              <button className="bg-secondary text-foreground px-3 rounded-md text-sm">Apply</button>
-            </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toLocaleString("en-IN")}</span></div>

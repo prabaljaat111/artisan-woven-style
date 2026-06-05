@@ -43,6 +43,7 @@ function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coupon, setCoupon] = useState("");
   const [serviceCheck, setServiceCheck] = useState<{
     checking: boolean;
     result: null | {
@@ -111,6 +112,7 @@ function CheckoutPage() {
           },
           items: orderItems,
           payment_method: paymentMethod,
+          coupon_code: coupon.trim() ? coupon.trim().toUpperCase() : null,
         },
       });
 
@@ -235,6 +237,17 @@ function CheckoutPage() {
               <div className="flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
               <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between font-semibold text-primary"><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
             </div>
+            <div className="flex gap-2">
+              <input
+                value={coupon}
+                onChange={(e) => setCoupon(e.target.value)}
+                placeholder="Coupon code (optional)"
+                className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-background uppercase"
+              />
+            </div>
+            {coupon.trim() && (
+              <p className="text-xs text-muted-foreground">Coupon will be validated and applied at payment.</p>
+            )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               disabled={items.length === 0 || processing}
