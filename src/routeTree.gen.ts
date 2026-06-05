@@ -48,6 +48,7 @@ import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
 import { Route as AdminSettingsSeoRouteImport } from './routes/admin.settings.seo'
+import { Route as AdminSettingsSecurityRouteImport } from './routes/admin.settings.security'
 import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
 import { Route as AdminSettingsNotificationsRouteImport } from './routes/admin.settings.notifications'
 import { Route as AdminSettingsInventoryRouteImport } from './routes/admin.settings.inventory'
@@ -248,6 +249,11 @@ const AdminSettingsSeoRoute = AdminSettingsSeoRouteImport.update({
   path: '/seo',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsSecurityRoute = AdminSettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
   id: '/payment',
   path: '/payment',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
     | '/admin/settings/payment'
+    | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
     | '/admin/settings/whatsapp'
@@ -489,6 +499,7 @@ export interface FileRouteTypes {
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
     | '/admin/settings/payment'
+    | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
     | '/admin/settings/whatsapp'
@@ -534,6 +545,7 @@ export interface FileRouteTypes {
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
     | '/admin/settings/payment'
+    | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
     | '/admin/settings/whatsapp'
@@ -843,6 +855,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsSeoRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/security': {
+      id: '/admin/settings/security'
+      path: '/security'
+      fullPath: '/admin/settings/security'
+      preLoaderRoute: typeof AdminSettingsSecurityRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/payment': {
       id: '/admin/settings/payment'
       path: '/payment'
@@ -879,6 +898,7 @@ interface AdminSettingsRouteChildren {
   AdminSettingsInventoryRoute: typeof AdminSettingsInventoryRoute
   AdminSettingsNotificationsRoute: typeof AdminSettingsNotificationsRoute
   AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
+  AdminSettingsSecurityRoute: typeof AdminSettingsSecurityRoute
   AdminSettingsSeoRoute: typeof AdminSettingsSeoRoute
   AdminSettingsShippingRoute: typeof AdminSettingsShippingRoute
   AdminSettingsWhatsappRoute: typeof AdminSettingsWhatsappRoute
@@ -890,6 +910,7 @@ const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsInventoryRoute: AdminSettingsInventoryRoute,
   AdminSettingsNotificationsRoute: AdminSettingsNotificationsRoute,
   AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
+  AdminSettingsSecurityRoute: AdminSettingsSecurityRoute,
   AdminSettingsSeoRoute: AdminSettingsSeoRoute,
   AdminSettingsShippingRoute: AdminSettingsShippingRoute,
   AdminSettingsWhatsappRoute: AdminSettingsWhatsappRoute,
