@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { products } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/sale")({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/sale")({
 });
 
 function SalePage() {
+  const products = useStorefrontProducts();
   const items = products
     .filter((p) => p.originalPrice > p.price)
     .map((p) => ({ ...p, _disc: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) }))

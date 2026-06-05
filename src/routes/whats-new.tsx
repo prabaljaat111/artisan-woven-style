@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { products } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/whats-new")({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/whats-new")({
 });
 
 function WhatsNewPage() {
+  const products = useStorefrontProducts();
   const items = products.filter((p) => p.isNew);
   const fallback = items.length ? items : products.slice(0, 12);
 

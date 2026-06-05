@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { products } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { Play, ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/watch-and-buy")({
 });
 
 function WatchAndBuy() {
+  const products = useStorefrontProducts();
   const reels = products.filter((p) => p.isBestseller || p.isNew).slice(0, 8);
   const all = reels.length ? reels : products.slice(0, 8);
   const [active, setActive] = useState(0);
