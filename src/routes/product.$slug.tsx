@@ -132,9 +132,9 @@ function ProductPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
   const wished = mounted && ids.includes(p.id);
-  const related = products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4);
+  const related = all.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4);
   const recent = mounted
-    ? recentIds.filter((id) => id !== p.id).map((id) => products.find((x) => x.id === id)).filter(Boolean).slice(0, 4) as Product[]
+    ? recentIds.filter((id) => id !== p.id).map((id) => all.find((x) => x.id === id)).filter(Boolean).slice(0, 4) as Product[]
     : [];
 
   const savings = Math.max(0, p.originalPrice - p.price);
