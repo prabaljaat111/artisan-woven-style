@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
