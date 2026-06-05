@@ -102,7 +102,17 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
   const [newImg, setNewImg] = useState("");
 
+  function slugify(s: string) {
+    return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 80);
+  }
+
   async function save() {
+    if (!form.name.trim()) return toast.error("Name is required");
+    if (!form.slug.trim()) return toast.error("Slug is required");
+    if (!/^[a-z0-9-]+$/.test(form.slug)) return toast.error("Slug: lowercase letters, digits and dashes only");
+    if (!form.images || form.images.length === 0) return toast.error("Add at least 1 product image");
+    if (form.price <= 0) return toast.error("Price must be greater than 0");
+    if (form.original_price < form.price) return toast.error("MRP must be ≥ price");
     setSaving(true);
     try {
       await adminUpsertProduct({ data: { ...form, color: form.color || null } });
@@ -119,8 +129,11 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
           <button onClick={onClose}><X className="h-5 w-5" /></button>
         </div>
         <div className="space-y-3 text-sm">
-          <F label="Name"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} /></F>
-          <F label="Slug (lowercase, dashes)"><input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputCls} /></F>
+          <F label="Name"><input value={form.name} onChange={(e) => {
+            const name = e.target.value;
+            setForm((prev: any) => ({ ...prev, name, slug: prev.id || prev.slug ? prev.slug : slugify(name) }));
+          }} className={inputCls} /></F>
+          <F label="Slug (lowercase, dashes)"><input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} className={inputCls} /></F>
           <F label="Description"><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className={inputCls} /></F>
           <F label="Category">
             <select value={form.category_id ?? ""} onChange={(e) => setForm({ ...form, category_id: e.target.value || null })} className={inputCls}>
@@ -146,8 +159,9 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               ))}
               <div className="flex gap-2">
                 <input value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="https://…" className={inputCls + " flex-1"} />
-                <button onClick={() => { if (newImg) { setForm({ ...form, images: [...form.images, newImg] }); setNewImg(""); } }} className="text-xs bg-secondary rounded-full px-3">Add</button>
+                <button type="button" onClick={() => { const v = newImg.trim(); if (v) { setForm({ ...form, images: [...form.images, v] }); setNewImg(""); } }} className="text-xs bg-secondary rounded-full px-3">Add</button>
               </div>
+              {form.images.length === 0 && <p className="text-[10px] text-amber-600">At least 1 image required.</p>}
             </div>
           </F>
           <div className="flex flex-wrap gap-4 text-xs">
