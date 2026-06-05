@@ -1,5 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { byCategory, categories } from "@/data/products";
+import { categories } from "@/data/products";
+import { useProductsByCategory } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/category/$slug")({
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/category/$slug")({
 function CategoryPage() {
   const { slug } = Route.useParams();
   const cat = Route.useLoaderData();
-  const items = byCategory(slug);
+  const items = useProductsByCategory(slug);
   return (
     <div>
       <section className="relative bg-secondary/60 border-b border-border overflow-hidden">

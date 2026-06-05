@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldCheck, Truck, RotateCcw, Sparkles, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { products, categories } from "@/data/products";
+import { categories } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import { LotusMark } from "@/components/LotusMark";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +113,7 @@ function HeroSlider() {
 }
 
 function Index() {
+  const products = useStorefrontProducts();
   const featured = products.slice(0, 8);
   const [news, setNews] = useState({ email: "", wa: false, sending: false, sent: false });
   async function subscribe(e: React.FormEvent) {
