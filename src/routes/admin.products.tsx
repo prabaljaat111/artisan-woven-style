@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories } from "@/lib/admin.functions";
+import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 
@@ -101,6 +101,24 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   });
   const [saving, setSaving] = useState(false);
   const [newImg, setNewImg] = useState("");
+  // Variant matrix (per-size stock). Only loaded when editing an existing product.
+  const [variants, setVariants] = useState<Array<{ id?: string; size: string; color: string | null; sku: string | null; stock: number }>>([]);
+  const [variantsDirty, setVariantsDirty] = useState(false);
+  useEffect(() => {
+    if (!form.id) { setVariants([]); return; }
+    adminListVariants({ data: { productId: form.id } })
+      .then((rows: any[]) => {
+        if (rows.length > 0) {
+          setVariants(rows.map((r) => ({ id: r.id, size: r.size, color: r.color, sku: r.sku, stock: Number(r.stock) })));
+        } else {
+          // seed from sizes list
+          setVariants(form.sizes.map((s: string) => ({ size: s, color: form.color || null, sku: null, stock: 0 })));
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.id]);
+  const totalVariantStock = variants.reduce((s, v) => s + (v.stock || 0), 0);
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 80);
@@ -115,7 +133,22 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     if (form.original_price < form.price) return toast.error("MRP must be ≥ price");
     setSaving(true);
     try {
-      await adminUpsertProduct({ data: { ...form, color: form.color || null } });
+      const result = await adminUpsertProduct({ data: { ...form, color: form.color || null } });
+      // Save variants too if there are any.
+      if (variants.length > 0 && (form.id || result?.id)) {
+        await adminSaveVariants({
+          data: {
+            productId: (form.id ?? result?.id) as string,
+            variants: variants.map((v) => ({
+              id: v.id,
+              size: v.size,
+              color: v.color,
+              sku: v.sku,
+              stock: Number(v.stock) || 0,
+            })),
+          },
+        });
+      }
       toast.success("Saved"); onSaved();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
     finally { setSaving(false); }
@@ -148,6 +181,50 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
           </div>
           <F label="Color"><input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className={inputCls} /></F>
           <F label="Sizes (comma-separated)"><input value={form.sizes.join(",")} onChange={(e) => setForm({ ...form, sizes: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })} className={inputCls} /></F>
+          {form.id && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Inventory by size</div>
+                <div className="text-[10px] text-muted-foreground">Total: <span className="font-semibold text-foreground">{totalVariantStock}</span></div>
+              </div>
+              <div className="border border-border rounded-md overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-secondary/60">
+                    <tr>
+                      <th className="text-left px-2 py-1.5">Size</th>
+                      <th className="text-left px-2 py-1.5">Color</th>
+                      <th className="text-left px-2 py-1.5">SKU</th>
+                      <th className="text-right px-2 py-1.5">Stock</th>
+                      <th className="px-2 py-1.5"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variants.map((v, i) => {
+                      const status = v.stock <= 0 ? "out" : v.stock <= 10 ? "low" : "ok";
+                      return (
+                        <tr key={i} className="border-t border-border">
+                          <td className="px-2 py-1"><input value={v.size} onChange={(e) => { const a = [...variants]; a[i] = { ...v, size: e.target.value }; setVariants(a); setVariantsDirty(true); }} className="w-14 border border-border rounded px-1.5 py-1 bg-background" /></td>
+                          <td className="px-2 py-1"><input value={v.color ?? ""} placeholder="—" onChange={(e) => { const a = [...variants]; a[i] = { ...v, color: e.target.value || null }; setVariants(a); setVariantsDirty(true); }} className="w-24 border border-border rounded px-1.5 py-1 bg-background" /></td>
+                          <td className="px-2 py-1"><input value={v.sku ?? ""} placeholder="—" onChange={(e) => { const a = [...variants]; a[i] = { ...v, sku: e.target.value || null }; setVariants(a); setVariantsDirty(true); }} className="w-24 border border-border rounded px-1.5 py-1 bg-background" /></td>
+                          <td className="px-2 py-1 text-right">
+                            <input type="number" min={0} value={v.stock} onChange={(e) => { const a = [...variants]; a[i] = { ...v, stock: Math.max(0, Number(e.target.value) || 0) }; setVariants(a); setVariantsDirty(true); }} className={cn("w-16 border rounded px-1.5 py-1 bg-background text-right", status === "out" && "border-red-500 text-red-600", status === "low" && "border-amber-500 text-amber-600", status === "ok" && "border-green-500 text-green-700")} />
+                          </td>
+                          <td className="px-2 py-1 text-right"><button type="button" onClick={() => { setVariants(variants.filter((_, j) => j !== i)); setVariantsDirty(true); }}><X className="h-3 w-3 text-red-500" /></button></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" onClick={() => { setVariants([...variants, { size: "M", color: form.color || null, sku: null, stock: 0 }]); setVariantsDirty(true); }} className="mt-2 text-[11px] text-gold underline">+ Add variant row</button>
+              {variantsDirty && <p className="text-[10px] text-amber-600 mt-1">Unsaved variant changes — click Save Product to persist.</p>}
+            </div>
+          )}
+          {!form.id && (
+            <p className="text-[11px] text-muted-foreground bg-secondary/50 border border-border rounded p-2">
+              💡 Save the product first, then re-open it to set per-size stock.
+            </p>
+          )}
           <F label="Images (URLs)">
             <div className="space-y-1.5">
               {form.images.map((u: string, i: number) => (
