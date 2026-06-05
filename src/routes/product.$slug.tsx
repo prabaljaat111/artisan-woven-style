@@ -1,7 +1,8 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check, Ruler, Banknote, PackageCheck, Zap, Globe2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { findProduct, type Product } from "@/data/products";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
@@ -15,6 +16,32 @@ import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
+
+const COLOR_HEX: Record<string, string> = {
+  white: "#ffffff", ivory: "#f5efe0", cream: "#f4ead5", beige: "#e8d9b8",
+  black: "#1a1a1a", maroon: "#7b1e2b", red: "#c0392b", pink: "#f4a9b8",
+  "pastel pink": "#f9c9d2", "off-white": "#f7f3ea",
+  gold: "#caa14a", yellow: "#f1c33d",
+  green: "#3a7d44", sage: "#a8b89d", mint: "#bfe3c8", "pastel mint": "#cfe9d4",
+  blue: "#2f5d8c", turquoise: "#34a3a3", lavender: "#b6a3c9",
+  peach: "#f7b791", brown: "#7a4a2b", grey: "#8a8a8a", silver: "#cfcfcf",
+};
+function colorToHex(name: string): string {
+  const k = (name || "").trim().toLowerCase();
+  if (COLOR_HEX[k]) return COLOR_HEX[k];
+  // soft hash fallback so unknown colours still get a swatch
+  let h = 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+  return `hsl(${h % 360}, 35%, 60%)`;
+}
+
+function inferFabric(category: string): string {
+  if (category.includes("saree")) return "Pure Georgette / Cotton";
+  if (category.includes("palazzo") || category.includes("pants")) return "Cotton";
+  if (category.includes("sharara") || category.includes("garara")) return "Georgette";
+  if (category.includes("unstitched")) return "Cotton (Unstitched)";
+  return "Premium Cotton / Rayon";
+}
 
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
@@ -79,10 +106,18 @@ function ProductPage() {
   const all = useStorefrontProducts();
   // Prefer live-synced product so realtime edits reflect in the PDP body.
   const p = all.find((x) => x.slug === loaded.slug) ?? loaded;
-  const [size, setSize] = useState(p.sizes[1]);
+  // Ensure full expanded size scale for the selector even when DB has fewer entries.
+  const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
+  const sizes = useMemo(() => {
+    const set = new Set<string>(p.sizes ?? []);
+    return ALL_SIZES.filter((s) => set.has(s) || (p.sizes ?? []).length === 0 ? true : set.has(s));
+  }, [p.sizes]);
+  const [size, setSize] = useState(sizes[1] ?? sizes[0]);
   const [color, setColor] = useState(p.colors[0]);
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
+  const [zoom, setZoom] = useState<{ x: number; y: number; on: boolean }>({ x: 50, y: 50, on: false });
+  const touchStartX = useRef<number | null>(null);
   const addItem = useCart((s) => s.addItem);
   const { ids, toggle } = useWishlist();
   const [mounted, setMounted] = useState(false);
@@ -168,8 +203,18 @@ function ProductPage() {
     }
   }
 
-  function nextImg() { setImgIdx((i) => (i + 1) % p.images.length); }
-  function prevImg() { setImgIdx((i) => (i - 1 + p.images.length) % p.images.length); }
+  // Color-aware gallery: when a product has multiple images, prefer ones whose
+  // URL contains the selected colour name. Falls back to the full image set.
+  const gallery = useMemo(() => {
+    if (!p.images?.length) return [];
+    if (!color || p.images.length < 2) return p.images;
+    const tag = color.toLowerCase().replace(/[^a-z]+/g, "-");
+    const matched = p.images.filter((src: string) => src.toLowerCase().includes(tag));
+    return matched.length ? matched : p.images;
+  }, [p.images, color]);
+  useEffect(() => { setImgIdx(0); }, [color]);
+  function nextImg() { setImgIdx((i) => (i + 1) % gallery.length); }
+  function prevImg() { setImgIdx((i) => (i - 1 + gallery.length) % gallery.length); }
 
   const handleAdd = () => {
     if (selectedStock <= 0) {
@@ -188,9 +233,30 @@ function ProductPage() {
     <div className="pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-12 grid md:grid-cols-2 gap-8 md:gap-14">
         <div>
-          <div className="relative aspect-[4/5] bg-secondary rounded-2xl overflow-hidden border border-gold/30">
-            <img src={p.images[imgIdx]} alt={p.name} decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="w-full h-full object-cover" />
-            {p.images.length > 1 && (
+          <div
+            className="relative aspect-[4/5] bg-secondary rounded-2xl overflow-hidden border border-gold/30 group cursor-zoom-in"
+            onMouseMove={(e) => {
+              const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+              setZoom({ on: true, x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+            }}
+            onMouseLeave={() => setZoom((z) => ({ ...z, on: false }))}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current == null) return;
+              const dx = e.changedTouches[0].clientX - touchStartX.current;
+              if (Math.abs(dx) > 40) (dx < 0 ? nextImg : prevImg)();
+              touchStartX.current = null;
+            }}
+          >
+            <img
+              src={gallery[imgIdx]}
+              alt={p.name}
+              decoding="async"
+              {...({ fetchpriority: "high" } as Record<string, string>)}
+              className="w-full h-full object-cover transition-transform duration-200"
+              style={zoom.on ? { transform: "scale(1.8)", transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
+            />
+            {gallery.length > 1 && (
               <>
                 <button onClick={prevImg} aria-label="Previous image" className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-cream/80 hover:bg-cream rounded-full flex items-center justify-center shadow"><ChevronLeft className="h-4 w-4" /></button>
                 <button onClick={nextImg} aria-label="Next image" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-cream/80 hover:bg-cream rounded-full flex items-center justify-center shadow"><ChevronRight className="h-4 w-4" /></button>
@@ -201,7 +267,7 @@ function ProductPage() {
             )}
           </div>
           <div className="flex gap-2 mt-3 overflow-x-auto">
-            {p.images.map((src: string, i: number) => (
+            {gallery.map((src: string, i: number) => (
               <button key={i} onClick={() => setImgIdx(i)} className={cn("h-20 w-16 flex-shrink-0 rounded-lg overflow-hidden border-2", i === imgIdx ? "border-gold" : "border-border")}>
                 <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </button>
@@ -245,9 +311,12 @@ function ProductPage() {
             )}
           </div>
           <div className="mt-6">
-            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><Link to="/size-guide" className="text-xs text-gold underline">Size Guide</Link></div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Size <span className="text-muted-foreground font-normal">· {size}</span></span>
+              <SizeGuideDialog trigger={<button type="button" className="text-xs text-gold underline inline-flex items-center gap-1"><Ruler className="h-3 w-3" /> Size Guide</button>} />
+            </div>
             <div className="flex flex-wrap gap-2">
-              {p.sizes.map((s: string) => {
+              {sizes.map((s: string) => {
                 const st = sizeStock(s);
                 const out = st <= 0;
                 return (
@@ -263,6 +332,9 @@ function ProductPage() {
                     )}
                   >
                     {s}
+                    {!out && st > 0 && st <= 3 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[9px] font-bold rounded-full px-1">{st}</span>
+                    )}
                   </button>
                 );
               })}
@@ -279,8 +351,26 @@ function ProductPage() {
           </div>
           <div className="mt-5">
             <span className="text-sm font-medium block mb-2">Color: <span className="text-muted-foreground">{color}</span></span>
-            <div className="flex flex-wrap gap-2">
-              {p.colors.map((c: string) => (<button key={c} onClick={() => setColor(c)} className={cn("h-11 px-4 border rounded-md text-sm", color === c ? "bg-secondary border-primary" : "border-border")}>{c}</button>))}
+            <div className="flex flex-wrap gap-3 items-center">
+              {p.colors.map((c: string) => {
+                const hex = colorToHex(c);
+                const active = color === c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    title={c}
+                    aria-label={`Select color ${c}`}
+                    className={cn(
+                      "relative h-10 w-10 rounded-full border-2 transition shadow-sm",
+                      active ? "border-primary ring-2 ring-gold/60 ring-offset-2 ring-offset-background" : "border-border hover:border-primary/50",
+                    )}
+                    style={{ background: hex }}
+                  >
+                    {active && <Check className="h-4 w-4 absolute inset-0 m-auto text-white drop-shadow" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="mt-5 flex items-center gap-3">
@@ -316,17 +406,94 @@ function ProductPage() {
           <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
             <MessageCircle className="h-4 w-4" /> Ask about this product on WhatsApp
           </a>
-          <div className="grid grid-cols-3 gap-3 mt-6 text-center">
-            {[{ icon: Truck, label: "Free shipping ₹999+" },{ icon: RotateCcw, label: "7-day returns" },{ icon: ShieldCheck, label: "Authentic craft" }].map((b) => (
-              <div key={b.label} className="bg-secondary/50 rounded-lg p-3"><b.icon className="h-4 w-4 text-gold mx-auto" /><p className="text-[11px] mt-1 text-muted-foreground leading-tight">{b.label}</p></div>
+          {/* Delivery & service info */}
+          <div className="mt-6 grid sm:grid-cols-2 gap-2 text-xs">
+            {[
+              { icon: Truck, t: "Delivery", d: "3–5 business days across India" },
+              { icon: PackageCheck, t: "Dispatch", d: "Ships within 24–48 hours" },
+              { icon: Banknote, t: "COD Available", d: "Cash on delivery on most PINs" },
+              { icon: Globe2, t: "International", d: "Worldwide shipping on request" },
+            ].map((x) => (
+              <div key={x.t} className="flex items-start gap-2 border border-border rounded-lg p-2.5 bg-background">
+                <x.icon className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+                <div><p className="font-semibold text-primary">{x.t}</p><p className="text-muted-foreground">{x.d}</p></div>
+              </div>
             ))}
           </div>
+
+          {/* Trust icons (5) */}
+          <div className="grid grid-cols-5 gap-2 mt-4 text-center">
+            {[
+              { icon: ShieldCheck, label: "Secure Payments" },
+              { icon: Banknote, label: "COD Available" },
+              { icon: Truck, label: "Free Shipping" },
+              { icon: RotateCcw, label: "Easy Returns" },
+              { icon: Zap, label: "Fast Delivery" },
+            ].map((b) => (
+              <div key={b.label} className="bg-secondary/50 rounded-lg p-2.5"><b.icon className="h-4 w-4 text-gold mx-auto" /><p className="text-[10px] mt-1 text-muted-foreground leading-tight">{b.label}</p></div>
+            ))}
+          </div>
+
+          {/* Description */}
           <div className="mt-8"><h2 className="font-display text-lg text-primary mb-2">Description</h2><p className="text-sm text-foreground/85 leading-relaxed">{p.description}</p></div>
           <p className="text-[11px] text-muted-foreground italic mt-2">Handmade in Lucknow — slight variation in colour and embroidery placement is the signature of true Chikankari.</p>
-          <Accordion type="single" collapsible className="mt-6">
-            <AccordionItem value="fabric"><AccordionTrigger>Fabric & Care</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Premium cotton / georgette. Gentle hand wash separately in cold water. Dry in shade. Iron on reverse.</AccordionContent></AccordionItem>
-            <AccordionItem value="ship"><AccordionTrigger>Shipping & Returns</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Ships in 2–4 business days. Free shipping above ₹999. 7-day easy returns on unworn items.</AccordionContent></AccordionItem>
-            <AccordionItem value="auth"><AccordionTrigger>Authenticity</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent></AccordionItem>
+
+          {/* Expandable product info */}
+          <Accordion type="single" collapsible defaultValue="specs" className="mt-6">
+            <AccordionItem value="specs">
+              <AccordionTrigger>Specifications</AccordionTrigger>
+              <AccordionContent>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {[
+                    ["Fabric", inferFabric(p.category)],
+                    ["Embroidery", "Hand Chikankari"],
+                    ["Sleeve Length", "3/4 Sleeve"],
+                    ["Neck Style", "Round Neck"],
+                    ["Pattern", "Embroidered"],
+                    ["Occasion", "Festive · Daily · Office"],
+                    ["Color", color],
+                    ["Craft Type", "Handcrafted in Lucknow"],
+                    ["Country of Origin", "India"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
+                      <dt className="text-muted-foreground">{k}</dt>
+                      <dd className="text-foreground font-medium text-right">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="ship">
+              <AccordionTrigger>Shipping Information</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· Delivered in 3–5 business days across India.</p>
+                <p>· Free shipping on orders above ₹999.</p>
+                <p>· Cash on Delivery available on most pincodes.</p>
+                <p>· Dispatched within 24–48 hours of order confirmation.</p>
+                <p>· International shipping available on request via WhatsApp.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="returns">
+              <AccordionTrigger>Return Policy</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· 7-day easy returns on unworn, unwashed items with original tags.</p>
+                <p>· Refund processed within 5–7 business days after pickup.</p>
+                <p>· Sale and customised pieces are non-returnable.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="care">
+              <AccordionTrigger>Care Instructions</AccordionTrigger>
+              <AccordionContent className="text-sm text-foreground/80 space-y-1">
+                <p>· Gentle hand wash separately in cold water.</p>
+                <p>· Do not bleach. Dry in shade to preserve colour.</p>
+                <p>· Iron on reverse on medium heat.</p>
+                <p>· Store folded with a muslin cloth between pieces.</p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="auth">
+              <AccordionTrigger>Authenticity</AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>
