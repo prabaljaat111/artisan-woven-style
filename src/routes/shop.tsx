@@ -16,11 +16,12 @@ const SORT_OPTIONS = [
 const PRICE_MIN = 299;
 const PRICE_MAX = 6000;
 
-// Validate URL search params so back/forward and shareable links work.
-function validateSearch(raw: Record<string, unknown>) {
+type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+
+function parseSearch(raw: Record<string, unknown>) {
   const toArr = (v: unknown): string[] => Array.isArray(v) ? v.map(String) : typeof v === "string" && v.length ? v.split(",") : [];
   const num = (v: unknown, d: number) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
-  const sort = SORT_OPTIONS.find((s) => s.value === raw.sort)?.value ?? "popular";
+  const sort = (SORT_OPTIONS.find((s) => s.value === raw.sort)?.value ?? "popular") as SortValue;
   return {
     q: typeof raw.q === "string" ? raw.q : "",
     cats: toArr(raw.cats),
@@ -34,7 +35,6 @@ function validateSearch(raw: Record<string, unknown>) {
 
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
-  validateSearch,
   head: () => ({ meta: [{ title: "Shop All — Indian Handicraft Standards" }, { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." }] }),
 });
 
@@ -42,7 +42,8 @@ const ALL_COLORS = Array.from(new Set(products.flatMap((p) => p.colors))).sort()
 
 function ShopPage() {
   const navigate = useNavigate({ from: "/shop" });
-  const search = Route.useSearch();
+  const raw = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
+  const search = useMemo(() => parseSearch(raw ?? {}), [raw]);
   const { q, cats, colors, min, max, sale, sort } = search;
   const [qLocal, setQLocal] = useState(q);
   useEffect(() => { setQLocal(q); }, [q]);
@@ -56,7 +57,18 @@ function ShopPage() {
   }, [qLocal, q, navigate]);
 
   function update(patch: Partial<typeof search>) {
-    navigate({ search: (prev) => ({ ...prev, ...patch }) as never, replace: true });
+    navigate({ search: ((prev: Record<string, unknown>) => {
+      const next: Record<string, unknown> = { ...(prev ?? {}), ...patch };
+      // Strip defaults so the URL stays clean.
+      if (next.q === "") delete next.q;
+      if (Array.isArray(next.cats) && next.cats.length === 0) delete next.cats;
+      if (Array.isArray(next.colors) && next.colors.length === 0) delete next.colors;
+      if (next.min === PRICE_MIN) delete next.min;
+      if (next.max === PRICE_MAX) delete next.max;
+      if (next.sale === false) delete next.sale;
+      if (next.sort === "popular") delete next.sort;
+      return next;
+    }) as never, replace: true });
   }
   function reset() {
     navigate({ search: {} as never, replace: true });
@@ -146,26 +158,6 @@ function ShopPage() {
     </div>
   );
 
-  const FilterPanel = (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-display text-sm uppercase tracking-wider text-primary mb-3">Category</h3>
-        <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
-          {categories.map((c) => (
-            <label key={c.slug} className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={cats.includes(c.slug)} onChange={(e) => setCats((s) => e.target.checked ? [...s, c.slug] : s.filter((x) => x !== c.slug))} className="accent-primary" />
-              {c.name}
-            </label>
-          ))}
-        </div>
-      </div>
-      <div>
-        <h3 className="font-display text-sm uppercase tracking-wider text-primary mb-3">Price up to ₹{maxPrice}</h3>
-        <input type="range" min={299} max={6000} step={100} value={maxPrice} onChange={(e) => setMaxPrice(+e.target.value)} className="w-full accent-primary" />
-      </div>
-    </div>
-  );
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
       <div className="text-center mb-8">
@@ -245,5 +237,16 @@ function ShopPage() {
         <Link to="/about" className="hover:text-primary">Learn about our craftsmanship →</Link>
       </div>
     </div>
+  );
+}
+
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-xs bg-secondary text-foreground rounded-full pl-3 pr-1.5 py-1">
+      {label}
+      <button type="button" onClick={onRemove} aria-label={`Remove ${label}`} className="hover:bg-background rounded-full p-0.5">
+        <X className="h-3 w-3" />
+      </button>
+    </span>
   );
 }
