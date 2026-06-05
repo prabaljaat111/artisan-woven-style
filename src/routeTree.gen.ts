@@ -33,7 +33,6 @@ import { Route as CategoryIndexRouteImport } from './routes/category.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
-import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -165,11 +164,6 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
-  id: '/api/sitemap.xml',
-  path: '/api/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -252,7 +246,6 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -288,7 +281,6 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
@@ -326,7 +318,6 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -365,7 +356,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
-    | '/api/sitemap.xml'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
@@ -401,7 +391,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
-    | '/api/sitemap.xml'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin'
@@ -438,7 +427,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shipments'
     | '/api/chat'
-    | '/api/sitemap.xml'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
@@ -467,7 +455,6 @@ export interface RootRouteChildren {
   WhatsNewRoute: typeof WhatsNewRoute
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
-  ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
   CategoryIndexRoute: typeof CategoryIndexRoute
@@ -643,13 +630,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/sitemap.xml': {
-      id: '/api/sitemap.xml'
-      path: '/api/sitemap.xml'
-      fullPath: '/api/sitemap.xml'
-      preLoaderRoute: typeof ApiSitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -773,7 +753,6 @@ const rootRouteChildren: RootRouteChildren = {
   WhatsNewRoute: WhatsNewRoute,
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
-  ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
   CategorySlugRoute: CategorySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
   CategoryIndexRoute: CategoryIndexRoute,
@@ -781,3 +760,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
