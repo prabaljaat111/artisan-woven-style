@@ -1,7 +1,8 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check, Ruler, Banknote, PackageCheck, Zap, Globe2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { findProduct, type Product } from "@/data/products";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
@@ -79,10 +80,18 @@ function ProductPage() {
   const all = useStorefrontProducts();
   // Prefer live-synced product so realtime edits reflect in the PDP body.
   const p = all.find((x) => x.slug === loaded.slug) ?? loaded;
-  const [size, setSize] = useState(p.sizes[1]);
+  // Ensure full expanded size scale for the selector even when DB has fewer entries.
+  const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
+  const sizes = useMemo(() => {
+    const set = new Set<string>(p.sizes ?? []);
+    return ALL_SIZES.filter((s) => set.has(s) || (p.sizes ?? []).length === 0 ? true : set.has(s));
+  }, [p.sizes]);
+  const [size, setSize] = useState(sizes[1] ?? sizes[0]);
   const [color, setColor] = useState(p.colors[0]);
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
+  const [zoom, setZoom] = useState<{ x: number; y: number; on: boolean }>({ x: 50, y: 50, on: false });
+  const touchStartX = useRef<number | null>(null);
   const addItem = useCart((s) => s.addItem);
   const { ids, toggle } = useWishlist();
   const [mounted, setMounted] = useState(false);
@@ -168,8 +177,18 @@ function ProductPage() {
     }
   }
 
-  function nextImg() { setImgIdx((i) => (i + 1) % p.images.length); }
-  function prevImg() { setImgIdx((i) => (i - 1 + p.images.length) % p.images.length); }
+  // Color-aware gallery: when a product has multiple images, prefer ones whose
+  // URL contains the selected colour name. Falls back to the full image set.
+  const gallery = useMemo(() => {
+    if (!p.images?.length) return [];
+    if (!color || p.images.length < 2) return p.images;
+    const tag = color.toLowerCase().replace(/[^a-z]+/g, "-");
+    const matched = p.images.filter((src) => src.toLowerCase().includes(tag));
+    return matched.length ? matched : p.images;
+  }, [p.images, color]);
+  useEffect(() => { setImgIdx(0); }, [color]);
+  function nextImg() { setImgIdx((i) => (i + 1) % gallery.length); }
+  function prevImg() { setImgIdx((i) => (i - 1 + gallery.length) % gallery.length); }
 
   const handleAdd = () => {
     if (selectedStock <= 0) {
