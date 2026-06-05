@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
