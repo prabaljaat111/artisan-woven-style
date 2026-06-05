@@ -521,7 +521,12 @@ function SearchOverlay() {
 
   const needle = q.trim().toLowerCase();
   const results = needle
-    ? products.filter((p) => p.name.toLowerCase().includes(needle) || p.category.toLowerCase().includes(needle)).slice(0, 6)
+    ? products
+        .filter((p) => {
+          const hay = `${p.name} ${p.category} ${p.colors.join(" ")} ${p.description}`.toLowerCase();
+          return hay.includes(needle);
+        })
+        .slice(0, 6)
     : [];
 
   const goAll = () => {
