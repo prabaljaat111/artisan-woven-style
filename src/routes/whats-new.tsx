@@ -7,7 +7,9 @@ export const Route = createFileRoute("/whats-new")({
     meta: [
       { title: "What's New — Fresh Chikankari Arrivals | Indian Handicraft Standards" },
       { name: "description", content: "The newest hand-embroidered Lucknowi Chikankari arrivals — fresh kurtis, sarees, and festive sets." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/whats-new" },
     ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/whats-new" }],
   }),
   component: WhatsNewPage,
 });

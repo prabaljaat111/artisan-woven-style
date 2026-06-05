@@ -4,6 +4,21 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/category/$slug")({
   component: CategoryPage,
+  head: ({ params, loaderData }) => {
+    const cat = loaderData as { name: string; slug: string } | undefined;
+    const name = cat?.name ?? params.slug;
+    const url = `https://indianhandicraft.revnlabel.in/category/${params.slug}`;
+    return {
+      meta: [
+        { title: `${name} — Indian Handicraft Standards` },
+        { name: "description", content: `Shop authentic Lucknowi Chikankari ${name.toLowerCase()}.` },
+        { property: "og:title", content: `${name} — Indian Handicraft Standards` },
+        { property: "og:description", content: `Hand-embroidered Chikankari ${name.toLowerCase()}.` },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   notFoundComponent: () => (
     <div className="max-w-3xl mx-auto px-4 py-20 text-center">
       <h1 className="font-display text-3xl text-primary">Category not found</h1>

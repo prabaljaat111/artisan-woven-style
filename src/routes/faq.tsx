@@ -9,9 +9,9 @@ export const Route = createFileRoute("/faq")({
       { name: "description", content: "Answers about Chikankari fabric, sizing, shipping, returns and authenticity." },
       { property: "og:title", content: "Frequently Asked Questions" },
       { property: "og:description", content: "Everything you need to know before ordering." },
-      { property: "og:url", content: "/faq" },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/faq" },
     ],
-    links: [{ rel: "canonical", href: "/faq" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/faq" }],
     scripts: [{
       type: "application/ld+json",
       children: JSON.stringify({

@@ -16,8 +16,12 @@ import hero5 from "@/assets/hero/hero-5.jpg";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
+    meta: [
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/" },
+    ],
     links: [
       { rel: "preload", as: "image", href: hero1, fetchpriority: "high" } as never,
+      { rel: "canonical", href: "https://indianhandicraft.revnlabel.in/" },
     ],
   }),
 });

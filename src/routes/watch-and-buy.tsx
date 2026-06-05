@@ -11,7 +11,9 @@ export const Route = createFileRoute("/watch-and-buy")({
     meta: [
       { title: "Watch & Buy — Shoppable Chikankari Reels | Indian Handicraft Standards" },
       { name: "description", content: "Tap through styled looks of hand-embroidered Chikankari and shop straight from the reel." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/watch-and-buy" },
     ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/watch-and-buy" }],
   }),
   component: WatchAndBuy,
 });

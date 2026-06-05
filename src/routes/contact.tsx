@@ -12,9 +12,9 @@ export const Route = createFileRoute("/contact")({
       { name: "description", content: "Get in touch with our Lucknow atelier. WhatsApp, phone, email and concierge support." },
       { property: "og:title", content: "Contact — Indian Handicraft Standards" },
       { property: "og:description", content: "Reach our team for orders, sizing and custom requests." },
-      { property: "og:url", content: "/contact" },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/contact" },
     ],
-    links: [{ rel: "canonical", href: "/contact" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/contact" }],
   }),
 });
 

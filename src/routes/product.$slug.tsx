@@ -34,15 +34,18 @@ export const Route = createFileRoute("/product/$slug")({
         availability: "https://schema.org/InStock",
       },
     };
+    const url = `https://indianhandicraft.revnlabel.in/product/${p.slug}`;
     return {
       meta: [
         { title: `${p.name} — Indian Handicraft Standards` },
         { name: "description", content: desc },
         { property: "og:title", content: p.name },
         { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
         ...(img ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
       ],
-      links: [{ rel: "canonical", href: `/product/${p.slug}` }],
+      links: [{ rel: "canonical", href: url }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
     };
   },

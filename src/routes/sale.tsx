@@ -7,7 +7,9 @@ export const Route = createFileRoute("/sale")({
     meta: [
       { title: "Sale — Up to 50% Off Chikankari | Indian Handicraft Standards" },
       { name: "description", content: "Authentic Lucknowi Chikankari on sale. Hand-embroidered kurtis, sarees and sets at discounted prices." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/sale" },
     ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/sale" }],
   }),
   component: SalePage,
 });

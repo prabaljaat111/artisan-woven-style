@@ -3,7 +3,7 @@ import { PolicyShell } from "@/components/PolicyShell";
 
 export const Route = createFileRoute("/shipping")({
   component: ShippingPage,
-  head: () => ({ meta: [{ title: "Shipping Policy — Indian Handicraft Standards" }, { name: "description", content: "Shipping timelines, charges and tracking." }], links: [{ rel: "canonical", href: "/shipping" }] }),
+  head: () => ({ meta: [{ title: "Shipping Policy — Indian Handicraft Standards" }, { name: "description", content: "Shipping timelines, charges and tracking." }], links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/shipping" }] }),
 });
 
 function ShippingPage() {

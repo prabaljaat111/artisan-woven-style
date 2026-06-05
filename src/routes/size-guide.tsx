@@ -9,9 +9,9 @@ export const Route = createFileRoute("/size-guide")({
       { name: "description", content: "Complete size chart for Chikankari kurtis, kurta sets, palazzos, sharara, garara and bottoms. Top wear XS–3XL, plus size 4XL–7XL, and bottom wear measurements in inches." },
       { property: "og:title", content: "Size Guide — Indian Handicraft Standards" },
       { property: "og:description", content: "How to measure yourself and choose the perfect Chikankari fit." },
-      { property: "og:url", content: "/size-guide" },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/size-guide" },
     ],
-    links: [{ rel: "canonical", href: "/size-guide" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/size-guide" }],
   }),
 });
 
