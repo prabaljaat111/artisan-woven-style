@@ -1,0 +1,38 @@
+import { createServerFn } from "@tanstack/react-start";
+
+/**
+ * Public, unauthenticated read of published products. Used by the storefront
+ * to surface admin-managed inventory alongside the static demo catalogue.
+ * Returns rows in the shape consumed by `src/data/products.ts#Product` so
+ * existing UI components work without per-route changes.
+ */
+export const listPublishedProducts = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("products")
+    .select("id, slug, name, description, price, original_price, color, is_new, is_bestseller, stock, sizes, images, rating, reviews, category:categories(slug, name)")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: any, i: number) => ({
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    category: r.category?.slug ?? "uncategorised",
+    price: Number(r.price),
+    originalPrice: Number(r.original_price),
+    images: (r.images?.length ? r.images : [""]) as string[],
+    sizes: (r.sizes?.length ? r.sizes : ["XS", "S", "M", "L", "XL", "XXL"]) as string[],
+    colors: r.color ? [r.color] : [],
+    description: r.description ?? "",
+    inStock: (r.stock ?? 0) > 0,
+    stock: Number(r.stock ?? 0),
+    rating: Number(r.rating ?? 4.7),
+    reviews: Number(r.reviews ?? 0),
+    isNew: !!r.is_new,
+    isBestseller: !!r.is_bestseller,
+    isSale: Number(r.original_price) - Number(r.price) >= 1000,
+    isDemo: false,
+    cardShape: (["taj", "imambara", "clocktower"] as const)[i % 3],
+  }));
+});
