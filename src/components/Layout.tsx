@@ -10,6 +10,8 @@ import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const ChatWidget = lazy(() =>
   import("./ChatWidget").then((m) => ({ default: m.ChatWidget }))
