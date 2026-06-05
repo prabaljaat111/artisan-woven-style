@@ -45,7 +45,9 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
+import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
+import { Route as AdminSettingsSeoRouteImport } from './routes/admin.settings.seo'
 import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
 
@@ -229,9 +231,19 @@ const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsWhatsappRoute = AdminSettingsWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsShippingRoute = AdminSettingsShippingRouteImport.update({
   id: '/shipping',
   path: '/shipping',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsSeoRoute = AdminSettingsSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
 const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
@@ -283,7 +295,9 @@ export interface FileRoutesByFullPath {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -322,7 +336,9 @@ export interface FileRoutesByTo {
   '/category': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -364,7 +380,9 @@ export interface FileRoutesById {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -407,7 +425,9 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/whatsapp'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -446,7 +466,9 @@ export interface FileRouteTypes {
     | '/category'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/whatsapp'
     | '/admin/settings'
   id:
     | '__root__'
@@ -487,7 +509,9 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/whatsapp'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -773,11 +797,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsIndexRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/whatsapp': {
+      id: '/admin/settings/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/admin/settings/whatsapp'
+      preLoaderRoute: typeof AdminSettingsWhatsappRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/shipping': {
       id: '/admin/settings/shipping'
       path: '/shipping'
       fullPath: '/admin/settings/shipping'
       preLoaderRoute: typeof AdminSettingsShippingRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/seo': {
+      id: '/admin/settings/seo'
+      path: '/seo'
+      fullPath: '/admin/settings/seo'
+      preLoaderRoute: typeof AdminSettingsSeoRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
     '/admin/settings/payment': {
@@ -800,14 +838,18 @@ declare module '@tanstack/react-router' {
 interface AdminSettingsRouteChildren {
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
+  AdminSettingsSeoRoute: typeof AdminSettingsSeoRoute
   AdminSettingsShippingRoute: typeof AdminSettingsShippingRoute
+  AdminSettingsWhatsappRoute: typeof AdminSettingsWhatsappRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
+  AdminSettingsSeoRoute: AdminSettingsSeoRoute,
   AdminSettingsShippingRoute: AdminSettingsShippingRoute,
+  AdminSettingsWhatsappRoute: AdminSettingsWhatsappRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
 
@@ -873,3 +915,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
