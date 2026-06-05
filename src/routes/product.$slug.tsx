@@ -406,32 +406,48 @@ function ProductPage() {
           <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
             <MessageCircle className="h-4 w-4" /> Ask about this product on WhatsApp
           </a>
-          {/* Delivery & service info */}
-          <div className="mt-6 grid sm:grid-cols-2 gap-2 text-xs">
+          {/* Delivery & service info — artisanal boutique */}
+          <div className="mt-6 grid sm:grid-cols-2 gap-4">
             {[
               { icon: Truck, t: "Delivery", d: "3–5 business days across India" },
               { icon: PackageCheck, t: "Dispatch", d: "Ships within 24–48 hours" },
               { icon: Banknote, t: "COD Available", d: "Cash on delivery on most PINs" },
               { icon: Globe2, t: "International", d: "Worldwide shipping on request" },
             ].map((x) => (
-              <div key={x.t} className="flex items-start gap-2 border border-border rounded-lg p-2.5 bg-background">
-                <x.icon className="h-4 w-4 text-gold mt-0.5 shrink-0" />
-                <div><p className="font-semibold text-primary">{x.t}</p><p className="text-muted-foreground">{x.d}</p></div>
+              <div
+                key={x.t}
+                className="group relative p-5 bg-background border border-gold/30 hover:border-gold rounded-sm transition-all duration-500"
+                style={{ boxShadow: "4px 4px 0 0 color-mix(in oklab, var(--gold) 14%, transparent)" }}
+              >
+                <div className="flex items-start gap-3">
+                  <x.icon className="h-5 w-5 text-gold mt-0.5 shrink-0" strokeWidth={1.5} />
+                  <div>
+                    <h3 className="font-display text-primary font-semibold text-lg leading-tight">{x.t}</h3>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{x.d}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Trust icons (5) */}
-          <div className="grid grid-cols-5 gap-2 mt-4 text-center">
-            {[
-              { icon: ShieldCheck, label: "Secure Payments" },
-              { icon: Banknote, label: "COD Available" },
-              { icon: Truck, label: "Free Shipping" },
-              { icon: RotateCcw, label: "Easy Returns" },
-              { icon: Zap, label: "Fast Delivery" },
-            ].map((b) => (
-              <div key={b.label} className="bg-secondary/50 rounded-lg p-2.5"><b.icon className="h-4 w-4 text-gold mx-auto" /><p className="text-[10px] mt-1 text-muted-foreground leading-tight">{b.label}</p></div>
-            ))}
+          {/* Trust icons (5) — artisanal boutique */}
+          <div className="mt-6 pt-5 border-t border-gold/20">
+            <div className="flex justify-between items-start">
+              {[
+                { icon: ShieldCheck, label: "Secure Payments" },
+                { icon: Banknote, label: "COD Available" },
+                { icon: Truck, label: "Free Shipping" },
+                { icon: RotateCcw, label: "Easy Returns" },
+                { icon: Zap, label: "Fast Delivery" },
+              ].map((b) => (
+                <div key={b.label} className="flex flex-col items-center group w-1/5 px-1">
+                  <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary rounded-full group-hover:bg-gold transition-colors duration-300">
+                    <b.icon className="h-[18px] w-[18px] text-primary-foreground" strokeWidth={2} />
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-primary text-center font-medium leading-tight">{b.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Description */}
