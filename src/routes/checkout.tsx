@@ -58,6 +58,11 @@ function CheckoutPage() {
   });
   useEffect(() => { setMounted(true); }, []);
   const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
+  const phoneValid = /^[6-9]\d{9}$/.test(address.phone.replace(/\D/g, ""));
+  const pinValid = /^\d{6}$/.test(address.pincode);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email.trim());
+  const serviceable = serviceCheck.result?.serviceable !== false;
+  const canContinue = phoneValid && pinValid && emailValid && address.name.trim().length >= 2 && address.line1.trim().length >= 5 && address.city.trim().length >= 2 && serviceable && !serviceCheck.checking;
 
   // Auto-check serviceability when PIN is 6 digits
   useEffect(() => {
@@ -85,6 +90,7 @@ function CheckoutPage() {
   }, [address.pincode, total]);
 
   const handlePlaceOrder = async () => {
+    if (items.length === 0) { setError("Your cart is empty."); return; }
     setError(null);
     setProcessing(true);
     try {
@@ -190,15 +196,16 @@ function CheckoutPage() {
       </div>
       <div className="mt-8 bg-cream border border-border rounded-xl p-6">
         {step === 1 && (
-          <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-3">
-            <input required value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} placeholder="Full name" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <input required type="email" value={address.email} onChange={(e) => setAddress({ ...address, email: e.target.value })} placeholder="Email" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <input required value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} placeholder="Phone" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
-            <input required value={address.line1} onChange={(e) => setAddress({ ...address, line1: e.target.value })} placeholder="Address" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+          <form onSubmit={(e) => { e.preventDefault(); if (canContinue) setStep(2); }} className="space-y-3">
+            <input required value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} placeholder="Full name" autoComplete="name" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <input required type="email" value={address.email} onChange={(e) => setAddress({ ...address, email: e.target.value })} placeholder="Email" autoComplete="email" inputMode="email" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            <input required value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="10-digit mobile number" autoComplete="tel" inputMode="numeric" maxLength={10} className="w-full border border-border rounded-md px-3 py-2 bg-background" />
+            {address.phone.length > 0 && !phoneValid && <p className="text-xs text-amber-700">Enter a valid 10-digit Indian mobile number.</p>}
+            <input required value={address.line1} onChange={(e) => setAddress({ ...address, line1: e.target.value })} placeholder="Address (House no, street, area)" autoComplete="street-address" className="w-full border border-border rounded-md px-3 py-2 bg-background" />
             <div className="grid grid-cols-3 gap-3">
-              <input required value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="City" className="border border-border rounded-md px-3 py-2 bg-background" />
-              <input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} placeholder="State" className="border border-border rounded-md px-3 py-2 bg-background" />
-              <input required value={address.pincode} onChange={(e) => setAddress({ ...address, pincode: e.target.value })} placeholder="PIN code" className="border border-border rounded-md px-3 py-2 bg-background" />
+              <input required value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="City" autoComplete="address-level2" className="border border-border rounded-md px-3 py-2 bg-background" />
+              <input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} placeholder="State" autoComplete="address-level1" className="border border-border rounded-md px-3 py-2 bg-background" />
+              <input required value={address.pincode} onChange={(e) => setAddress({ ...address, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} placeholder="PIN code" autoComplete="postal-code" inputMode="numeric" maxLength={6} className="border border-border rounded-md px-3 py-2 bg-background" />
             </div>
             {serviceCheck.checking && (
               <div className="text-xs text-muted-foreground">Checking delivery to {address.pincode}…</div>
@@ -218,11 +225,17 @@ function CheckoutPage() {
                 </div>
               )
             )}
-            <button className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-2">Continue to Payment</button>
+            <button disabled={!canContinue} className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-2 disabled:opacity-50 disabled:cursor-not-allowed">Continue to Payment</button>
           </form>
         )}
         {step === 2 && (
           <div className="space-y-3">
+            <button type="button" onClick={() => setStep(1)} className="text-xs text-muted-foreground hover:text-primary">← Edit address</button>
+            <div className="bg-background border border-border rounded-md p-3 text-xs">
+              <p className="font-medium text-primary">Shipping to</p>
+              <p className="text-muted-foreground mt-0.5">{address.name} · {address.phone}</p>
+              <p className="text-muted-foreground">{address.line1}, {address.city} {address.state} {address.pincode}</p>
+            </div>
             <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
               <input type="radio" name="pay" checked={paymentMethod === "razorpay"} onChange={() => setPaymentMethod("razorpay")} className="accent-primary" />
               <span><span className="font-medium">Pay Online</span> <span className="text-xs text-muted-foreground">— UPI, Cards, Net Banking, Wallets (via Razorpay)</span></span>
