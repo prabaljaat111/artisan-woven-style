@@ -25,11 +25,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as CategoryRouteImport } from './routes/category'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CategoryIndexRouteImport } from './routes/category.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
@@ -124,11 +124,6 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CategoryRoute = CategoryRouteImport.update({
-  id: '/category',
-  path: '/category',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
@@ -149,6 +144,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoryIndexRoute = CategoryIndexRouteImport.update({
+  id: '/category/',
+  path: '/category/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -160,9 +160,9 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => CategoryRoute,
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
@@ -220,7 +220,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
-  '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -250,12 +249,12 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/category/': typeof CategoryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
-  '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -285,6 +284,7 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/category': typeof CategoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -292,7 +292,6 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
-  '/category': typeof CategoryRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -322,6 +321,7 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/category/': typeof CategoryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,7 +330,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/cart'
-    | '/category'
     | '/checkout'
     | '/contact'
     | '/faq'
@@ -360,12 +359,12 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
+    | '/category/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/cart'
-    | '/category'
     | '/checkout'
     | '/contact'
     | '/faq'
@@ -395,13 +394,13 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$slug'
     | '/admin'
+    | '/category'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
     | '/cart'
-    | '/category'
     | '/checkout'
     | '/contact'
     | '/faq'
@@ -431,6 +430,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
+    | '/category/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -438,7 +438,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
-  CategoryRoute: typeof CategoryRouteWithChildren
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -456,7 +455,9 @@ export interface RootRouteChildren {
   WhatsNewRoute: typeof WhatsNewRoute
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
+  CategorySlugRoute: typeof CategorySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  CategoryIndexRoute: typeof CategoryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -573,13 +574,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/category': {
-      id: '/category'
-      path: '/category'
-      fullPath: '/category'
-      preLoaderRoute: typeof CategoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -608,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/category/': {
+      id: '/category/'
+      path: '/category'
+      fullPath: '/category/'
+      preLoaderRoute: typeof CategoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -624,10 +625,10 @@ declare module '@tanstack/react-router' {
     }
     '/category/$slug': {
       id: '/category/$slug'
-      path: '/$slug'
+      path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
-      parentRoute: typeof CategoryRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
       id: '/api/chat'
@@ -730,24 +731,11 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface CategoryRouteChildren {
-  CategorySlugRoute: typeof CategorySlugRoute
-}
-
-const CategoryRouteChildren: CategoryRouteChildren = {
-  CategorySlugRoute: CategorySlugRoute,
-}
-
-const CategoryRouteWithChildren = CategoryRoute._addFileChildren(
-  CategoryRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
-  CategoryRoute: CategoryRouteWithChildren,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
@@ -765,8 +753,20 @@ const rootRouteChildren: RootRouteChildren = {
   WhatsNewRoute: WhatsNewRoute,
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
+  CategorySlugRoute: CategorySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
+  CategoryIndexRoute: CategoryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
