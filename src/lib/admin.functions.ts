@@ -285,3 +285,96 @@ export const adminDeleteReview = createServerFn({ method: "POST" })
     await supabaseAdmin.from("reviews").delete().eq("id", data.id);
     return { ok: true };
   });
+
+// ============== PRODUCT VARIANTS (per-size inventory) ==============
+export const adminListVariants = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
+  .inputValidator((i: { productId: string }) =>
+    z.object({ productId: z.string().uuid() }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { data: rows, error } = await supabaseAdmin
+      .from("product_variants")
+      .select("*")
+      .eq("product_id", data.productId)
+      .order("size");
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+const VariantUpsert = z.object({
+  productId: z.string().uuid(),
+  variants: z
+    .array(
+      z.object({
+        id: z.string().uuid().optional().nullable(),
+        size: z.string().min(1).max(20),
+        color: z.string().max(80).nullable().optional(),
+        sku: z.string().max(80).nullable().optional(),
+        stock: z.number().int().min(0).max(99999),
+      }),
+    )
+    .max(200),
+});
+
+export const adminSaveVariants = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((i) => VariantUpsert.parse(i))
+  .handler(async ({ data }) => {
+    // Replace strategy: delete rows missing from input, upsert the rest.
+    const incomingIds = data.variants.map((v) => v.id).filter(Boolean) as string[];
+    const { data: existing } = await supabaseAdmin
+      .from("product_variants")
+      .select("id")
+      .eq("product_id", data.productId);
+    const toDelete = (existing ?? [])
+      .map((r: { id: string }) => r.id)
+      .filter((id) => !incomingIds.includes(id));
+    if (toDelete.length > 0) {
+      await supabaseAdmin.from("product_variants").delete().in("id", toDelete);
+    }
+    for (const v of data.variants) {
+      const row = {
+        product_id: data.productId,
+        size: v.size,
+        color: v.color ?? null,
+        sku: v.sku ?? null,
+        stock: v.stock,
+      };
+      if (v.id) {
+        const { error } = await supabaseAdmin
+          .from("product_variants")
+          .update(row)
+          .eq("id", v.id);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await supabaseAdmin
+          .from("product_variants")
+          .insert(row);
+        if (error) throw new Error(error.message);
+      }
+    }
+    return { ok: true };
+  });
+
+// Public read for storefront PDP (RLS already filters to published parents,
+// but we go through service role for predictability and to avoid an extra
+// round-trip when products are switched between draft/live).
+export const getProductVariantsBySlug = createServerFn({ method: "GET" })
+  .inputValidator((i: { slug: string }) =>
+    z.object({ slug: z.string().min(1).max(200) }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { data: product } = await supabaseAdmin
+      .from("products")
+      .select("id")
+      .eq("slug", data.slug)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
+    const { data: rows } = await supabaseAdmin
+      .from("product_variants")
+      .select("size, color, stock")
+      .eq("product_id", product.id);
+    return rows ?? [];
+  });

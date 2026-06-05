@@ -11,6 +11,7 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
+import { getProductVariantsBySlug } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
@@ -75,6 +76,32 @@ function ProductPage() {
   const incrementProductView = useUI((s) => s.incrementProductView);
   const addRecent = useRecentlyViewed((s) => s.add);
   const recentIds = useRecentlyViewed((s) => s.ids);
+  // Per-size stock from DB (variants). If a product has no variants, the
+  // size selector falls back to the product-level demo stock so the UX
+  // still indicates low stock / out of stock.
+  const [variantMap, setVariantMap] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getProductVariantsBySlug({ data: { slug: p.slug } })
+      .then((rows: Array<{ size: string; stock: number }>) => {
+        if (cancelled) return;
+        if (!rows.length) { setVariantMap(null); return; }
+        const m: Record<string, number> = {};
+        rows.forEach((r) => { m[r.size] = (m[r.size] ?? 0) + r.stock; });
+        setVariantMap(m);
+      })
+      .catch(() => { if (!cancelled) setVariantMap(null); });
+    return () => { cancelled = true; };
+  }, [p.slug]);
+  const sizeStock = (s: string): number => {
+    if (variantMap) return variantMap[s] ?? 0;
+    // Deterministic fallback per size for demo products
+    if (p.stock <= 0) return 0;
+    const idx = p.sizes.indexOf(s);
+    const seed = [1, 0.6, 0.2, 0.05, 0.1, 0.3][idx % 6] ?? 0.2;
+    return Math.max(0, Math.round(p.stock * seed));
+  };
+  const selectedStock = sizeStock(size);
   useEffect(() => {
     incrementProductView();
     addRecent(p.id);
@@ -122,7 +149,7 @@ function ProductPage() {
   function prevImg() { setImgIdx((i) => (i - 1 + p.images.length) % p.images.length); }
 
   const handleAdd = () => {
-    if (p.stock <= 0) {
+    if (selectedStock <= 0) {
       toast.error("This product is currently out of stock");
       return;
     }
@@ -197,8 +224,35 @@ function ProductPage() {
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><Link to="/size-guide" className="text-xs text-gold underline">Size Guide</Link></div>
             <div className="flex flex-wrap gap-2">
-              {p.sizes.map((s: string) => (<button key={s} onClick={() => setSize(s)} className={cn("min-w-[44px] h-11 px-3 border rounded-md text-sm", size === s ? "bg-primary text-primary-foreground border-primary" : "border-border")}>{s}</button>))}
+              {p.sizes.map((s: string) => {
+                const st = sizeStock(s);
+                const out = st <= 0;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => !out && setSize(s)}
+                    disabled={out}
+                    aria-label={out ? `${s} — out of stock` : s}
+                    className={cn(
+                      "min-w-[44px] h-11 px-3 border rounded-md text-sm relative transition",
+                      size === s && !out ? "bg-primary text-primary-foreground border-primary" : "border-border",
+                      out && "opacity-50 line-through cursor-not-allowed bg-muted",
+                    )}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
+            <p className="mt-2 text-xs h-4">
+              {selectedStock <= 0 ? (
+                <span className="text-red-600 font-medium">Size {size}: Out of Stock</span>
+              ) : selectedStock <= 10 ? (
+                <span className="text-amber-600 font-medium">Size {size}: Only {selectedStock} left</span>
+              ) : (
+                <span className="text-green-700">Size {size}: In stock</span>
+              )}
+            </p>
           </div>
           <div className="mt-5">
             <span className="text-sm font-medium block mb-2">Color: <span className="text-muted-foreground">{color}</span></span>
@@ -215,8 +269,8 @@ function ProductPage() {
             </div>
           </div>
           <div className="hidden md:flex gap-3 mt-6">
-            <button disabled={p.stock <= 0} onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground py-3 rounded-full font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">{p.stock <= 0 ? "Out of Stock" : "Add to Cart"}</button>
-            {p.stock > 0 && <Link to="/checkout" onClick={handleAdd} className="flex-1 bg-gold text-primary text-center py-3 rounded-full font-medium hover:opacity-90">Buy Now</Link>}
+            <button disabled={selectedStock <= 0} onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground py-3 rounded-full font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">{selectedStock <= 0 ? "Out of Stock" : "Add to Cart"}</button>
+            {selectedStock > 0 && <Link to="/checkout" onClick={handleAdd} className="flex-1 bg-gold text-primary text-center py-3 rounded-full font-medium hover:opacity-90">Buy Now</Link>}
             <button onClick={handleWishlist} aria-label="Wishlist" className="h-12 w-12 border border-border rounded-full flex items-center justify-center"><Heart className={cn("h-5 w-5", wished && "fill-primary text-primary")} /></button>
           </div>
           {/* Pincode serviceability */}
@@ -271,8 +325,8 @@ function ProductPage() {
       )}
       <div className="md:hidden fixed bottom-14 inset-x-0 z-30 bg-cream border-t border-border p-3 flex gap-2 items-center">
         <button onClick={handleWishlist} aria-label="Wishlist" className="h-11 w-11 border border-border rounded-full flex items-center justify-center shrink-0"><Heart className={cn("h-5 w-5", wished && "fill-primary text-primary")} /></button>
-        <button disabled={p.stock <= 0} onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{p.stock <= 0 ? "Out of Stock" : "Add to Cart"}</button>
-        {p.stock > 0 && <Link to="/checkout" onClick={handleAdd} className="flex-1 bg-gold text-primary text-center py-3 rounded-full text-sm font-medium">Buy Now</Link>}
+        <button disabled={selectedStock <= 0} onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{selectedStock <= 0 ? "Out of Stock" : "Add to Cart"}</button>
+        {selectedStock > 0 && <Link to="/checkout" onClick={handleAdd} className="flex-1 bg-gold text-primary text-center py-3 rounded-full text-sm font-medium">Buy Now</Link>}
       </div>
     </div>
   );
