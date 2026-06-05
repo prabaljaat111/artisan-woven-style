@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { PolicyShell } from "@/components/PolicyShell";
 
 export const Route = createFileRoute("/shipping")({
@@ -23,7 +23,7 @@ function ShippingPage() {
         <li>Customs duties (if any) are payable by the recipient.</li>
       </ul>
       <h3>Tracking</h3>
-      <p>Once dispatched, you will receive an SMS, email and WhatsApp message with the tracking link. You can also use our <a href="/track-order">track order</a> page.</p>
+      <p>Once dispatched, you will receive an SMS, email and WhatsApp message with the tracking link. You can also use our <Link to="/track-order" className="text-primary underline">track order</Link> page.</p>
     </PolicyShell>
   );
 }
