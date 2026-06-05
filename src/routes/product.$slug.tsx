@@ -183,7 +183,7 @@ function ProductPage() {
     if (!p.images?.length) return [];
     if (!color || p.images.length < 2) return p.images;
     const tag = color.toLowerCase().replace(/[^a-z]+/g, "-");
-    const matched = p.images.filter((src) => src.toLowerCase().includes(tag));
+    const matched = p.images.filter((src: string) => src.toLowerCase().includes(tag));
     return matched.length ? matched : p.images;
   }, [p.images, color]);
   useEffect(() => { setImgIdx(0); }, [color]);
