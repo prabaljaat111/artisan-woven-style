@@ -45,6 +45,7 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
+import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
 import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
 
@@ -228,6 +229,11 @@ const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsShippingRoute = AdminSettingsShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
   id: '/payment',
   path: '/payment',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/category': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -398,6 +407,7 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/shipping'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/category'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/shipping'
     | '/admin/settings'
   id:
     | '__root__'
@@ -476,6 +487,7 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/payment'
+    | '/admin/settings/shipping'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -761,6 +773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsIndexRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/shipping': {
+      id: '/admin/settings/shipping'
+      path: '/shipping'
+      fullPath: '/admin/settings/shipping'
+      preLoaderRoute: typeof AdminSettingsShippingRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/payment': {
       id: '/admin/settings/payment'
       path: '/payment'
@@ -781,12 +800,14 @@ declare module '@tanstack/react-router' {
 interface AdminSettingsRouteChildren {
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
+  AdminSettingsShippingRoute: typeof AdminSettingsShippingRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
+  AdminSettingsShippingRoute: AdminSettingsShippingRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
 
