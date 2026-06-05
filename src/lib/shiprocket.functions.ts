@@ -57,19 +57,11 @@ export const checkServiceability = createServerFn({ method: "POST" })
     }
   });
 
-// ----- INTERNAL: auto-create shipment after order placed/paid -----
-export const autoCreateShipment = createServerFn({ method: "POST" })
-  .inputValidator((i) => z.object({ order_id: z.string().uuid() }).parse(i))
-  .handler(async ({ data }) => {
-    const { createSrOrderForOrder } = await import("./shiprocket.server");
-    try {
-      const r = await createSrOrderForOrder(data.order_id);
-      return { ok: true, sr_shipment_id: r.sr_shipment_id };
-    } catch (e) {
-      console.error("autoCreateShipment failed:", e);
-      return { ok: false, error: e instanceof Error ? e.message : "Failed" };
-    }
-  });
+// NOTE: a public `autoCreateShipment` RPC was intentionally removed.
+// Shiprocket order creation is invoked server-side from `createOrder` (COD)
+// and `verifyRazorpayPayment` (paid) via `createSrOrderForOrder`. Exposing
+// it as an unauthenticated RPC allowed any caller to trigger shipments for
+// arbitrary order UUIDs. Admin path: `adminCreateShipment`.
 
 // ----- ADMIN -----
 export const adminListShipments = createServerFn({ method: "GET" })
