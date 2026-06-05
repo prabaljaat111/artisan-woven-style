@@ -80,6 +80,10 @@ function CouponModal({ initial, onClose, onSaved }: any) {
   });
   const [saving, setSaving] = useState(false);
   async function save() {
+    if (form.code.trim().length < 2) return toast.error("Code must be at least 2 chars");
+    if (!/^[A-Z0-9_-]+$/.test(form.code)) return toast.error("Code: uppercase letters, digits, _-");
+    if (form.discount_value <= 0) return toast.error("Discount value must be > 0");
+    if (form.discount_type === "percent" && form.discount_value > 100) return toast.error("Percent must be ≤ 100");
     setSaving(true);
     try {
       const payload = { ...form, expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null };
