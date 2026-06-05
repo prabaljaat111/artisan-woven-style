@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const KeySchema = z.string().min(1).max(80).regex(/^[a-z0-9_.\-]+$/i);
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
+
 export const getSetting = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((d: { key: string }) => ({ key: KeySchema.parse(d.key) }))
@@ -14,14 +16,14 @@ export const getSetting = createServerFn({ method: "GET" })
       .select("value")
       .eq("key", data.key)
       .maybeSingle();
-    return { value: (row?.value ?? null) as Record<string, unknown> | unknown[] | string | number | boolean | null };
+    return { value: (row?.value ?? null) as JsonValue };
   });
 
 export const saveSetting = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
-  .inputValidator((d: { key: string; value: unknown }) => ({
+  .inputValidator((d: { key: string; value: JsonValue }) => ({
     key: KeySchema.parse(d.key),
-    value: d.value as Record<string, unknown> | unknown[] | null,
+    value: d.value,
   }))
   .handler(async ({ data }) => {
     const { error } = await supabaseAdmin
