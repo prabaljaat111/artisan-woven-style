@@ -207,9 +207,30 @@ function ProductPage() {
     <div className="pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-12 grid md:grid-cols-2 gap-8 md:gap-14">
         <div>
-          <div className="relative aspect-[4/5] bg-secondary rounded-2xl overflow-hidden border border-gold/30">
-            <img src={p.images[imgIdx]} alt={p.name} decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="w-full h-full object-cover" />
-            {p.images.length > 1 && (
+          <div
+            className="relative aspect-[4/5] bg-secondary rounded-2xl overflow-hidden border border-gold/30 group cursor-zoom-in"
+            onMouseMove={(e) => {
+              const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+              setZoom({ on: true, x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+            }}
+            onMouseLeave={() => setZoom((z) => ({ ...z, on: false }))}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current == null) return;
+              const dx = e.changedTouches[0].clientX - touchStartX.current;
+              if (Math.abs(dx) > 40) (dx < 0 ? nextImg : prevImg)();
+              touchStartX.current = null;
+            }}
+          >
+            <img
+              src={gallery[imgIdx]}
+              alt={p.name}
+              decoding="async"
+              {...({ fetchpriority: "high" } as Record<string, string>)}
+              className="w-full h-full object-cover transition-transform duration-200"
+              style={zoom.on ? { transform: "scale(1.8)", transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
+            />
+            {gallery.length > 1 && (
               <>
                 <button onClick={prevImg} aria-label="Previous image" className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-cream/80 hover:bg-cream rounded-full flex items-center justify-center shadow"><ChevronLeft className="h-4 w-4" /></button>
                 <button onClick={nextImg} aria-label="Next image" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-cream/80 hover:bg-cream rounded-full flex items-center justify-center shadow"><ChevronRight className="h-4 w-4" /></button>
@@ -220,7 +241,7 @@ function ProductPage() {
             )}
           </div>
           <div className="flex gap-2 mt-3 overflow-x-auto">
-            {p.images.map((src: string, i: number) => (
+            {gallery.map((src: string, i: number) => (
               <button key={i} onClick={() => setImgIdx(i)} className={cn("h-20 w-16 flex-shrink-0 rounded-lg overflow-hidden border-2", i === imgIdx ? "border-gold" : "border-border")}>
                 <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </button>
@@ -264,9 +285,12 @@ function ProductPage() {
             )}
           </div>
           <div className="mt-6">
-            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Size</span><Link to="/size-guide" className="text-xs text-gold underline">Size Guide</Link></div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Size <span className="text-muted-foreground font-normal">· {size}</span></span>
+              <SizeGuideDialog trigger={<button type="button" className="text-xs text-gold underline inline-flex items-center gap-1"><Ruler className="h-3 w-3" /> Size Guide</button>} />
+            </div>
             <div className="flex flex-wrap gap-2">
-              {p.sizes.map((s: string) => {
+              {sizes.map((s: string) => {
                 const st = sizeStock(s);
                 const out = st <= 0;
                 return (
@@ -282,6 +306,9 @@ function ProductPage() {
                     )}
                   >
                     {s}
+                    {!out && st > 0 && st <= 3 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[9px] font-bold rounded-full px-1">{st}</span>
+                    )}
                   </button>
                 );
               })}
@@ -298,8 +325,26 @@ function ProductPage() {
           </div>
           <div className="mt-5">
             <span className="text-sm font-medium block mb-2">Color: <span className="text-muted-foreground">{color}</span></span>
-            <div className="flex flex-wrap gap-2">
-              {p.colors.map((c: string) => (<button key={c} onClick={() => setColor(c)} className={cn("h-11 px-4 border rounded-md text-sm", color === c ? "bg-secondary border-primary" : "border-border")}>{c}</button>))}
+            <div className="flex flex-wrap gap-3 items-center">
+              {p.colors.map((c: string) => {
+                const hex = colorToHex(c);
+                const active = color === c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    title={c}
+                    aria-label={`Select color ${c}`}
+                    className={cn(
+                      "relative h-10 w-10 rounded-full border-2 transition shadow-sm",
+                      active ? "border-primary ring-2 ring-gold/60 ring-offset-2 ring-offset-background" : "border-border hover:border-primary/50",
+                    )}
+                    style={{ background: hex }}
+                  >
+                    {active && <Check className="h-4 w-4 absolute inset-0 m-auto text-white drop-shadow" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="mt-5 flex items-center gap-3">
