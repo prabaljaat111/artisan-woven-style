@@ -13,7 +13,14 @@ import hero3 from "@/assets/hero/hero-3.jpg";
 import hero4 from "@/assets/hero/hero-4.jpg";
 import hero5 from "@/assets/hero/hero-5.jpg";
 
-export const Route = createFileRoute("/")({ component: Index });
+export const Route = createFileRoute("/")({
+  component: Index,
+  head: () => ({
+    links: [
+      { rel: "preload", as: "image", href: hero1, fetchpriority: "high" } as never,
+    ],
+  }),
+});
 
 const HERO_SLIDES = [
   { img: hero1, kicker: "New Collection", title: "Timeless Ivory", caption: "Hand-embroidered Chikankari classics" },
