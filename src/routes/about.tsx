@@ -3,7 +3,16 @@ import { LotusMark } from "@/components/LotusMark";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
-  head: () => ({ meta: [{ title: "About — Indian Handicraft Standards" }, { name: "description", content: "Championing authentic Lucknowi Chikankari since 2015." }] }),
+  head: () => ({
+    meta: [
+      { title: "About — Indian Handicraft Standards" },
+      { name: "description", content: "Championing authentic Lucknowi Chikankari since 2015." },
+      { property: "og:title", content: "About — Indian Handicraft Standards" },
+      { property: "og:description", content: "Championing authentic Lucknowi Chikankari since 2015." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/about" },
+    ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/about" }],
+  }),
 });
 
 function AboutPage() {
