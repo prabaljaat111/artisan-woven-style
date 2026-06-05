@@ -45,6 +45,7 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
+import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -226,6 +227,11 @@ const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsGeneralRoute = AdminSettingsGeneralRouteImport.update({
+  id: '/general',
+  path: '/general',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
+  '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
   '/category': typeof CategoryIndexRoute
+  '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
+  '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/'
     | '/category/'
+    | '/admin/settings/general'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin'
     | '/category'
+    | '/admin/settings/general'
     | '/admin/settings'
   id:
     | '__root__'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/'
     | '/category/'
+    | '/admin/settings/general'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -737,14 +749,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsIndexRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/general': {
+      id: '/admin/settings/general'
+      path: '/general'
+      fullPath: '/admin/settings/general'
+      preLoaderRoute: typeof AdminSettingsGeneralRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
   }
 }
 
 interface AdminSettingsRouteChildren {
+  AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
+  AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
 
@@ -810,3 +831,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
