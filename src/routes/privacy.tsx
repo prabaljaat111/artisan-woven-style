@@ -3,7 +3,7 @@ import { PolicyShell } from "@/components/PolicyShell";
 
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
-  head: () => ({ meta: [{ title: "Privacy Policy — Indian Handicraft Standards" }, { name: "description", content: "How we collect, use and protect your data." }], links: [{ rel: "canonical", href: "/privacy" }] }),
+  head: () => ({ meta: [{ title: "Privacy Policy — Indian Handicraft Standards" }, { name: "description", content: "How we collect, use and protect your data." }], links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/privacy" }] }),
 });
 
 function PrivacyPage() {

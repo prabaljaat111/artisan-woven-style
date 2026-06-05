@@ -12,9 +12,9 @@ export const Route = createFileRoute("/track-order")({
       { title: "Track Your Order — Indian Handicraft Standards" },
       { name: "description", content: "Track the status of your Chikankari order in real time." },
       { property: "og:title", content: "Track Your Order" },
-      { property: "og:url", content: "/track-order" },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/track-order" },
     ],
-    links: [{ rel: "canonical", href: "/track-order" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/track-order" }],
   }),
 });
 
