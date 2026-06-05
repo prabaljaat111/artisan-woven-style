@@ -33,7 +33,7 @@ export function BrandLogo({
   const s = sizeMap[size];
   const isLight = variant === "light";
   const wordColor = isLight ? "text-primary-foreground" : "text-primary";
-  const subColor = isLight ? "text-primary-foreground/65" : "text-primary/55";
+  const subColor = isLight ? "text-primary-foreground/80" : "text-primary";
 
   return (
     <span
@@ -60,7 +60,7 @@ export function BrandLogo({
             Indian Handicraft Standards
           </span>
           <span
-            className={`font-display italic ${subColor} ${s.tag} tracking-[0.22em] whitespace-nowrap mt-0.5`}
+            className={`font-display italic ${subColor} ${s.tag} tracking-[0.22em] whitespace-nowrap mt-0.5 font-medium`}
           >
             Chikankari · Lucknow
           </span>

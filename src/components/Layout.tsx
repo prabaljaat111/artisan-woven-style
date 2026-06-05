@@ -459,24 +459,16 @@ function Footer() {
             {/* Amazon */}
             <div className="flex flex-col items-center gap-4">
               <h4 className="font-display text-sm text-gold tracking-wider">Available on Amazon</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { id: "B0H2MVW5B9", label: "Kurti" },
-                  { id: "B0H2MCF4X7", label: "Kurta Set" },
-                  { id: "B0H2K5ZCNN", label: "Suit" },
-                  { id: "B0H2DCZ1CL", label: "Saree" },
-                ].map((a) => (
-                  <a
-                    key={a.id}
-                    href={`https://www.amazon.in/dp/${a.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center min-w-[110px] md:min-w-[120px] px-5 py-2.5 rounded-full border border-primary-foreground/25 text-xs font-medium tracking-wide bg-primary-foreground/5 hover:bg-gold hover:text-primary hover:border-gold hover:shadow-[0_0_20px_rgba(201,168,76,0.25)] transition-all duration-300"
-                  >
-                    {a.label}
-                  </a>
-                ))}
-              </div>
+              <a
+                href="https://www.amazon.in/s?k=Indian+Handicraft+Standards"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Shop Indian Handicraft Standards on Amazon (opens in a new tab)"
+                className="group inline-flex items-center gap-2.5 px-7 py-3 rounded-full bg-gold text-primary font-display text-sm font-semibold tracking-[0.2em] uppercase border border-gold shadow-[0_0_24px_rgba(201,168,76,0.25)] hover:shadow-[0_0_36px_rgba(201,168,76,0.45)] hover:scale-[1.03] active:scale-95 transition-all duration-300"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M14.41 14.18c-2.36 1.74-5.78 2.67-8.73 2.67-4.13 0-7.86-1.53-10.68-4.07-.22-.2-.02-.47.25-.32 3.04 1.77 6.8 2.83 10.68 2.83 2.62 0 5.5-.54 8.15-1.67.4-.17.74.26.33.56zM15.39 13.05c-.3-.39-2.01-.18-2.78-.09-.23.03-.27-.17-.06-.32 1.36-.96 3.6-.68 3.86-.36.26.33-.07 2.57-1.35 3.64-.2.16-.39.07-.3-.14.29-.73.94-2.34.63-2.73z"/></svg>
+                Shop on Amazon
+              </a>
             </div>
           </div>
         </div>

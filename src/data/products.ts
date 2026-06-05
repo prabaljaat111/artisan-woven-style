@@ -35,6 +35,7 @@ export interface Product {
   colors: string[];
   description: string;
   inStock: boolean;
+  stock: number;
   rating: number;
   reviews: number;
   isNew?: boolean;
@@ -91,6 +92,9 @@ const base = [
 // Deterministic ratings/reviews so SSR markup matches client render (no hydration flicker).
 const RATING_SEED = [4.6, 4.8, 4.5, 4.9, 4.4, 4.7, 4.85, 4.3, 4.6, 4.75, 4.5, 4.65, 4.55, 4.7, 4.8, 4.4, 4.6, 4.5, 4.75, 4.9];
 const REVIEW_SEED = [128, 412, 87, 356, 64, 245, 198, 73, 312, 156, 95, 234, 178, 289, 401, 52, 167, 110, 273, 388];
+// Deterministic stock seed so "Only N left" / "Out of stock" badges are visible in demo data.
+// Phase B replaces this with per-variant DB stock.
+const STOCK_SEED = [25, 8, 0, 42, 3, 17, 9, 6, 31, 12, 4, 22, 0, 7, 15, 2, 38, 11, 5, 19];
 
 export const products: Product[] = base.map((p, i) => {
   const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -106,7 +110,8 @@ export const products: Product[] = base.map((p, i) => {
     colors: [p.color],
     description:
       "Authentic hand-embroidered Lucknowi Chikankari crafted by master artisans in Lucknow. Pure breathable fabric with intricate floral and paisley motifs — a heritage piece for the modern wardrobe.",
-    inStock: true,
+    inStock: STOCK_SEED[i % STOCK_SEED.length] > 0,
+    stock: STOCK_SEED[i % STOCK_SEED.length],
     rating: RATING_SEED[i % RATING_SEED.length],
     reviews: REVIEW_SEED[i % REVIEW_SEED.length],
     isNew: i % 5 === 0,

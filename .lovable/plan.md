@@ -1,59 +1,44 @@
-## 1. WhatsApp number — global update
+This request spans ~6 major feature areas. To ship reliably I'll split it into focused phases. Quick wins go first; deep CMS work is staged so each phase is testable in isolation.
 
-Replace every occurrence of `919999999999` / `+91 99999 99999` with the new number `+91 90444 66957` (URL form: `919044466957`).
+## Phase A — Quick wins (this turn)
+1. **Footer Amazon section** — replace 4 category buttons with one premium "Shop on Amazon" CTA linking to the main IHS Amazon store (new tab, `rel="noopener noreferrer"`).
+2. **Logo tagline contrast** — change "Chikankari • Lucknow" to a dark high-contrast token (`text-primary` / `text-foreground`) on both desktop & mobile header.
+3. **Stock badges on product cards & PDP** — using existing `products.stock` column:
+   - "Out of Stock" when 0
+   - "Only N left" when 1–10
+   - In-stock otherwise
+   Mobile-friendly, semantic colors.
 
-Files touched:
-- `src/components/Layout.tsx` — `WHATSAPP_URL` constant
-- `src/routes/contact.tsx` — WhatsApp + Call entries
-- `src/routes/faq.tsx`, `src/routes/size-guide.tsx`, `src/routes/returns.tsx`, `src/routes/product.$slug.tsx`
-- `src/routes/api/chat.ts` — system prompt mentions
+## Phase B — Per-size inventory (DB + UI)
+4. New `product_variants` table: `product_id, size, color, stock, sku` + RLS (admin write, public read of published parents). Migration grants + policies.
+5. PDP size selector reads variant stock; disables sold-out sizes with "Out of Stock" label; shows "Only N left" per size.
+6. Admin product drawer: inline variant matrix editor (size × color → stock + SKU).
+7. Cart add blocks when selected variant stock = 0; decrements logical availability at order time.
 
-One constant (`WHATSAPP_NUMBER` / `WHATSAPP_URL`) will be exported from a small helper (`src/lib/contact.ts`) so future changes are one-line. Display string: `+91 90444 66957`; link: `https://wa.me/919044466957`.
+## Phase C — Real-time sync
+8. Enable Supabase Realtime on `products`, `product_variants`, `categories`, `app_settings`.
+9. Wrap product/category queries in TanStack Query with channel subscriptions that call `queryClient.invalidateQueries` on changes — homepage, shop, category, PDP refresh live.
 
-## 2. Search button not working
+## Phase D — Admin upgrades
+10. Dashboard tiles: Products / Orders / Revenue / Customers / Leads / Low-stock count (single server fn aggregating counts).
+11. Product list: filters (category, stock status, published, bestseller, new), bulk select → bulk publish/unpublish, bulk price %, bulk category.
+12. Product detail page (`/admin/products/$id`) with sections: Overview, Images (drag-reorder), Pricing (with margin calc using new `cost_price` column), Inventory matrix, SEO (slug/title/description/og_image), Performance (orders+revenue from `order_items`), Reviews, Quick actions (duplicate, archive, delete).
+13. Low-stock alerts panel on dashboard.
 
-Today the header search icon is just `<Link to="/shop">`. If the user is already on `/shop`, nothing visible happens — feels broken.
+## Phase E — Deferred (will call out, not build this round)
+- CSV bulk product upload (needs file-upload UX + parser)
+- Per-product view/cart/wishlist analytics counters (needs new tracking events table + client beacons)
+- Homepage banner / testimonials / FAQ CMS (currently hard-coded — sizeable schema work)
+- Newsletter & WhatsApp lead sources (no current capture surfaces)
 
-Fix: replace the icon with a real **search overlay**:
-- New `SearchOverlay` component inside `Layout.tsx` (controlled via `useUI` store — add `isSearchOpen`/`setSearchOpen`).
-- Both header search icons (desktop + mobile) open the overlay instead of navigating.
-- Overlay shows: autofocused input, live results (top 6 products matched by name/category from `products`), "View all results →" button that navigates to `/shop?q=...`.
-- Pressing Enter or clicking "View all" → `navigate({ to: "/shop", search: { q } })`.
-- `/shop` already reads `q` from search params, so results land filtered.
-- Close on Esc / backdrop click / result click.
+These are real work (multi-day) and bolting them on quickly would create half-broken admin screens. I'll list them in the final report with clear next-step proposals rather than shipping shells.
 
-## 3. Product names vs images — accuracy pass
+## Order of execution
+A → B → C → D, with the dev server staying green between phases. After each phase I'll verify in preview (footer click, size selector behavior, realtime tab test, admin flows).
 
-Current `src/data/products.ts` reuses some images under mismatched names (e.g. *Mint Green Sharara* uses `palazzo-cream.jpg`; *Peach Palazzo* uses the cream palazzo image; two noodle-strap items share one photo with different colour labels).
+## Technical notes
+- Variants table keeps `products.stock` as a denormalized total (sum trigger) so existing card badges keep working without N+1 queries.
+- Realtime: single channel per page, debounced invalidation.
+- Admin detail page uses TanStack Query + server fn (`adminGetProduct`) rather than rewriting the existing drawer — drawer becomes "Quick edit".
 
-Fix approach — rename items so each product's name truthfully describes the image it shows:
-
-| Slot | Image | Corrected name |
-|---|---|---|
-| Kurti #1 | kurti-white.jpg | Lucknowi Chikankari Cotton Kurti — White |
-| Kurti #2 | kurti-mint.jpg | Pastel Mint Chikankari Kurti |
-| Kurta Set #1 | kurta-set-ivory.jpg | Ivory Hand-Embroidered Chikankari Kurta Set |
-| Kurta Set #2 | kurta-set-maroon.jpg | Maroon Festive Chikankari Kurta Set |
-| Palazzo #1 | palazzo-cream.jpg | Cream Chikankari Palazzo Set with Dupatta |
-| Palazzo #2 | palazzo-cream.jpg | *(remove duplicate)* |
-| Sharara #1 | sharara-maroon.jpg | Royal Maroon Chikankari Sharara Set |
-| Sharara #2 | palazzo-cream.jpg → **sharara-maroon.jpg** | Wine Festive Sharara Suit (re-image, not rename) |
-| Garara | garara-gold.jpg | Bridal Gold Chikankari Garara Set |
-| Saree #1 | saree-offwhite.jpg | Off-White Chikankari Cotton Saree |
-| Saree #2 | saree-pink.jpg | Pastel Pink Georgette Chikankari Saree |
-| Unstitched #1 | unstitched-beige.jpg | Beige Unstitched Chikankari Cotton Suit Piece |
-| Unstitched #2 | unstitched-beige.jpg | *(remove duplicate)* |
-| Tunic #1 | tunic-white.jpg | White Short Chikankari Tunic Top |
-| Tunic #2 | tunic-white.jpg → keep, rename | White Chikankari Crop Tunic |
-| Noodle #1 | noodle-strap.jpg | White Noodle-Strap Chikankari Top |
-| Noodle #2 | noodle-strap.jpg | *(remove duplicate)* |
-| Pants #1 | pants-white.jpg | White Chikankari Cotton Pants |
-| Pants #2 | pants-white.jpg | *(remove duplicate)* |
-| Anarkali | anarkali-bridal.jpg | Heritage Bridal Chikankari Anarkali |
-
-Net result: ~15 products instead of 20, every name matches the photo, no "mint" or "peach" labels on cream images. Categories, sizes, descriptions and the seeded rating/review arrays stay (indexes just shorten). Detail-page colour swatches will be rewritten to a single accurate colour per product so the page doesn't claim 4 colours that don't exist.
-
-If you'd rather keep 20 SKUs, the alternative is generating 5 new product photos (mint sharara, peach palazzo, sleeveless camisole, premium beige unstitched, embroidered pants) — call it out and I'll add that step instead.
-
-## Out of scope
-No backend, no schema, no chatbot logic changes beyond the WhatsApp number string.
+Confirm and I'll start with Phase A immediately, then proceed through B–D autonomously, reporting at each phase boundary.
