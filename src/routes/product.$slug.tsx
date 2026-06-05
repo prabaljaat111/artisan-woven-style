@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
@@ -82,16 +83,25 @@ function ProductPage() {
   const [variantMap, setVariantMap] = useState<Record<string, number> | null>(null);
   useEffect(() => {
     let cancelled = false;
-    getProductVariantsBySlug({ data: { slug: p.slug } })
-      .then((rows: Array<{ size: string; stock: number }>) => {
-        if (cancelled) return;
-        if (!rows.length) { setVariantMap(null); return; }
-        const m: Record<string, number> = {};
-        rows.forEach((r) => { m[r.size] = (m[r.size] ?? 0) + r.stock; });
-        setVariantMap(m);
-      })
-      .catch(() => { if (!cancelled) setVariantMap(null); });
-    return () => { cancelled = true; };
+    const fetchVariants = () => {
+      getProductVariantsBySlug({ data: { slug: p.slug } })
+        .then((rows: Array<{ size: string; stock: number }>) => {
+          if (cancelled) return;
+          if (!rows.length) { setVariantMap(null); return; }
+          const m: Record<string, number> = {};
+          rows.forEach((r) => { m[r.size] = (m[r.size] ?? 0) + r.stock; });
+          setVariantMap(m);
+        })
+        .catch(() => { if (!cancelled) setVariantMap(null); });
+    };
+    fetchVariants();
+    // Live-sync: refetch when any variant or this product changes in DB
+    const channel = supabase
+      .channel(`pdp-${p.slug}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, fetchVariants)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `slug=eq.${p.slug}` }, fetchVariants)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [p.slug]);
   const sizeStock = (s: string): number => {
     if (variantMap) return variantMap[s] ?? 0;
