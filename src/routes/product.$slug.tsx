@@ -417,7 +417,7 @@ function ProductPage() {
               <div
                 key={x.t}
                 className="group relative p-5 bg-background border border-gold/30 hover:border-gold rounded-sm transition-all duration-500"
-                style={{ boxShadow: "4px 4px 0 0 hsl(var(--gold) / 0.12)" }}
+                style={{ boxShadow: "4px 4px 0 0 color-mix(in oklab, var(--gold) 14%, transparent)" }}
               >
                 <div className="flex items-start gap-3">
                   <x.icon className="h-5 w-5 text-gold mt-0.5 shrink-0" strokeWidth={1.5} />
