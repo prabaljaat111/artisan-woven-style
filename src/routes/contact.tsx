@@ -86,26 +86,42 @@ function ContactPage() {
             Support hours: Mon–Sat, 10am – 7pm IST
           </div>
         </div>
-        <form
-          onSubmit={onSubmit}
-          className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-3"
-        >
-          <h2 className="font-display text-xl text-primary">Send us a message</h2>
-          <input required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} maxLength={80} placeholder="Your name" autoComplete="name" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <input required type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} maxLength={200} placeholder="Email" autoComplete="email" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <input value={form.whatsapp} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))} maxLength={24} inputMode="tel" autoComplete="tel" placeholder="WhatsApp number (optional)" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <select value={form.topic} onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))} className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background">
-            <option>Order enquiry</option>
-            <option>Sizing help</option>
-            <option>Custom order</option>
-            <option>Wholesale / Bulk</option>
-            <option>Other</option>
-          </select>
-          <textarea required rows={5} value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} maxLength={1500} placeholder="How can we help?" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <button disabled={submitting} className="w-full bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium hover:bg-primary/90 transition disabled:opacity-60">
-            {submitting ? "Sending…" : sent ? "✓ Message sent — send another?" : "Send message"}
-          </button>
-        </form>
+        {sent ? (
+          <div className="bg-card border border-border rounded-2xl p-8 text-center">
+            <div className="mx-auto h-14 w-14 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl">✓</div>
+            <h2 className="font-display text-2xl text-primary mt-4">Message received</h2>
+            <p className="text-sm text-muted-foreground mt-2">We'll reply within 24 hours. For instant help, WhatsApp us anytime.</p>
+            <div className="flex flex-wrap gap-3 justify-center mt-5">
+              <a href="https://wa.me/919044466957" target="_blank" rel="noreferrer" className="bg-[#25D366] text-white px-5 py-2.5 rounded-full text-sm font-medium">WhatsApp now</a>
+              <button type="button" onClick={() => setSent(false)} className="border border-primary text-primary px-5 py-2.5 rounded-full text-sm font-medium">Send another</button>
+            </div>
+          </div>
+        ) : (
+          <form
+            onSubmit={onSubmit}
+            className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-3"
+          >
+            <h2 className="font-display text-xl text-primary">Send us a message</h2>
+            <input required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} maxLength={80} placeholder="Your name" autoComplete="name" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+            <input required type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} maxLength={200} placeholder="Email" autoComplete="email" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+            <input value={form.whatsapp} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value.replace(/[^\d+\s]/g, "") }))} maxLength={24} inputMode="tel" autoComplete="tel" placeholder="WhatsApp number (optional)" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+            <select value={form.topic} onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))} className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background">
+              <option>Order enquiry</option>
+              <option>Sizing help</option>
+              <option>Custom order</option>
+              <option>Wholesale / Bulk</option>
+              <option>Other</option>
+            </select>
+            <textarea required rows={5} value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} maxLength={1500} placeholder="How can we help?" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>{form.message.length}/1500</span>
+              <span>We reply within 24h</span>
+            </div>
+            <button disabled={submitting} className="w-full bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium hover:bg-primary/90 transition disabled:opacity-60">
+              {submitting ? "Sending…" : "Send message"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
