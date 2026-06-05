@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, Phone, ShoppingBag, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useUI } from "@/store/ui";
 import { WHATSAPP_URL } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,7 @@ function categoryHref(cat?: string): string {
 
 export function ChatWidget() {
   const { isChatOpen, setChatOpen } = useUI();
+  const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>("greet");
   const [messages, setMessages] = useState<Msg[]>([GREETING]);
   const [answers, setAnswers] = useState<QualifyAnswers>({});
@@ -434,13 +436,13 @@ export function ChatWidget() {
             {/* Post-capture action buttons */}
             {stage === "assist" && (
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <a
-                  href={categoryHref(answers.category)}
-                  onClick={() => setChatOpen(false)}
+                <button
+                  type="button"
+                  onClick={() => { setChatOpen(false); navigate({ to: categoryHref(answers.category) }); }}
                   className="flex items-center justify-center gap-1.5 text-[11px] bg-primary text-primary-foreground rounded-full px-3 py-2 hover:bg-primary/90"
                 >
                   <ShoppingBag className="h-3.5 w-3.5" /> View products
-                </a>
+                </button>
                 <a
                   href={WHATSAPP_URL}
                   target="_blank"
