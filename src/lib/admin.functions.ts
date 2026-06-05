@@ -126,15 +126,15 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { ok: true, count: ids.length };
     }
-    const patch: Record<string, unknown> = {
+    const patches = {
       publish: { is_published: true },
       unpublish: { is_published: false },
       bestseller_on: { is_bestseller: true },
       bestseller_off: { is_bestseller: false },
       new_on: { is_new: true },
       new_off: { is_new: false },
-    }[action]!;
-    const { error } = await supabaseAdmin.from("products").update(patch).in("id", ids);
+    } as const;
+    const { error } = await supabaseAdmin.from("products").update(patches[action]).in("id", ids);
     if (error) throw new Error(error.message);
     return { ok: true, count: ids.length };
   });
