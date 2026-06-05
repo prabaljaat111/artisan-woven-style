@@ -137,7 +137,7 @@ function CheckoutPage() {
       if (!loaded || !window.Razorpay) throw new Error("Unable to load payment gateway");
 
       const rzp = await createRazorpayOrder({
-        data: { order_id: created.id, amount: Math.round(created.total * 100) },
+        data: { order_id: created.id },
       });
 
       await new Promise<void>((resolve, reject) => {

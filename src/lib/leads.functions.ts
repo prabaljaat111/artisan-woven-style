@@ -6,11 +6,17 @@ const messageSchema = z.object({
   content: z.string().max(4000),
 });
 
+// SECURITY: visitors hold their own `leadId` (a UUID) and call this from
+// the browser. To limit blast radius if a leadId leaks, only allow:
+//   - appending to `conversation`
+//   - transitioning to visitor-initiated statuses
+// `notes` and admin statuses (`qualified`, `closed`) are NOT writable here;
+// admins manage those server-side.
+const VISITOR_STATUSES = ["callback_requested", "stylist_requested"] as const;
 const updateSchema = z.object({
   leadId: z.string().uuid(),
   conversation: z.array(messageSchema).max(100),
-  status: z.enum(["new", "qualified", "callback_requested", "stylist_requested", "closed"]).optional(),
-  notes: z.string().max(2000).optional(),
+  status: z.enum(VISITOR_STATUSES).optional(),
 });
 
 /**
@@ -27,13 +33,11 @@ export const updateLeadConversation = createServerFn({ method: "POST" })
       conversation: typeof data.conversation;
       updated_at: string;
       status?: string;
-      notes?: string;
     } = {
       conversation: data.conversation,
       updated_at: new Date().toISOString(),
     };
     if (data.status) patch.status = data.status;
-    if (data.notes) patch.notes = data.notes;
     const { error } = await supabaseAdmin
       .from("leads")
       .update(patch)
