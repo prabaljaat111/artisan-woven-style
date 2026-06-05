@@ -34,7 +34,7 @@ function SalePage() {
         <p className="text-xs text-muted-foreground mb-4">{items.length} pieces on sale</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {items.map((p) => (
-            <LandmarkCard key={p.id} id={p.id} slug={p.slug} title={p.name} price={p.price} originalPrice={p.originalPrice} image={p.images[0]} shape={p.cardShape} isDemo={p.isDemo} stock={p.stock} stock={p.stock} badge={`-${p._disc}%`} />
+            <LandmarkCard key={p.id} id={p.id} slug={p.slug} title={p.name} price={p.price} originalPrice={p.originalPrice} image={p.images[0]} shape={p.cardShape} isDemo={p.isDemo} stock={p.stock} badge={`-${p._disc}%`} />
           ))}
         </div>
       </section>
