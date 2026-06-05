@@ -7,7 +7,8 @@ import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { BrandLogo, FullBrandLogo } from "./BrandLogo";
 import { LotusMark } from "./LotusMark";
-import { categories, products } from "@/data/products";
+import { categories } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
@@ -501,6 +502,7 @@ function SearchOverlay() {
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const products = useStorefrontProducts();
 
   useEffect(() => {
     if (!isSearchOpen) return;
