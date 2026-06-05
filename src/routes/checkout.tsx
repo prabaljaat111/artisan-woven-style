@@ -277,7 +277,10 @@ function CheckoutPage() {
             <h2 className="font-display text-2xl text-primary mt-3">Order Confirmed!</h2>
             <p className="text-sm text-muted-foreground mt-2">Order ID: <span className="text-primary font-semibold">{orderNumber}</span></p>
             <p className="text-xs text-muted-foreground mt-4">A confirmation has been sent on WhatsApp.</p>
-            <Link to="/shop" className="inline-block mt-6 bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm">Continue Shopping</Link>
+            <div className="flex flex-wrap gap-3 justify-center mt-6">
+              <Link to="/track-order" className="bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm">Track Order</Link>
+              <Link to="/shop" className="border border-primary text-primary px-6 py-3 rounded-full text-sm">Continue Shopping</Link>
+            </div>
           </div>
         )}
       </div>

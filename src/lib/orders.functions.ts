@@ -100,12 +100,25 @@ const TrackSchema = z.object({
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => TrackSchema.parse(input))
   .handler(async ({ data }) => {
+    const orderNumber = data.order_number.trim().toUpperCase();
+    const email = data.email.trim().toLowerCase();
     const { data: order } = await supabaseAdmin
       .from("orders")
-      .select("order_number, status, payment_status, total, tracking_number, tracking_url, created_at, customer_name, shipping_address")
-      .eq("order_number", data.order_number.trim())
-      .eq("customer_email", data.email.trim().toLowerCase())
+      .select("id, order_number, status, payment_status, total, tracking_number, tracking_url, created_at, customer_name, shipping_address")
+      .ilike("order_number", orderNumber)
+      .ilike("customer_email", email)
       .maybeSingle();
     if (!order) throw new Error("No order found with that number + email");
-    return order;
+    const [{ data: items }, { data: shipment }] = await Promise.all([
+      supabaseAdmin
+        .from("order_items")
+        .select("product_name, product_slug, image, size, color, qty, price")
+        .eq("order_id", order.id),
+      supabaseAdmin
+        .from("shipments")
+        .select("status, courier_name, awb_code, tracking_url, last_tracking")
+        .eq("order_id", order.id)
+        .maybeSingle(),
+    ]);
+    return { ...order, items: items ?? [], shipment: shipment ?? null };
   });
