@@ -5,6 +5,7 @@ import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCat
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
@@ -27,6 +28,21 @@ function ProductsPage() {
     } finally { setLoading(false); }
   }
   useEffect(() => { if (!authLoading && isAdmin) load(); }, [authLoading, isAdmin]);
+
+  // Live-sync: any product / variant / category change refreshes the list
+  useEffect(() => {
+    if (authLoading || !isAdmin) return;
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => { if (t) clearTimeout(t); t = setTimeout(load, 250); };
+    const channel = supabase
+      .channel("admin-products")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, debounced)
+      .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, debounced)
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, debounced)
+      .subscribe();
+    return () => { if (t) clearTimeout(t); supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAdmin]);
 
   async function remove(id: string) {
     if (!confirm("Delete this product?")) return;
