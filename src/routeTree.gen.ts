@@ -49,6 +49,7 @@ import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settin
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
 import { Route as AdminSettingsSeoRouteImport } from './routes/admin.settings.seo'
 import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
+import { Route as AdminSettingsNotificationsRouteImport } from './routes/admin.settings.notifications'
 import { Route as AdminSettingsInventoryRouteImport } from './routes/admin.settings.inventory'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
 
@@ -252,6 +253,12 @@ const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
   path: '/payment',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsNotificationsRoute =
+  AdminSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AdminSettingsRoute,
+  } as any)
 const AdminSettingsInventoryRoute = AdminSettingsInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -301,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
@@ -343,6 +351,7 @@ export interface FileRoutesByTo {
   '/category': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
@@ -388,6 +397,7 @@ export interface FileRoutesById {
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
@@ -434,6 +444,7 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/notifications'
     | '/admin/settings/payment'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
@@ -476,6 +487,7 @@ export interface FileRouteTypes {
     | '/category'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/notifications'
     | '/admin/settings/payment'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
@@ -520,6 +532,7 @@ export interface FileRouteTypes {
     | '/category/'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/notifications'
     | '/admin/settings/payment'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
@@ -837,6 +850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsPaymentRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/notifications': {
+      id: '/admin/settings/notifications'
+      path: '/notifications'
+      fullPath: '/admin/settings/notifications'
+      preLoaderRoute: typeof AdminSettingsNotificationsRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/inventory': {
       id: '/admin/settings/inventory'
       path: '/inventory'
@@ -857,6 +877,7 @@ declare module '@tanstack/react-router' {
 interface AdminSettingsRouteChildren {
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsInventoryRoute: typeof AdminSettingsInventoryRoute
+  AdminSettingsNotificationsRoute: typeof AdminSettingsNotificationsRoute
   AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
   AdminSettingsSeoRoute: typeof AdminSettingsSeoRoute
   AdminSettingsShippingRoute: typeof AdminSettingsShippingRoute
@@ -867,6 +888,7 @@ interface AdminSettingsRouteChildren {
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsInventoryRoute: AdminSettingsInventoryRoute,
+  AdminSettingsNotificationsRoute: AdminSettingsNotificationsRoute,
   AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
   AdminSettingsSeoRoute: AdminSettingsSeoRoute,
   AdminSettingsShippingRoute: AdminSettingsShippingRoute,
