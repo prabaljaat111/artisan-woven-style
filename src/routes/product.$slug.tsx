@@ -2,7 +2,9 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { findProduct, products, type Product } from "@/data/products";
+import { findProduct, type Product } from "@/data/products";
+import { listPublishedProducts } from "@/lib/storefront.functions";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
@@ -57,7 +59,15 @@ export const Route = createFileRoute("/product/$slug")({
       <Link to="/shop" className="text-gold mt-4 inline-block">Browse all →</Link>
     </div>
   ),
-  loader: ({ params }): Product => {
+  loader: async ({ params }): Promise<Product> => {
+    // Prefer admin-managed DB products; fall back to the static demo catalogue.
+    try {
+      const list = await listPublishedProducts();
+      const dbHit = list.find((p) => p.slug === params.slug);
+      if (dbHit) return dbHit;
+    } catch {
+      // Network/DB hiccup — fall back silently so the page can still render.
+    }
     const p = findProduct(params.slug);
     if (!p) throw notFound();
     return p;
@@ -65,7 +75,10 @@ export const Route = createFileRoute("/product/$slug")({
 });
 
 function ProductPage() {
-  const p = Route.useLoaderData();
+  const loaded = Route.useLoaderData();
+  const all = useStorefrontProducts();
+  // Prefer live-synced product so realtime edits reflect in the PDP body.
+  const p = all.find((x) => x.slug === loaded.slug) ?? loaded;
   const [size, setSize] = useState(p.sizes[1]);
   const [color, setColor] = useState(p.colors[0]);
   const [qty, setQty] = useState(1);
