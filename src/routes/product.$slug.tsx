@@ -17,6 +17,24 @@ import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
+const COLOR_HEX: Record<string, string> = {
+  white: "#ffffff", ivory: "#f5efe0", cream: "#f4ead5", beige: "#e8d9b8",
+  black: "#1a1a1a", maroon: "#7b1e2b", red: "#c0392b", pink: "#f4a9b8",
+  "pastel pink": "#f9c9d2", "off-white": "#f7f3ea",
+  gold: "#caa14a", yellow: "#f1c33d",
+  green: "#3a7d44", sage: "#a8b89d", mint: "#bfe3c8", "pastel mint": "#cfe9d4",
+  blue: "#2f5d8c", turquoise: "#34a3a3", lavender: "#b6a3c9",
+  peach: "#f7b791", brown: "#7a4a2b", grey: "#8a8a8a", silver: "#cfcfcf",
+};
+function colorToHex(name: string): string {
+  const k = (name || "").trim().toLowerCase();
+  if (COLOR_HEX[k]) return COLOR_HEX[k];
+  // soft hash fallback so unknown colours still get a swatch
+  let h = 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+  return `hsl(${h % 360}, 35%, 60%)`;
+}
+
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
