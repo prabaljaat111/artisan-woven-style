@@ -45,6 +45,7 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
+import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -227,6 +228,11 @@ const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
+  id: '/payment',
+  path: '/payment',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsGeneralRoute = AdminSettingsGeneralRouteImport.update({
   id: '/general',
   path: '/general',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
+  '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/category': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
+  '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
+  '/admin/settings/payment': typeof AdminSettingsPaymentRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -388,6 +397,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/category/'
     | '/admin/settings/general'
+    | '/admin/settings/payment'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/category'
     | '/admin/settings/general'
+    | '/admin/settings/payment'
     | '/admin/settings'
   id:
     | '__root__'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/category/'
     | '/admin/settings/general'
+    | '/admin/settings/payment'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -749,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsIndexRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/payment': {
+      id: '/admin/settings/payment'
+      path: '/payment'
+      fullPath: '/admin/settings/payment'
+      preLoaderRoute: typeof AdminSettingsPaymentRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/general': {
       id: '/admin/settings/general'
       path: '/general'
@@ -761,11 +780,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminSettingsRouteChildren {
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
+  AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
+  AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
 
@@ -831,3 +852,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
