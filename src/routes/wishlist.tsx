@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useWishlist } from "@/store/wishlist";
-import { products } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/wishlist")({
@@ -13,6 +13,7 @@ function WishlistPage() {
   const ids = useWishlist((s) => s.ids);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const products = useStorefrontProducts();
   const items = mounted ? products.filter((p) => ids.includes(p.id)) : [];
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">

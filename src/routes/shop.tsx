@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal, X, Search } from "lucide-react";
-import { products, categories } from "@/data/products";
+import { categories } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 const SORT_OPTIONS = [
@@ -47,9 +48,9 @@ export const Route = createFileRoute("/shop")({
   }),
 });
 
-const ALL_COLORS = Array.from(new Set(products.flatMap((p) => p.colors))).sort();
-
 function ShopPage() {
+  const products = useStorefrontProducts();
+  const ALL_COLORS = useMemo(() => Array.from(new Set(products.flatMap((p) => p.colors))).sort(), [products]);
   const navigate = useNavigate({ from: "/shop" });
   const raw = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
   const search = useMemo(() => parseSearch(raw ?? {}), [raw]);
