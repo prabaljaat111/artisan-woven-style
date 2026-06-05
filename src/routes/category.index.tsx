@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { categories, byCategory } from "@/data/products";
 
-export const Route = createFileRoute("/category")({
+export const Route = createFileRoute("/category/")({
   head: () => ({
     meta: [
       { title: "Shop by Category — Indian Handicraft Standards" },
