@@ -56,11 +56,11 @@ export function SizeGuideDialog({ trigger }: { trigger: ReactNode }) {
           <p className="text-xs text-muted-foreground">All measurements are in inches. Garment measurements may vary by ±0.5".</p>
         </DialogHeader>
         <Tabs defaultValue="top" className="mt-2">
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="top">Top Wear</TabsTrigger>
-            <TabsTrigger value="bottom">Bottom</TabsTrigger>
-            <TabsTrigger value="plus">Plus Size</TabsTrigger>
-            <TabsTrigger value="how">How to Measure</TabsTrigger>
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto gap-1">
+            <TabsTrigger value="top" className="text-xs sm:text-sm whitespace-normal py-2">Top Wear</TabsTrigger>
+            <TabsTrigger value="bottom" className="text-xs sm:text-sm whitespace-normal py-2">Bottom</TabsTrigger>
+            <TabsTrigger value="plus" className="text-xs sm:text-sm whitespace-normal py-2">Plus Size</TabsTrigger>
+            <TabsTrigger value="how" className="text-xs sm:text-sm whitespace-normal py-2">How to Measure</TabsTrigger>
           </TabsList>
           <TabsContent value="top" className="space-y-4">
             <Table headers={["Size", "Bust", "Waist", "Hip", "Length"]} rows={topwear.map((r) => [r.size, r.bust, r.waist, r.hip, r.length])} />
