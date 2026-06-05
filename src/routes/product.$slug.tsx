@@ -431,8 +431,8 @@ function ProductPage() {
           </div>
 
           {/* Trust icons (5) — artisanal boutique */}
-          <div className="mt-6 pt-5 border-t border-gold/20">
-            <div className="flex justify-between items-start">
+          <div className="mt-8 pt-8 border-t border-gold/20">
+            <div className="flex justify-between items-start gap-2">
               {[
                 { icon: ShieldCheck, label: "Secure Payments" },
                 { icon: Banknote, label: "COD Available" },
@@ -441,10 +441,10 @@ function ProductPage() {
                 { icon: Zap, label: "Fast Delivery" },
               ].map((b) => (
                 <div key={b.label} className="flex flex-col items-center group w-1/5 px-1">
-                  <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary rounded-full group-hover:bg-gold transition-colors duration-300">
-                    <b.icon className="h-[18px] w-[18px] text-primary-foreground" strokeWidth={2} />
+                  <div className="w-16 h-16 md:w-20 md:h-20 mb-3 flex items-center justify-center bg-primary rounded-full group-hover:bg-gold transition-colors duration-300 shadow-md">
+                    <b.icon className="h-7 w-7 md:h-9 md:w-9 text-primary-foreground" strokeWidth={2} />
                   </div>
-                  <span className="text-[10px] uppercase tracking-widest text-primary text-center font-medium leading-tight">{b.label}</span>
+                  <span className="text-xs md:text-sm uppercase tracking-widest text-primary text-center font-semibold leading-tight">{b.label}</span>
                 </div>
               ))}
             </div>
