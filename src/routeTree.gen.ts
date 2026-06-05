@@ -53,6 +53,7 @@ import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.setting
 import { Route as AdminSettingsNotificationsRouteImport } from './routes/admin.settings.notifications'
 import { Route as AdminSettingsInventoryRouteImport } from './routes/admin.settings.inventory'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
+import { Route as AdminSettingsAnalyticsRouteImport } from './routes/admin.settings.analytics'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -275,6 +276,11 @@ const AdminSettingsGeneralRoute = AdminSettingsGeneralRouteImport.update({
   path: '/general',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsAnalyticsRoute = AdminSettingsAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
+  '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
@@ -356,6 +363,7 @@ export interface FileRoutesByTo {
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
   '/category': typeof CategoryIndexRoute
+  '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
@@ -403,6 +411,7 @@ export interface FileRoutesById {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
+  '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
@@ -451,6 +460,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/'
     | '/category/'
+    | '/admin/settings/analytics'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin'
     | '/category'
+    | '/admin/settings/analytics'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
@@ -541,6 +552,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/'
     | '/category/'
+    | '/admin/settings/analytics'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
     | '/admin/settings/notifications'
@@ -890,10 +902,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsGeneralRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/analytics': {
+      id: '/admin/settings/analytics'
+      path: '/analytics'
+      fullPath: '/admin/settings/analytics'
+      preLoaderRoute: typeof AdminSettingsAnalyticsRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
   }
 }
 
 interface AdminSettingsRouteChildren {
+  AdminSettingsAnalyticsRoute: typeof AdminSettingsAnalyticsRoute
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsInventoryRoute: typeof AdminSettingsInventoryRoute
   AdminSettingsNotificationsRoute: typeof AdminSettingsNotificationsRoute
@@ -906,6 +926,7 @@ interface AdminSettingsRouteChildren {
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
+  AdminSettingsAnalyticsRoute: AdminSettingsAnalyticsRoute,
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsInventoryRoute: AdminSettingsInventoryRoute,
   AdminSettingsNotificationsRoute: AdminSettingsNotificationsRoute,
