@@ -80,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
       { property: "og:description", content: "Authentic hand-embroidered Lucknowi Chikankari kurtis, sarees, sharara sets & more. Trusted by 10,000+ customers since 2015." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Indian Handicraft Standards" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Indian Handicraft Standards — Authentic Lucknowi Chikankari" },
@@ -97,6 +98,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Lato:wght@300;400;500;700;900&family=Archivo+Black&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Indian Handicraft Standards",
+          url: "https://indianhandicraft.revnlabel.in",
+          logo: "https://indianhandicraft.revnlabel.in/favicon.ico",
+          sameAs: [],
+        }),
       },
     ],
   }),
