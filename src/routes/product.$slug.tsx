@@ -441,10 +441,10 @@ function ProductPage() {
                 { icon: Zap, label: "Fast Delivery" },
               ].map((b) => (
                 <div key={b.label} className="flex flex-col items-center group w-1/5 px-1">
-                  <div className="w-16 h-16 md:w-20 md:h-20 mb-3 flex items-center justify-center bg-primary rounded-full group-hover:bg-gold transition-colors duration-300 shadow-md">
-                    <b.icon className="h-7 w-7 md:h-9 md:w-9 text-primary-foreground" strokeWidth={2} />
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mb-2 sm:mb-3 flex items-center justify-center bg-primary rounded-full group-hover:bg-gold transition-colors duration-300 shadow-md">
+                    <b.icon className="h-5 w-5 sm:h-7 sm:w-7 md:h-9 md:w-9 text-primary-foreground" strokeWidth={2} />
                   </div>
-                  <span className="text-xs md:text-sm uppercase tracking-widest text-primary text-center font-semibold leading-tight">{b.label}</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.12em] sm:tracking-widest text-primary text-center font-semibold leading-tight">{b.label}</span>
                 </div>
               ))}
             </div>
