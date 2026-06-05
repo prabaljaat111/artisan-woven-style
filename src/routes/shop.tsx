@@ -21,9 +21,17 @@ function ShopPage() {
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    const PRICE_BUCKETS: Record<string, (price: number) => boolean> = {
+      "budget": (p) => p < 500,
+      "mid-range": (p) => p >= 500 && p < 1500,
+      "premium": (p) => p >= 1500,
+    };
+    const priceBuckets = cats.filter((c) => c in PRICE_BUCKETS);
+    const realCats = cats.filter((c) => !(c in PRICE_BUCKETS));
     let list = products.filter((p) =>
       p.price <= maxPrice
-      && (cats.length === 0 || cats.includes(p.category))
+      && (realCats.length === 0 || realCats.includes(p.category))
+      && (priceBuckets.length === 0 || priceBuckets.some((b) => PRICE_BUCKETS[b](p.price)))
       && (needle === "" || p.name.toLowerCase().includes(needle) || p.category.toLowerCase().includes(needle))
     );
     if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
