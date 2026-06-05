@@ -40,7 +40,7 @@ function ProductsPage() {
     let t: ReturnType<typeof setTimeout> | null = null;
     const debounced = () => { if (t) clearTimeout(t); t = setTimeout(load, 250); };
     const channel = supabase
-      .channel("admin-products")
+      .channel(`admin-products-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, debounced)
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, debounced)
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, debounced)
