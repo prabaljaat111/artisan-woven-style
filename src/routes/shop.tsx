@@ -37,6 +37,7 @@ function ShopPage() {
     if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "new") list = [...list].sort((a, b) => Number(b.isNew ?? 0) - Number(a.isNew ?? 0));
+    if (sort === "popular") list = [...list].sort((a, b) => (Number(b.isBestseller ?? 0) - Number(a.isBestseller ?? 0)) || (b.rating - a.rating));
     return list;
   }, [cats, maxPrice, sort, q]);
 
