@@ -103,7 +103,7 @@ function ShipmentsPage() {
           <input
             value={retryOrderId}
             onChange={(e) => setRetryOrderId(e.target.value)}
-            placeholder="Order UUID — push to Shiprocket"
+            placeholder="Order # or UUID — push to Shiprocket"
             className="text-xs border border-border rounded-md px-2 py-1.5 bg-background w-64"
           />
           <button onClick={pushOrderToSr} className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1">
