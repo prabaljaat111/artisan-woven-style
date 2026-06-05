@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Mail, Phone, MapPin, MessageCircle, Instagram, Facebook, Youtube } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -18,6 +20,42 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", whatsapp: "", topic: "Order enquiry", message: "" });
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const message = form.message.trim();
+    const whatsapp = form.whatsapp.trim();
+    if (name.length < 2) return toast.error("Please enter your name");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Please enter a valid email");
+    if (message.length < 5) return toast.error("Please write a short message");
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name,
+        phone: whatsapp || email,
+        whatsapp: whatsapp || null,
+        interest: form.topic,
+        page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+        source: "contact",
+        status: "new",
+        notes: `Email: ${email}\nTopic: ${form.topic}\n\n${message}`,
+        conversation: [],
+      });
+      if (error) throw error;
+      setSent(true);
+      toast.success("Message sent — we'll reply within 24h");
+      setForm({ name: "", email: "", whatsapp: "", topic: "Order enquiry", message: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't send right now. Please WhatsApp us instead.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 md:py-16">
       <div className="text-center mb-10">
@@ -49,23 +87,23 @@ function ContactPage() {
           </div>
         </div>
         <form
-          onSubmit={(e) => { e.preventDefault(); setSent(true); }}
+          onSubmit={onSubmit}
           className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-3"
         >
           <h2 className="font-display text-xl text-primary">Send us a message</h2>
-          <input required placeholder="Your name" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <input required type="email" placeholder="Email" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <input placeholder="WhatsApp number (optional)" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <select className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background">
+          <input required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} maxLength={80} placeholder="Your name" autoComplete="name" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+          <input required type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} maxLength={200} placeholder="Email" autoComplete="email" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+          <input value={form.whatsapp} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))} maxLength={24} inputMode="tel" autoComplete="tel" placeholder="WhatsApp number (optional)" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+          <select value={form.topic} onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))} className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background">
             <option>Order enquiry</option>
             <option>Sizing help</option>
             <option>Custom order</option>
             <option>Wholesale / Bulk</option>
             <option>Other</option>
           </select>
-          <textarea required rows={5} placeholder="How can we help?" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
-          <button className="w-full bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium hover:bg-primary/90 transition">
-            {sent ? "✓ Message sent — we'll reply within 24h" : "Send message"}
+          <textarea required rows={5} value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} maxLength={1500} placeholder="How can we help?" className="w-full border border-border rounded-md px-3 py-2.5 text-sm bg-background" />
+          <button disabled={submitting} className="w-full bg-primary text-primary-foreground py-3 rounded-full text-sm font-medium hover:bg-primary/90 transition disabled:opacity-60">
+            {submitting ? "Sending…" : sent ? "✓ Message sent — send another?" : "Send message"}
           </button>
         </form>
       </div>

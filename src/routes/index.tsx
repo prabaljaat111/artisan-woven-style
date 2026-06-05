@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { products, categories } from "@/data/products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import { LotusMark } from "@/components/LotusMark";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import hero1 from "@/assets/hero/hero-1.jpg";
 import hero2 from "@/assets/hero/hero-2.jpg";
 import hero3 from "@/assets/hero/hero-3.jpg";
@@ -44,7 +46,7 @@ function HeroSlider() {
           alt={slide.title}
           loading={i === 0 ? "eager" : "lazy"}
           decoding="async"
-          {...(i === 0 ? { fetchpriority: "high" as never } : {})}
+          {...(i === 0 ? { fetchPriority: "high" as const } : {})}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
@@ -96,6 +98,35 @@ function HeroSlider() {
 
 function Index() {
   const featured = products.slice(0, 8);
+  const [news, setNews] = useState({ email: "", wa: false, sending: false, sent: false });
+  async function subscribe(e: React.FormEvent) {
+    e.preventDefault();
+    const email = news.email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return toast.error("Please enter a valid email");
+    }
+    setNews((n) => ({ ...n, sending: true }));
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name: email.split("@")[0].slice(0, 60),
+        phone: email,
+        whatsapp: null,
+        interest: "Newsletter signup",
+        page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+        source: news.wa ? "newsletter+whatsapp" : "newsletter",
+        status: "new",
+        notes: `Email: ${email}\nWantsWhatsApp: ${news.wa}`,
+        conversation: [],
+      });
+      if (error) throw error;
+      setNews({ email: "", wa: false, sending: false, sent: true });
+      toast.success("You're on the list — welcome 🌸");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't subscribe right now.");
+      setNews((n) => ({ ...n, sending: false }));
+    }
+  }
   const circleCats = [
     { label: "Sale", img: products[5].images[0], to: "/shop" },
     { label: "Kurtis", img: products[0].images[0], to: "/category/$slug", params: { slug: "kurtis" } },
@@ -235,12 +266,22 @@ function Index() {
           <LotusMark className="h-8 w-8 text-primary-foreground mx-auto mb-3" />
           <h2 className="font-display italic text-2xl md:text-3xl">Join the Atelier List</h2>
           <p className="text-sm opacity-80 mt-2">Early access to drops, artisan stories, and members-only discounts.</p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input type="email" placeholder="your@email.com" className="flex-1 rounded-full px-5 py-3 text-sm text-foreground bg-background" />
-            <button className="bg-accent text-accent-foreground font-medium px-6 py-3 rounded-full text-sm hover:opacity-90 transition">Subscribe</button>
+          <form onSubmit={subscribe} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input
+              type="email"
+              required
+              value={news.email}
+              onChange={(e) => setNews((n) => ({ ...n, email: e.target.value }))}
+              maxLength={200}
+              placeholder="your@email.com"
+              className="flex-1 rounded-full px-5 py-3 text-sm text-foreground bg-background"
+            />
+            <button disabled={news.sending || news.sent} className="bg-accent text-accent-foreground font-medium px-6 py-3 rounded-full text-sm hover:opacity-90 transition disabled:opacity-60">
+              {news.sent ? "✓ Subscribed" : news.sending ? "…" : "Subscribe"}
+            </button>
           </form>
           <label className="flex items-center justify-center gap-2 text-xs opacity-80 mt-3">
-            <input type="checkbox" className="accent-accent" /> Also send me WhatsApp updates
+            <input type="checkbox" checked={news.wa} onChange={(e) => setNews((n) => ({ ...n, wa: e.target.checked }))} className="accent-accent" /> Also send me WhatsApp updates
           </label>
         </div>
       </section>

@@ -10,6 +10,8 @@ import { LotusMark } from "./LotusMark";
 import { categories, products } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const ChatWidget = lazy(() =>
   import("./ChatWidget").then((m) => ({ default: m.ChatWidget }))
@@ -304,6 +306,9 @@ function ProactiveNudge() {
 function ExitIntent() {
   const { exitIntentShown, setExitIntentShown } = useUI();
   const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
   useEffect(() => {
     if (exitIntentShown) return;
     const handler = (e: MouseEvent) => {
@@ -312,6 +317,34 @@ function ExitIntent() {
     document.addEventListener("mouseleave", handler);
     return () => document.removeEventListener("mouseleave", handler);
   }, [exitIntentShown, setExitIntentShown]);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 8) return toast.error("Please enter a valid number");
+    setSending(true);
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name: "Exit-intent visitor",
+        phone: phone.trim(),
+        whatsapp: phone.trim(),
+        interest: "Welcome discount 10%",
+        page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+        source: "exit_intent",
+        status: "new",
+        notes: "Requested 10% welcome discount via exit-intent popup",
+        conversation: [],
+      });
+      if (error) throw error;
+      setSent(true);
+      toast.success("Code WELCOME10 will be sent on WhatsApp shortly");
+      setTimeout(() => setOpen(false), 1500);
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't save. Please try WhatsApp directly.");
+    } finally {
+      setSending(false);
+    }
+  }
   return (
     <AnimatePresence>
       {open && (
@@ -321,9 +354,19 @@ function ExitIntent() {
             <LotusMark className="h-8 w-8 text-gold mx-auto mb-3" />
             <h3 className="font-display text-2xl text-primary">Wait — 10% off your first order</h3>
             <p className="text-sm text-muted-foreground mt-2">Enter your WhatsApp number for an exclusive welcome discount and early access to new collections.</p>
-            <form onSubmit={(e) => { e.preventDefault(); setOpen(false); }} className="mt-4 flex gap-2">
-              <input type="tel" placeholder="+91 98765 43210" className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-background" />
-              <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium">Get 10% off</button>
+            <form onSubmit={submit} className="mt-4 flex gap-2">
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                maxLength={24}
+                placeholder="+91 98765 43210"
+                className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-background"
+              />
+              <button disabled={sending || sent} className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium disabled:opacity-60">
+                {sent ? "✓ Sent" : sending ? "Sending…" : "Get 10% off"}
+              </button>
             </form>
           </motion.div>
         </div>
