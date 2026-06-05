@@ -79,10 +79,29 @@ export const adminListShipments = createServerFn({ method: "GET" })
 
 export const adminCreateShipment = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
-  .inputValidator((i) => z.object({ order_id: z.string().uuid() }).parse(i))
+  .inputValidator((i) =>
+    z.object({
+      order_id: z.string().min(1).max(80),
+    }).parse(i),
+  )
   .handler(async ({ data }) => {
     const { createSrOrderForOrder } = await import("./shiprocket.server");
-    const r = await createSrOrderForOrder(data.order_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Accept either a raw UUID or a human order number (e.g. IHS-YYMMDD-XXXXXX).
+    const raw = data.order_id.trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw);
+    let orderId = raw;
+    if (!isUuid) {
+      const { data: row, error } = await supabaseAdmin
+        .from("orders")
+        .select("id")
+        .eq("order_number", raw.toUpperCase())
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!row) throw new Error(`Order not found: ${raw}`);
+      orderId = (row as { id: string }).id;
+    }
+    const r = await createSrOrderForOrder(orderId);
     return { sr_order_id: r.sr_order_id, sr_shipment_id: r.sr_shipment_id };
   });
 
