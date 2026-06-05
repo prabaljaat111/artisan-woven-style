@@ -21,6 +21,10 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "preload", as: "image", href: hero1, fetchpriority: "high" } as never,
+      { rel: "prefetch", as: "image", href: hero2 } as never,
+      { rel: "prefetch", as: "image", href: hero3 } as never,
+      { rel: "prefetch", as: "image", href: hero4 } as never,
+      { rel: "prefetch", as: "image", href: hero5 } as never,
       { rel: "canonical", href: "https://indianhandicraft.revnlabel.in/" },
     ],
   }),
@@ -55,9 +59,9 @@ function HeroSlider() {
           key={i}
           src={slide.img}
           alt={slide.title}
-          loading={i === 0 ? "eager" : "lazy"}
+          loading="eager"
           decoding="async"
-          {...(i === 0 ? { fetchPriority: "high" as const } : {})}
+          fetchPriority={i === 0 ? ("high" as const) : ("low" as const)}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
