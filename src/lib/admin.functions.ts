@@ -365,15 +365,14 @@ export const getProductVariantsBySlug = createServerFn({ method: "GET" })
     z.object({ slug: z.string().min(1).max(200) }).parse(i),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
-    const { data: product } = await admin
+    const { data: product } = await supabaseAdmin
       .from("products")
       .select("id")
       .eq("slug", data.slug)
       .eq("is_published", true)
       .maybeSingle();
     if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
-    const { data: rows } = await admin
+    const { data: rows } = await supabaseAdmin
       .from("product_variants")
       .select("size, color, stock")
       .eq("product_id", product.id);
