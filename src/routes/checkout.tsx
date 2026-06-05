@@ -5,7 +5,10 @@ import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 
-export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
+export const Route = createFileRoute("/checkout")({
+  head: () => ({ meta: [{ title: "Checkout — Indian Handicraft Standards" }, { name: "description", content: "Securely complete your purchase." }, { name: "robots", content: "noindex,nofollow" }] }),
+  component: CheckoutPage,
+});
 
 declare global {
   interface Window {

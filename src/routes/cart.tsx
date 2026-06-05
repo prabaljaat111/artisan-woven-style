@@ -3,7 +3,10 @@ import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
 
-export const Route = createFileRoute("/cart")({ component: CartPage });
+export const Route = createFileRoute("/cart")({
+  head: () => ({ meta: [{ title: "Your Cart — Indian Handicraft Standards" }, { name: "description", content: "Review the pieces in your cart and proceed to checkout." }, { name: "robots", content: "noindex,nofollow" }] }),
+  component: CartPage,
+});
 
 const MAX_QTY = 10;
 const FREE_SHIP_THRESHOLD = 999;
