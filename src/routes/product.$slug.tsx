@@ -14,6 +14,38 @@ import { checkServiceability } from "@/lib/shiprocket.functions";
 
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
+  head: ({ loaderData }) => {
+    const p = loaderData as Product | undefined;
+    if (!p) return { meta: [{ title: "Product — Indian Handicraft Standards" }] };
+    const desc = `${p.name} — authentic Lucknowi Chikankari. ₹${p.price}.`;
+    const img = p.images?.[0];
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.name,
+      image: p.images,
+      description: desc,
+      sku: p.id,
+      brand: { "@type": "Brand", name: "Indian Handicraft Standards" },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price: p.price,
+        availability: "https://schema.org/InStock",
+      },
+    };
+    return {
+      meta: [
+        { title: `${p.name} — Indian Handicraft Standards` },
+        { name: "description", content: desc },
+        { property: "og:title", content: p.name },
+        { property: "og:description", content: desc },
+        ...(img ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
+      ],
+      links: [{ rel: "canonical", href: `/product/${p.slug}` }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
+    };
+  },
   notFoundComponent: () => (
     <div className="max-w-3xl mx-auto px-4 py-20 text-center">
       <h1 className="font-display text-3xl text-primary">Product not found</h1>
