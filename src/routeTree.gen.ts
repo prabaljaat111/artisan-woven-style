@@ -46,13 +46,22 @@ import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
+import { Route as AdminSettingsWebsiteRouteImport } from './routes/admin.settings.website'
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
 import { Route as AdminSettingsSeoRouteImport } from './routes/admin.settings.seo'
 import { Route as AdminSettingsSecurityRouteImport } from './routes/admin.settings.security'
+import { Route as AdminSettingsReportsRouteImport } from './routes/admin.settings.reports'
+import { Route as AdminSettingsProductRouteImport } from './routes/admin.settings.product'
 import { Route as AdminSettingsPaymentRouteImport } from './routes/admin.settings.payment'
+import { Route as AdminSettingsOrderRouteImport } from './routes/admin.settings.order'
 import { Route as AdminSettingsNotificationsRouteImport } from './routes/admin.settings.notifications'
+import { Route as AdminSettingsMarketingRouteImport } from './routes/admin.settings.marketing'
+import { Route as AdminSettingsLeadsRouteImport } from './routes/admin.settings.leads'
 import { Route as AdminSettingsInventoryRouteImport } from './routes/admin.settings.inventory'
 import { Route as AdminSettingsGeneralRouteImport } from './routes/admin.settings.general'
+import { Route as AdminSettingsEmailRouteImport } from './routes/admin.settings.email'
+import { Route as AdminSettingsCustomerRouteImport } from './routes/admin.settings.customer'
+import { Route as AdminSettingsBackupRouteImport } from './routes/admin.settings.backup'
 import { Route as AdminSettingsAnalyticsRouteImport } from './routes/admin.settings.analytics'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -240,6 +249,11 @@ const AdminSettingsWhatsappRoute = AdminSettingsWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsWebsiteRoute = AdminSettingsWebsiteRouteImport.update({
+  id: '/website',
+  path: '/website',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsShippingRoute = AdminSettingsShippingRouteImport.update({
   id: '/shipping',
   path: '/shipping',
@@ -255,9 +269,24 @@ const AdminSettingsSecurityRoute = AdminSettingsSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminSettingsReportsRoute = AdminSettingsReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsProductRoute = AdminSettingsProductRouteImport.update({
+  id: '/product',
+  path: '/product',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsPaymentRoute = AdminSettingsPaymentRouteImport.update({
   id: '/payment',
   path: '/payment',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsOrderRoute = AdminSettingsOrderRouteImport.update({
+  id: '/order',
+  path: '/order',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
 const AdminSettingsNotificationsRoute =
@@ -266,6 +295,16 @@ const AdminSettingsNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AdminSettingsRoute,
   } as any)
+const AdminSettingsMarketingRoute = AdminSettingsMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsLeadsRoute = AdminSettingsLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsInventoryRoute = AdminSettingsInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -274,6 +313,21 @@ const AdminSettingsInventoryRoute = AdminSettingsInventoryRouteImport.update({
 const AdminSettingsGeneralRoute = AdminSettingsGeneralRouteImport.update({
   id: '/general',
   path: '/general',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsEmailRoute = AdminSettingsEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsCustomerRoute = AdminSettingsCustomerRouteImport.update({
+  id: '/customer',
+  path: '/customer',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
+const AdminSettingsBackupRoute = AdminSettingsBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
 const AdminSettingsAnalyticsRoute = AdminSettingsAnalyticsRouteImport.update({
@@ -319,13 +373,22 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
+  '/admin/settings/backup': typeof AdminSettingsBackupRoute
+  '/admin/settings/customer': typeof AdminSettingsCustomerRoute
+  '/admin/settings/email': typeof AdminSettingsEmailRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/leads': typeof AdminSettingsLeadsRoute
+  '/admin/settings/marketing': typeof AdminSettingsMarketingRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
+  '/admin/settings/order': typeof AdminSettingsOrderRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/product': typeof AdminSettingsProductRoute
+  '/admin/settings/reports': typeof AdminSettingsReportsRoute
   '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
@@ -364,13 +427,22 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/category': typeof CategoryIndexRoute
   '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
+  '/admin/settings/backup': typeof AdminSettingsBackupRoute
+  '/admin/settings/customer': typeof AdminSettingsCustomerRoute
+  '/admin/settings/email': typeof AdminSettingsEmailRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/leads': typeof AdminSettingsLeadsRoute
+  '/admin/settings/marketing': typeof AdminSettingsMarketingRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
+  '/admin/settings/order': typeof AdminSettingsOrderRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/product': typeof AdminSettingsProductRoute
+  '/admin/settings/reports': typeof AdminSettingsReportsRoute
   '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
@@ -412,13 +484,22 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
   '/admin/settings/analytics': typeof AdminSettingsAnalyticsRoute
+  '/admin/settings/backup': typeof AdminSettingsBackupRoute
+  '/admin/settings/customer': typeof AdminSettingsCustomerRoute
+  '/admin/settings/email': typeof AdminSettingsEmailRoute
   '/admin/settings/general': typeof AdminSettingsGeneralRoute
   '/admin/settings/inventory': typeof AdminSettingsInventoryRoute
+  '/admin/settings/leads': typeof AdminSettingsLeadsRoute
+  '/admin/settings/marketing': typeof AdminSettingsMarketingRoute
   '/admin/settings/notifications': typeof AdminSettingsNotificationsRoute
+  '/admin/settings/order': typeof AdminSettingsOrderRoute
   '/admin/settings/payment': typeof AdminSettingsPaymentRoute
+  '/admin/settings/product': typeof AdminSettingsProductRoute
+  '/admin/settings/reports': typeof AdminSettingsReportsRoute
   '/admin/settings/security': typeof AdminSettingsSecurityRoute
   '/admin/settings/seo': typeof AdminSettingsSeoRoute
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
+  '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
@@ -461,13 +542,22 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/category/'
     | '/admin/settings/analytics'
+    | '/admin/settings/backup'
+    | '/admin/settings/customer'
+    | '/admin/settings/email'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/leads'
+    | '/admin/settings/marketing'
     | '/admin/settings/notifications'
+    | '/admin/settings/order'
     | '/admin/settings/payment'
+    | '/admin/settings/product'
+    | '/admin/settings/reports'
     | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
@@ -506,13 +596,22 @@ export interface FileRouteTypes {
     | '/admin'
     | '/category'
     | '/admin/settings/analytics'
+    | '/admin/settings/backup'
+    | '/admin/settings/customer'
+    | '/admin/settings/email'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/leads'
+    | '/admin/settings/marketing'
     | '/admin/settings/notifications'
+    | '/admin/settings/order'
     | '/admin/settings/payment'
+    | '/admin/settings/product'
+    | '/admin/settings/reports'
     | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings'
   id:
@@ -553,13 +652,22 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/category/'
     | '/admin/settings/analytics'
+    | '/admin/settings/backup'
+    | '/admin/settings/customer'
+    | '/admin/settings/email'
     | '/admin/settings/general'
     | '/admin/settings/inventory'
+    | '/admin/settings/leads'
+    | '/admin/settings/marketing'
     | '/admin/settings/notifications'
+    | '/admin/settings/order'
     | '/admin/settings/payment'
+    | '/admin/settings/product'
+    | '/admin/settings/reports'
     | '/admin/settings/security'
     | '/admin/settings/seo'
     | '/admin/settings/shipping'
+    | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
@@ -853,6 +961,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsWhatsappRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/website': {
+      id: '/admin/settings/website'
+      path: '/website'
+      fullPath: '/admin/settings/website'
+      preLoaderRoute: typeof AdminSettingsWebsiteRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/shipping': {
       id: '/admin/settings/shipping'
       path: '/shipping'
@@ -874,6 +989,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsSecurityRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/reports': {
+      id: '/admin/settings/reports'
+      path: '/reports'
+      fullPath: '/admin/settings/reports'
+      preLoaderRoute: typeof AdminSettingsReportsRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/product': {
+      id: '/admin/settings/product'
+      path: '/product'
+      fullPath: '/admin/settings/product'
+      preLoaderRoute: typeof AdminSettingsProductRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/payment': {
       id: '/admin/settings/payment'
       path: '/payment'
@@ -881,11 +1010,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsPaymentRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/order': {
+      id: '/admin/settings/order'
+      path: '/order'
+      fullPath: '/admin/settings/order'
+      preLoaderRoute: typeof AdminSettingsOrderRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/notifications': {
       id: '/admin/settings/notifications'
       path: '/notifications'
       fullPath: '/admin/settings/notifications'
       preLoaderRoute: typeof AdminSettingsNotificationsRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/marketing': {
+      id: '/admin/settings/marketing'
+      path: '/marketing'
+      fullPath: '/admin/settings/marketing'
+      preLoaderRoute: typeof AdminSettingsMarketingRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/leads': {
+      id: '/admin/settings/leads'
+      path: '/leads'
+      fullPath: '/admin/settings/leads'
+      preLoaderRoute: typeof AdminSettingsLeadsRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
     '/admin/settings/inventory': {
@@ -902,6 +1052,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsGeneralRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/settings/email': {
+      id: '/admin/settings/email'
+      path: '/email'
+      fullPath: '/admin/settings/email'
+      preLoaderRoute: typeof AdminSettingsEmailRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/customer': {
+      id: '/admin/settings/customer'
+      path: '/customer'
+      fullPath: '/admin/settings/customer'
+      preLoaderRoute: typeof AdminSettingsCustomerRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
+    '/admin/settings/backup': {
+      id: '/admin/settings/backup'
+      path: '/backup'
+      fullPath: '/admin/settings/backup'
+      preLoaderRoute: typeof AdminSettingsBackupRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/analytics': {
       id: '/admin/settings/analytics'
       path: '/analytics'
@@ -914,26 +1085,44 @@ declare module '@tanstack/react-router' {
 
 interface AdminSettingsRouteChildren {
   AdminSettingsAnalyticsRoute: typeof AdminSettingsAnalyticsRoute
+  AdminSettingsBackupRoute: typeof AdminSettingsBackupRoute
+  AdminSettingsCustomerRoute: typeof AdminSettingsCustomerRoute
+  AdminSettingsEmailRoute: typeof AdminSettingsEmailRoute
   AdminSettingsGeneralRoute: typeof AdminSettingsGeneralRoute
   AdminSettingsInventoryRoute: typeof AdminSettingsInventoryRoute
+  AdminSettingsLeadsRoute: typeof AdminSettingsLeadsRoute
+  AdminSettingsMarketingRoute: typeof AdminSettingsMarketingRoute
   AdminSettingsNotificationsRoute: typeof AdminSettingsNotificationsRoute
+  AdminSettingsOrderRoute: typeof AdminSettingsOrderRoute
   AdminSettingsPaymentRoute: typeof AdminSettingsPaymentRoute
+  AdminSettingsProductRoute: typeof AdminSettingsProductRoute
+  AdminSettingsReportsRoute: typeof AdminSettingsReportsRoute
   AdminSettingsSecurityRoute: typeof AdminSettingsSecurityRoute
   AdminSettingsSeoRoute: typeof AdminSettingsSeoRoute
   AdminSettingsShippingRoute: typeof AdminSettingsShippingRoute
+  AdminSettingsWebsiteRoute: typeof AdminSettingsWebsiteRoute
   AdminSettingsWhatsappRoute: typeof AdminSettingsWhatsappRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsAnalyticsRoute: AdminSettingsAnalyticsRoute,
+  AdminSettingsBackupRoute: AdminSettingsBackupRoute,
+  AdminSettingsCustomerRoute: AdminSettingsCustomerRoute,
+  AdminSettingsEmailRoute: AdminSettingsEmailRoute,
   AdminSettingsGeneralRoute: AdminSettingsGeneralRoute,
   AdminSettingsInventoryRoute: AdminSettingsInventoryRoute,
+  AdminSettingsLeadsRoute: AdminSettingsLeadsRoute,
+  AdminSettingsMarketingRoute: AdminSettingsMarketingRoute,
   AdminSettingsNotificationsRoute: AdminSettingsNotificationsRoute,
+  AdminSettingsOrderRoute: AdminSettingsOrderRoute,
   AdminSettingsPaymentRoute: AdminSettingsPaymentRoute,
+  AdminSettingsProductRoute: AdminSettingsProductRoute,
+  AdminSettingsReportsRoute: AdminSettingsReportsRoute,
   AdminSettingsSecurityRoute: AdminSettingsSecurityRoute,
   AdminSettingsSeoRoute: AdminSettingsSeoRoute,
   AdminSettingsShippingRoute: AdminSettingsShippingRoute,
+  AdminSettingsWebsiteRoute: AdminSettingsWebsiteRoute,
   AdminSettingsWhatsappRoute: AdminSettingsWhatsappRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
