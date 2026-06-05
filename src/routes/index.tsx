@@ -266,12 +266,22 @@ function Index() {
           <LotusMark className="h-8 w-8 text-primary-foreground mx-auto mb-3" />
           <h2 className="font-display italic text-2xl md:text-3xl">Join the Atelier List</h2>
           <p className="text-sm opacity-80 mt-2">Early access to drops, artisan stories, and members-only discounts.</p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input type="email" placeholder="your@email.com" className="flex-1 rounded-full px-5 py-3 text-sm text-foreground bg-background" />
-            <button className="bg-accent text-accent-foreground font-medium px-6 py-3 rounded-full text-sm hover:opacity-90 transition">Subscribe</button>
+          <form onSubmit={subscribe} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input
+              type="email"
+              required
+              value={news.email}
+              onChange={(e) => setNews((n) => ({ ...n, email: e.target.value }))}
+              maxLength={200}
+              placeholder="your@email.com"
+              className="flex-1 rounded-full px-5 py-3 text-sm text-foreground bg-background"
+            />
+            <button disabled={news.sending || news.sent} className="bg-accent text-accent-foreground font-medium px-6 py-3 rounded-full text-sm hover:opacity-90 transition disabled:opacity-60">
+              {news.sent ? "✓ Subscribed" : news.sending ? "…" : "Subscribe"}
+            </button>
           </form>
           <label className="flex items-center justify-center gap-2 text-xs opacity-80 mt-3">
-            <input type="checkbox" className="accent-accent" /> Also send me WhatsApp updates
+            <input type="checkbox" checked={news.wa} onChange={(e) => setNews((n) => ({ ...n, wa: e.target.checked }))} className="accent-accent" /> Also send me WhatsApp updates
           </label>
         </div>
       </section>
