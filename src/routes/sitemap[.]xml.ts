@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { products, categories } from "@/data/products";
+import { products as staticProducts, categories } from "@/data/products";
 
 const BASE_URL = "https://indianhandicraft.revnlabel.in";
 
@@ -32,7 +32,22 @@ export const Route = createFileRoute("/sitemap.xml")({
         ];
 
         for (const c of categories) entries.push({ path: `/category/${c.slug}`, changefreq: "weekly", priority: "0.8" });
-        for (const p of products) entries.push({ path: `/product/${p.slug}`, changefreq: "weekly", priority: "0.7" });
+
+        // Pull live DB products too so admin-added items get crawled.
+        const seen = new Set<string>();
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data } = await supabaseAdmin.from("products").select("slug").eq("is_published", true);
+          for (const r of data ?? []) {
+            if (!r.slug || seen.has(r.slug)) continue;
+            seen.add(r.slug);
+            entries.push({ path: `/product/${r.slug}`, changefreq: "weekly", priority: "0.7" });
+          }
+        } catch { /* fall through to static-only sitemap */ }
+        for (const p of staticProducts) {
+          if (seen.has(p.slug)) continue;
+          entries.push({ path: `/product/${p.slug}`, changefreq: "weekly", priority: "0.7" });
+        }
 
         const urls = entries.map((e) =>
           [
