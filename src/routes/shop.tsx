@@ -35,7 +35,16 @@ function parseSearch(raw: Record<string, unknown>) {
 
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
-  head: () => ({ meta: [{ title: "Shop All — Indian Handicraft Standards" }, { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." }] }),
+  head: () => ({
+    meta: [
+      { title: "Shop All — Indian Handicraft Standards" },
+      { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." },
+      { property: "og:title", content: "Shop All — Indian Handicraft Standards" },
+      { property: "og:description", content: "Browse our full Chikankari collection." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/shop" },
+    ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/shop" }],
+  }),
 });
 
 const ALL_COLORS = Array.from(new Set(products.flatMap((p) => p.colors))).sort();

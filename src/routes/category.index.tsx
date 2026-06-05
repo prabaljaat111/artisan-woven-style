@@ -6,7 +6,9 @@ export const Route = createFileRoute("/category/")({
     meta: [
       { title: "Shop by Category — Indian Handicraft Standards" },
       { name: "description", content: "Browse all Chikankari categories — kurtis, kurta sets, sarees, sharara, palazzo, and more." },
+      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/category" },
     ],
+    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/category" }],
   }),
   component: CategoryIndex,
 });
