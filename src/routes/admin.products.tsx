@@ -91,7 +91,7 @@ function ProductsPage() {
         </div>
         <div className="flex gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="text-sm border border-border rounded-md px-3 py-1.5 bg-background" />
-          <button onClick={() => setEditing({})} className="bg-primary text-primary-foreground rounded-full px-4 py-1.5 text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Add</button>
+          <button type="button" onClick={() => setEditing({})} className="bg-primary text-primary-foreground rounded-full px-4 py-1.5 text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Add</button>
         </div>
       </div>
 
@@ -153,8 +153,8 @@ function ProductsPage() {
                   <td className={`p-2 text-right ${p.stock === 0 ? "text-red-500" : p.stock < 10 ? "text-amber-500" : ""}`}>{p.stock}</td>
                   <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
                   <td className="p-2 text-right whitespace-nowrap">
-                    <button onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button onClick={() => remove(p.id)} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => remove(p.id)} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                   </td>
                 </tr>
               ))}
@@ -246,9 +246,9 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
       <div className="bg-card w-full max-w-xl h-full overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="font-display text-xl text-primary">{form.id ? "Edit" : "Add"} Product</div>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
+          <button type="button" onClick={onClose}><X className="h-5 w-5" /></button>
         </div>
-        <div className="space-y-3 text-sm">
+        <form className="space-y-3 text-sm" onSubmit={(e) => { e.preventDefault(); save(); }}>
           <F label="Name"><input value={form.name} onChange={(e) => {
             const name = e.target.value;
             setForm((prev: any) => ({ ...prev, name, slug: prev.id || prev.slug ? prev.slug : slugify(name) }));
@@ -318,7 +318,7 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
                 <div key={i} className="flex gap-2 items-center">
                   <img src={u} className="w-10 h-10 rounded object-cover" />
                   <input value={u} onChange={(e) => { const a = [...form.images]; a[i] = e.target.value; setForm({ ...form, images: a }); }} className={inputCls + " flex-1"} />
-                  <button onClick={() => setForm({ ...form, images: form.images.filter((_: any, j: number) => j !== i) })}><X className="h-4 w-4 text-red-500" /></button>
+                  <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_: any, j: number) => j !== i) })}><X className="h-4 w-4 text-red-500" /></button>
                 </div>
               ))}
               <div className="flex gap-2">
@@ -333,8 +333,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
             <label className="flex items-center gap-1.5"><input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} /> New</label>
             <label className="flex items-center gap-1.5"><input type="checkbox" checked={form.is_bestseller} onChange={(e) => setForm({ ...form, is_bestseller: e.target.checked })} /> Bestseller</label>
           </div>
-          <button disabled={saving} onClick={save} className="w-full bg-primary text-primary-foreground rounded-full py-2.5 text-sm disabled:opacity-50">{saving ? "Saving…" : "Save Product"}</button>
-        </div>
+          <button type="submit" disabled={saving} className="w-full bg-primary text-primary-foreground rounded-full py-2.5 text-sm disabled:opacity-50">{saving ? "Saving…" : "Save Product"}</button>
+        </form>
       </div>
     </div>
   );
