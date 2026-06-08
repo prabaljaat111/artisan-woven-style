@@ -44,7 +44,6 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
-import { Route as ApiPublicShiprocketTestRouteImport } from './routes/api/public/shiprocket-test'
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
 import { Route as AdminSettingsWebsiteRouteImport } from './routes/admin.settings.website'
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
@@ -239,11 +238,6 @@ const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
-const ApiPublicShiprocketTestRoute = ApiPublicShiprocketTestRouteImport.update({
-  id: '/api/public/shiprocket-test',
-  path: '/api/public/shiprocket-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminSettingsWhatsappRoute = AdminSettingsWhatsappRouteImport.update({
   id: '/whatsapp',
   path: '/whatsapp',
@@ -389,7 +383,6 @@ export interface FileRoutesByFullPath {
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
-  '/api/public/shiprocket-test': typeof ApiPublicShiprocketTestRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -443,7 +436,6 @@ export interface FileRoutesByTo {
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
-  '/api/public/shiprocket-test': typeof ApiPublicShiprocketTestRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -500,7 +492,6 @@ export interface FileRoutesById {
   '/admin/settings/shipping': typeof AdminSettingsShippingRoute
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
-  '/api/public/shiprocket-test': typeof ApiPublicShiprocketTestRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -558,7 +549,6 @@ export interface FileRouteTypes {
     | '/admin/settings/shipping'
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
-    | '/api/public/shiprocket-test'
     | '/admin/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -612,7 +602,6 @@ export interface FileRouteTypes {
     | '/admin/settings/shipping'
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
-    | '/api/public/shiprocket-test'
     | '/admin/settings'
   id:
     | '__root__'
@@ -668,7 +657,6 @@ export interface FileRouteTypes {
     | '/admin/settings/shipping'
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
-    | '/api/public/shiprocket-test'
     | '/admin/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -697,7 +685,6 @@ export interface RootRouteChildren {
   CategorySlugRoute: typeof CategorySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
   CategoryIndexRoute: typeof CategoryIndexRoute
-  ApiPublicShiprocketTestRoute: typeof ApiPublicShiprocketTestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -947,13 +934,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsIndexRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
-    '/api/public/shiprocket-test': {
-      id: '/api/public/shiprocket-test'
-      path: '/api/public/shiprocket-test'
-      fullPath: '/api/public/shiprocket-test'
-      preLoaderRoute: typeof ApiPublicShiprocketTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/settings/whatsapp': {
       id: '/admin/settings/whatsapp'
       path: '/whatsapp'
@@ -1184,8 +1164,17 @@ const rootRouteChildren: RootRouteChildren = {
   CategorySlugRoute: CategorySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
   CategoryIndexRoute: CategoryIndexRoute,
-  ApiPublicShiprocketTestRoute: ApiPublicShiprocketTestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
