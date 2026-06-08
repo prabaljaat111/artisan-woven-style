@@ -152,6 +152,8 @@ function ProductPage() {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [p.slug]);
   const sizeStock = (s: string): number => {
+    // If inventory isn't tracked, every size is always purchasable.
+    if (p.trackInventory === false) return 999;
     if (variantMap) return variantMap[s] ?? 0;
     // Deterministic fallback per size for demo products
     if (p.stock <= 0) return 0;
