@@ -17,6 +17,19 @@ import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
+// Pan-India delivery date estimator. Dispatch in 1 business day, then add
+// transit days (skipping Sundays). Returns "Mon, 16 Jun" style label.
+function estimateDeliveryLabel(transitDays: number): string {
+  const d = new Date();
+  let added = 0;
+  const target = Math.max(2, transitDays + 1); // +1 dispatch day
+  while (added < target) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0) added++;
+  }
+  return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+}
+
 const COLOR_HEX: Record<string, string> = {
   white: "#ffffff", ivory: "#f5efe0", cream: "#f4ead5", beige: "#e8d9b8",
   black: "#1a1a1a", maroon: "#7b1e2b", red: "#c0392b", pink: "#f4a9b8",
