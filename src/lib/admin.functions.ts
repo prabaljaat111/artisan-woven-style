@@ -14,7 +14,15 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       supabaseAdmin.from("products").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("orders").select("id, order_number, customer_name, total, status, created_at").order("created_at", { ascending: false }).limit(8),
-      supabaseAdmin.from("products").select("id, name, stock, images").lt("stock", 10).order("stock").limit(8),
+      // Pull a wider slice and let the threshold filter happen in JS so each
+      // product's `low_stock_threshold` is respected (PostgREST can't compare
+      // two columns directly).
+      supabaseAdmin
+        .from("products")
+        .select("id, name, stock, images, low_stock_threshold, track_inventory")
+        .eq("track_inventory", true)
+        .order("stock")
+        .limit(50),
       supabaseAdmin.from("leads").select("id", { count: "exact", head: true }),
     ]);
 
@@ -43,7 +51,9 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       customersTotal: customers.count ?? 0,
       leadsTotal: leadsCount.count ?? 0,
       recentOrders: recentOrders.data ?? [],
-      lowStock: lowStock.data ?? [],
+      lowStock: (lowStock.data ?? [])
+        .filter((p: any) => Number(p.stock) <= Number(p.low_stock_threshold ?? 5))
+        .slice(0, 8),
       daily: days,
     };
   });
@@ -84,6 +94,8 @@ const ProductInput = z.object({
   stock: z.number().int().min(0).max(99999).default(0),
   sizes: z.array(z.string().min(1).max(20)).min(1).max(20),
   images: z.array(z.string().url().max(2000)).min(1).max(12),
+  low_stock_threshold: z.number().int().min(0).max(9999).default(5),
+  track_inventory: z.boolean().default(true),
 });
 
 export const adminUpsertProduct = createServerFn({ method: "POST" })

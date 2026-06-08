@@ -17,19 +17,21 @@ interface CardProps {
   badge?: string;
   isDemo?: boolean;
   stock?: number;
+  trackInventory?: boolean;
+  lowStockThreshold?: number;
 }
 
-export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge, isDemo, stock }: CardProps) {
+export function LandmarkCard({ id, slug, image, title, price, originalPrice, badge, isDemo, stock, trackInventory = true, lowStockThreshold = 10 }: CardProps) {
   const { ids, toggle } = useWishlist();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const wished = mounted && ids.includes(id);
   const discount = originalPrice && originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
   const stockBadge =
-    typeof stock === "number"
+    typeof stock === "number" && trackInventory
       ? stock <= 0
         ? { text: "Out of Stock", cls: "bg-red-600 text-white" }
-        : stock <= 10
+        : stock <= lowStockThreshold
           ? { text: `Only ${stock} left`, cls: "bg-amber-500 text-white" }
           : null
       : null;
