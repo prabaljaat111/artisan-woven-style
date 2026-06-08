@@ -178,18 +178,23 @@ function ProductPage() {
 
   // Pincode serviceability
   const [pin, setPin] = useState("");
-  const [pinState, setPinState] = useState<{ status: "idle" | "checking" | "ok" | "no" | "err"; etd?: string; msg?: string }>({ status: "idle" });
+  const [pinState, setPinState] = useState<{ status: "idle" | "checking" | "ok" | "err"; etd?: string; days?: number; msg?: string }>({ status: "idle" });
   useEffect(() => {
     if (!/^\d{6}$/.test(pin)) { setPinState({ status: "idle" }); return; }
     let cancelled = false;
     setPinState({ status: "checking" });
-    checkServiceability({ data: { pincode: pin, weight: 0.5, cod: false } })
-      .then((r: any) => {
+    checkServiceability({ data: { delivery_postcode: pin, cod: false } })
+      .then((r) => {
         if (cancelled) return;
-        if (r?.serviceable) setPinState({ status: "ok", etd: r?.etd ?? "" });
-        else setPinState({ status: "no", msg: "Not serviceable on this PIN." });
+        // Pan-India: always treat as deliverable. Use courier estimate when available,
+        // otherwise fall back to a sensible default (5 business days).
+        const days = Number(r?.cheapest?.days || r?.fastest?.days || 5) || 5;
+        setPinState({ status: "ok", days, etd: estimateDeliveryLabel(days) });
       })
-      .catch(() => { if (!cancelled) setPinState({ status: "err", msg: "Could not check right now." }); });
+      .catch(() => {
+        if (cancelled) return;
+        setPinState({ status: "ok", days: 5, etd: estimateDeliveryLabel(5) });
+      });
     return () => { cancelled = true; };
   }, [pin]);
 
