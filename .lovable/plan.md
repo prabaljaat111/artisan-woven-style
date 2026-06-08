@@ -1,84 +1,73 @@
 ## Goal
+Turn the existing admin + storefront into a tight Shopify/WooCommerce-style flow: rock-solid inventory, real discounts, clear order lifecycle, and fast/in-sync storefront — without slowing the site.
 
-Turn `/admin/settings` into an enterprise control room with sidebar navigation, in-settings search, and 18 modules. Build the shell + wired modules first; flag the rest as "Coming soon" so the experience is honest while we layer in real backends.
+## Current state (already done — won't rebuild)
+- Products, variants, categories, orders, order items, coupons, customers, reviews, leads, shipments, 15+ settings pages
+- Admin bulk actions, per-size variant matrix, image management
+- Realtime sync admin ↔ storefront via `postgres_changes` on products/variants
+- Razorpay + Shiprocket integrations
+- RLS hardened, admin gate via `user_roles` + `has_role()`
 
-## Architecture (built once, reused by every module)
+## Phased plan
 
-- New layout route `src/routes/admin.settings.tsx` becomes a layout (renders `<Outlet />`) with:
-  - Left sidebar: 18 grouped sections, collapsible on mobile, icon + label.
-  - Top bar: search across module + field titles (filters sidebar live).
-  - Each module is its own file route: `admin.settings.general.tsx`, `admin.settings.website.tsx`, etc. → deep-linkable, fast, code-split.
-- All persisted values live in existing `app_settings` table keyed by module (`general`, `website.hero`, `payment.razorpay`, ...). One Zod schema per module; one server fn pair `getSetting(key)` / `saveSetting(key, value)` already half-exists in `admin.functions.ts` — I'll extend it.
-- Every field renders with a small `<Field>` wrapper that shows the label, inline help text ("Clear explanations for every setting" — your requirement), and validation errors.
+### Phase 1 — Inventory & stock alerts (ship first)
+**Backend (1 migration)**
+- Add `low_stock_threshold` (int, default 5) to `products`
+- Add `track_inventory` (bool, default true) — admin can disable for made-to-order
+- Trigger: when `products.stock` drops at/below threshold, insert a row into new `stock_alerts` table (product_id, level: 'low' | 'out', notified_at)
+- `stock_alerts` table + RLS (admin-only read/write)
 
-## Phase 1 — Shell + first wired modules (this turn)
+**Frontend**
+- Storefront: hide/grey "Add to cart" + show "Out of stock" badge when `track_inventory && stock = 0`
+- PDP: disable size buttons whose variant stock = 0 (data already in `product_variants`)
+- Admin dashboard: "Low stock" widget on `/admin` listing alerts
+- Admin products list: red/amber row tinting already partial — extend to use `low_stock_threshold` instead of hardcoded 10
 
-Ships a real, navigable Settings with these working:
+### Phase 2 — Discounts & promotions
+**Backend (1 migration)**
+- Extend `coupons`: `applies_to` ('all' | 'category' | 'product'), `target_ids uuid[]`, `usage_limit int`, `used_count int`, `per_user_limit int`, `first_order_only bool`, `free_shipping bool`
+- New server fn `validateCoupon({ code, subtotal, items, user_id })` — single source of truth, used by checkout + cart preview
+- Update `createOrder` to call `validateCoupon`, increment `used_count`, enforce limits
+- Admin coupons page: add new fields + usage counter
 
-1. **General** — store name, contact email/phone, address, GSTIN, social links (read/write `app_settings.general`). Logo + favicon upload to existing `product-images` bucket folder `brand/`.
-2. **Payment** — Razorpay key id/secret status (read from existing secrets, mask), Stripe placeholder (disabled), COD on/off toggle.
-3. **Shipping** — Shiprocket credential status (read from secrets), free-shipping threshold, default weight.
-4. **WhatsApp** — number + welcome/order/lead message templates (read/write `app_settings.whatsapp`). ChatWidget already reads from here.
-5. **SEO** — global title suffix, default meta description, default OG image, robots.txt toggle (sitewide noindex). Per-page SEO continues to live in route `head()`.
-6. **Marketing → Coupons** — link to existing `/admin/coupons` page (no rebuild).
-7. **Inventory** — low-stock threshold, out-of-stock behavior (hide / show "Out of stock" / allow backorder).
-8. **Notifications** — admin email recipients for new orders / new leads / low stock / failed payments. Wired into existing order + lead creation paths.
-9. **Security** — list admins (read `user_roles`), promote/demote (write). 2FA + activity log shown as "Coming soon".
-10. **Analytics** — paste GA4 ID, GTM ID, Meta Pixel ID; injected into `__root.tsx` head when set.
+**Frontend**
+- Cart: live coupon preview (apply → see discount before checkout)
+- "Auto-applied" discount banner when threshold met (e.g. free shipping > ₹999)
 
-## Phase 2 — Backed but bigger (next turn)
+### Phase 3 — Order workflow
+**Backend (1 migration)**
+- `order_events` table (order_id, event_type, note, actor_id, created_at) — full timeline
+- Trigger: log every `orders.status` / `payment_status` change
+- Add `refunded_amount`, `refund_reason`, `cancelled_reason`, `internal_notes` to orders
 
-11. **Website → Homepage** — hero banners CMS (drag-reorder, image, headline, CTA URL); promo bars; featured collection picker. Replaces hardcoded `HeroSlider` data with `app_settings.homepage`.
-12. **Website → Footer & Nav** — footer column editor, nav menu editor.
-13. **Product Settings** — default status, SKU rule, size master list, color master list (used by variant matrix).
-14. **Order Settings** — order status workflow toggles, cancellation window, return window, invoice prefix.
-15. **Customer Settings** — registration enabled, OTP enabled (Phone provider), wishlist on/off.
-16. **Email Settings** — template editor for order confirmation / shipped / welcome / abandoned cart. Uses Lovable email infra (already on).
-17. **Lead Management** — sources list, auto-assign rule, status workflow.
+**Frontend (admin)**
+- Order detail drawer: status stepper (Pending → Confirmed → Packed → Shipped → Delivered), one-click transitions, refund button, cancel button, internal notes, full event timeline
+- Bulk actions on orders list (mark confirmed, export CSV, print invoices)
+- Customer-facing invoice PDF (print view, no new dep)
 
-## Phase 3 — Needs new infrastructure (clearly flagged "Coming soon" everywhere it appears)
+### Phase 4 — Storefront performance & sync
+**Performance**
+- Convert `listPublishedProducts` to return a **trimmed list shape** (no description, no per-variant data) for `/shop` and category pages — full data only on PDP via `getProductBySlug` serverFn
+- Add HTTP cache headers (`s-maxage=60, stale-while-revalidate=300`) on list endpoints
+- Lazy-load below-the-fold images (`loading="lazy"`, `decoding="async"`), explicit width/height to kill CLS
+- Replace per-page realtime subscription with a **single** root-level channel + React Query cache invalidation (currently every page re-subscribes)
+- Image transform: hand off Supabase storage URLs through `?width=...&quality=75` for thumbs
 
-- Reward points, referral program, loyalty, flash sales scheduler, abandoned cart recovery automation, BI reports beyond the existing dashboard, full activity audit log, 2FA, automated backups, customer groups, AWB management beyond current Shiprocket tracking.
+**Sync correctness**
+- Debounce realtime invalidations (250ms) to coalesce bulk admin edits
+- On admin save, optimistic update + server confirm (already partly there)
 
-These will show a polished placeholder card with what's needed to enable them, so the menu is complete but no one is misled.
+## Tech notes
+- All schema changes via migration tool, with `GRANT` + RLS scoped to admin or owner.
+- Server fns under `src/lib/*.functions.ts`; admin client loaded inside handler via `await import(...)`.
+- No new deps; uses existing React Query + Supabase realtime.
+- Storefront list payload target: < 8 KB gzipped for 50 products.
 
-## Technical detail (the build itself)
+## Out of scope (call out for later)
+- Email notifications on stock alerts (needs Resend connector — ask before adding)
+- Multi-warehouse inventory
+- Abandoned cart recovery
+- Customer accounts UI overhaul
 
-```text
-src/routes/
-  admin.settings.tsx              ← layout (sidebar + search + Outlet)
-  admin.settings.index.tsx        ← redirect → /admin/settings/general
-  admin.settings.general.tsx
-  admin.settings.website.tsx      (Phase 2)
-  admin.settings.product.tsx      (Phase 2)
-  admin.settings.inventory.tsx
-  admin.settings.order.tsx        (Phase 2)
-  admin.settings.payment.tsx
-  admin.settings.shipping.tsx
-  admin.settings.customer.tsx     (Phase 2)
-  admin.settings.marketing.tsx
-  admin.settings.whatsapp.tsx
-  admin.settings.email.tsx        (Phase 2)
-  admin.settings.seo.tsx
-  admin.settings.analytics.tsx
-  admin.settings.leads.tsx        (Phase 2)
-  admin.settings.security.tsx
-  admin.settings.notifications.tsx
-  admin.settings.backup.tsx       (Phase 3 placeholder)
-  admin.settings.reports.tsx      (links to existing dashboard + Phase 3 placeholder)
-src/components/admin/
-  SettingsShell.tsx               (sidebar + search)
-  SettingsField.tsx               (label + help + error)
-src/lib/
-  settings.functions.ts           (getSetting / saveSetting with per-module Zod schemas)
-```
-
-`useStorefrontProducts` already gives the storefront live admin data; once homepage CMS lands in Phase 2 the public site reads `app_settings.homepage` the same way.
-
-## What I need from you
-
-Confirm:
-1. Build **Phase 1 now** (10 wired modules + shell)? OR
-2. Different starting subset — tell me which modules matter most for launch and I'll prioritise those instead?
-
-Anything I list as Phase 3 won't be built as fake UI — say if you'd rather I skip it from the sidebar entirely until the backend exists.
+## Suggested next step
+Approve this plan and I'll start **Phase 1 (Inventory & stock alerts)** — one migration + the storefront/admin UI wiring. Each phase ships independently so you can test before moving on.
