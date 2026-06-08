@@ -423,8 +423,12 @@ function ProductPage() {
               />
             </div>
             {pinState.status === "checking" && <p className="text-xs text-muted-foreground mt-2">Checking…</p>}
-            {pinState.status === "ok" && <p className="text-xs text-green-700 mt-2 flex items-center gap-1"><Check className="h-3 w-3" /> Delivers here{pinState.etd ? ` · ${pinState.etd}` : ""}</p>}
-            {pinState.status === "no" && <p className="text-xs text-red-600 mt-2">{pinState.msg}</p>}
+            {pinState.status === "ok" && (
+              <div className="text-xs text-green-700 mt-2 space-y-0.5">
+                <p className="flex items-center gap-1 font-medium"><Check className="h-3 w-3" /> Delivers to {pin} · Pan-India shipping</p>
+                {pinState.etd && <p className="text-foreground/70">Estimated delivery by <span className="font-semibold text-primary">{pinState.etd}</span>{pinState.days ? ` (≈ ${pinState.days} day${pinState.days > 1 ? "s" : ""})` : ""}</p>}
+              </div>
+            )}
             {pinState.status === "err" && <p className="text-xs text-muted-foreground mt-2">{pinState.msg}</p>}
           </div>
           <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
