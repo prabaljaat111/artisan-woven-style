@@ -36,6 +36,8 @@ export interface Product {
   description: string;
   inStock: boolean;
   stock: number;
+  lowStockThreshold?: number;
+  trackInventory?: boolean;
   rating: number;
   reviews: number;
   isNew?: boolean;

@@ -10,7 +10,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("products")
-    .select("id, slug, name, description, price, original_price, color, is_new, is_bestseller, stock, sizes, images, rating, reviews, category:categories(slug, name)")
+    .select("id, slug, name, description, price, original_price, color, is_new, is_bestseller, stock, sizes, images, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -27,6 +27,8 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
     description: r.description ?? "",
     inStock: (r.stock ?? 0) > 0,
     stock: Number(r.stock ?? 0),
+    lowStockThreshold: Number(r.low_stock_threshold ?? 5),
+    trackInventory: r.track_inventory !== false,
     rating: Number(r.rating ?? 4.7),
     reviews: Number(r.reviews ?? 0),
     isNew: !!r.is_new,

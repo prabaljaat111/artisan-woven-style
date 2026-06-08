@@ -336,6 +336,7 @@ export type Database = {
           is_bestseller: boolean
           is_new: boolean
           is_published: boolean
+          low_stock_threshold: number
           name: string
           original_price: number
           price: number
@@ -344,6 +345,7 @@ export type Database = {
           sizes: string[]
           slug: string
           stock: number
+          track_inventory: boolean
           updated_at: string
         }
         Insert: {
@@ -356,6 +358,7 @@ export type Database = {
           is_bestseller?: boolean
           is_new?: boolean
           is_published?: boolean
+          low_stock_threshold?: number
           name: string
           original_price: number
           price: number
@@ -364,6 +367,7 @@ export type Database = {
           sizes?: string[]
           slug: string
           stock?: number
+          track_inventory?: boolean
           updated_at?: string
         }
         Update: {
@@ -376,6 +380,7 @@ export type Database = {
           is_bestseller?: boolean
           is_new?: boolean
           is_published?: boolean
+          low_stock_threshold?: number
           name?: string
           original_price?: number
           price?: number
@@ -384,6 +389,7 @@ export type Database = {
           sizes?: string[]
           slug?: string
           stock?: number
+          track_inventory?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -540,6 +546,41 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: true
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_alerts: {
+        Row: {
+          acknowledged: boolean
+          created_at: string
+          id: string
+          level: string
+          product_id: string
+          stock_at_alert: number
+        }
+        Insert: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          level: string
+          product_id: string
+          stock_at_alert?: number
+        }
+        Update: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          level?: string
+          product_id?: string
+          stock_at_alert?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

@@ -152,6 +152,8 @@ function ProductPage() {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [p.slug]);
   const sizeStock = (s: string): number => {
+    // If inventory isn't tracked, every size is always purchasable.
+    if (p.trackInventory === false) return 999;
     if (variantMap) return variantMap[s] ?? 0;
     // Deterministic fallback per size for demo products
     if (p.stock <= 0) return 0;
@@ -296,11 +298,15 @@ function ProductPage() {
           {savings > 0 && <p className="text-xs text-terracotta mt-1">You save ₹{savings.toLocaleString("en-IN")}</p>}
           <p className="text-[11px] text-terracotta mt-2">🔥 24 people viewed this in the last hour</p>
           <div className="mt-3">
-            {p.stock <= 0 ? (
+            {p.trackInventory === false ? (
+              <span className="inline-flex items-center gap-1.5 bg-green-600/10 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                <Check className="h-3 w-3" /> Made to order · ships in 5–7 days
+              </span>
+            ) : p.stock <= 0 ? (
               <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" /> Out of Stock
               </span>
-            ) : p.stock <= 10 ? (
+            ) : p.stock <= (p.lowStockThreshold ?? 10) ? (
               <span className="inline-flex items-center gap-1.5 bg-amber-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                 <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Only {p.stock} left — order soon
               </span>

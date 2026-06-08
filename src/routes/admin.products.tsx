@@ -150,7 +150,7 @@ function ProductsPage() {
                   </td>
                   <td className="p-2 text-xs">{p.category?.name ?? "—"}</td>
                   <td className="p-2 text-right">₹{Number(p.price).toLocaleString("en-IN")}</td>
-                  <td className={`p-2 text-right ${p.stock === 0 ? "text-red-500" : p.stock < 10 ? "text-amber-500" : ""}`}>{p.stock}</td>
+                  <td className={`p-2 text-right ${p.track_inventory === false ? "text-muted-foreground" : p.stock === 0 ? "text-red-500" : p.stock <= (p.low_stock_threshold ?? 5) ? "text-amber-500" : ""}`}>{p.track_inventory === false ? "∞" : p.stock}</td>
                   <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
                   <td className="p-2 text-right whitespace-nowrap">
                     <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
@@ -185,6 +185,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     stock: initial.stock ?? 0,
     sizes: initial.sizes ?? ["XS", "S", "M", "L", "XL", "XXL"],
     images: initial.images ?? [],
+    low_stock_threshold: initial.low_stock_threshold ?? 5,
+    track_inventory: initial.track_inventory ?? true,
   });
   const [saving, setSaving] = useState(false);
   const [newImg, setNewImg] = useState("");
@@ -265,6 +267,14 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
             <F label="Price"><input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className={inputCls} /></F>
             <F label="MRP"><input type="number" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} className={inputCls} /></F>
             <F label="Stock"><input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} className={inputCls} /></F>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <F label="Low-stock alert at"><input type="number" min={0} value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: Math.max(0, Number(e.target.value) || 0) })} className={inputCls} /></F>
+            <label className="flex items-end gap-2 pb-2 text-xs">
+              <input type="checkbox" checked={form.track_inventory} onChange={(e) => setForm({ ...form, track_inventory: e.target.checked })} />
+              Track inventory
+              <span className="text-muted-foreground">(off = always purchasable)</span>
+            </label>
           </div>
           <F label="Color"><input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className={inputCls} /></F>
           <F label="Sizes (comma-separated)"><input value={form.sizes.join(",")} onChange={(e) => setForm({ ...form, sizes: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })} className={inputCls} /></F>
