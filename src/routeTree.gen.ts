@@ -16,13 +16,11 @@ import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -99,11 +97,6 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -127,11 +120,6 @@ const ReturnsRoute = ReturnsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -344,13 +332,11 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
-  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
@@ -399,13 +385,11 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
-  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
@@ -455,13 +439,11 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
-  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
@@ -513,13 +495,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
-    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
-    | '/signup'
     | '/sitemap.xml'
     | '/size-guide'
     | '/terms'
@@ -568,13 +548,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
-    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
-    | '/signup'
     | '/sitemap.xml'
     | '/size-guide'
     | '/terms'
@@ -623,13 +601,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/faq'
-    | '/login'
     | '/privacy'
     | '/returns'
     | '/sale'
     | '/shipping'
     | '/shop'
-    | '/signup'
     | '/sitemap.xml'
     | '/size-guide'
     | '/terms'
@@ -680,13 +656,11 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
-  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
   SaleRoute: typeof SaleRoute
   ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
-  SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SizeGuideRoute: typeof SizeGuideRoute
   TermsRoute: typeof TermsRoute
@@ -751,13 +725,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -791,13 +758,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -1167,13 +1127,11 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
-  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
   SaleRoute: SaleRoute,
   ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
-  SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SizeGuideRoute: SizeGuideRoute,
   TermsRoute: TermsRoute,
