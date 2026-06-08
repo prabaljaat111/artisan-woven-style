@@ -64,8 +64,18 @@ function CheckoutPage() {
   const phoneValid = /^[6-9]\d{9}$/.test(address.phone.replace(/\D/g, ""));
   const pinValid = /^\d{6}$/.test(address.pincode);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email.trim());
-  const serviceable = serviceCheck.result?.serviceable !== false;
-  const canContinue = phoneValid && pinValid && emailValid && address.name.trim().length >= 2 && address.line1.trim().length >= 5 && address.city.trim().length >= 2 && serviceable && !serviceCheck.checking;
+  // Pan-India delivery: never block on serviceability — fall back to default ETA.
+  const canContinue = phoneValid && pinValid && emailValid && address.name.trim().length >= 2 && address.line1.trim().length >= 5 && address.city.trim().length >= 2;
+  const etaDays = Number(
+    serviceCheck.result?.cheapest?.days || serviceCheck.result?.fastest?.days || 5,
+  ) || 5;
+  const etaLabel = (() => {
+    const d = new Date();
+    let added = 0;
+    const target = Math.max(2, etaDays + 1);
+    while (added < target) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0) added++; }
+    return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+  })();
 
   // Auto-check serviceability when PIN is 6 digits
   useEffect(() => {
@@ -213,20 +223,14 @@ function CheckoutPage() {
             {serviceCheck.checking && (
               <div className="text-xs text-muted-foreground">Checking delivery to {address.pincode}…</div>
             )}
-            {serviceCheck.result && !serviceCheck.checking && (
-              serviceCheck.result.serviceable && serviceCheck.result.cheapest ? (
-                <div className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-md p-2.5 space-y-0.5">
-                  <div className="font-semibold">✓ Delivers to {address.pincode}</div>
-                  <div>Cheapest: {serviceCheck.result.cheapest.name} · ₹{serviceCheck.result.cheapest.rate} · {serviceCheck.result.cheapest.days} days</div>
-                  {serviceCheck.result.fastest && serviceCheck.result.fastest.name !== serviceCheck.result.cheapest.name && (
-                    <div>Fastest: {serviceCheck.result.fastest.name} · ₹{serviceCheck.result.fastest.rate} · {serviceCheck.result.fastest.days} days</div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-md p-2.5">
-                  Delivery to {address.pincode} unavailable right now. Try another PIN or contact us.
-                </div>
-              )
+            {pinValid && !serviceCheck.checking && (
+              <div className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-md p-2.5 space-y-0.5">
+                <div className="font-semibold">✓ Delivers to {address.pincode} · Pan-India shipping</div>
+                <div>Estimated delivery by <span className="font-semibold">{etaLabel}</span> (≈ {etaDays} day{etaDays > 1 ? "s" : ""})</div>
+                {serviceCheck.result?.cheapest && (
+                  <div className="text-emerald-800/80">Courier: {serviceCheck.result.cheapest.name}</div>
+                )}
+              </div>
             )}
             <button disabled={!canContinue} className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-2 disabled:opacity-50 disabled:cursor-not-allowed">Continue to Payment</button>
           </form>

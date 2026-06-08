@@ -17,6 +17,19 @@ import { checkServiceability } from "@/lib/shiprocket.functions";
 import { getProductVariantsBySlug } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
+// Pan-India delivery date estimator. Dispatch in 1 business day, then add
+// transit days (skipping Sundays). Returns "Mon, 16 Jun" style label.
+function estimateDeliveryLabel(transitDays: number): string {
+  const d = new Date();
+  let added = 0;
+  const target = Math.max(2, transitDays + 1); // +1 dispatch day
+  while (added < target) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0) added++;
+  }
+  return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+}
+
 const COLOR_HEX: Record<string, string> = {
   white: "#ffffff", ivory: "#f5efe0", cream: "#f4ead5", beige: "#e8d9b8",
   black: "#1a1a1a", maroon: "#7b1e2b", red: "#c0392b", pink: "#f4a9b8",
@@ -178,18 +191,23 @@ function ProductPage() {
 
   // Pincode serviceability
   const [pin, setPin] = useState("");
-  const [pinState, setPinState] = useState<{ status: "idle" | "checking" | "ok" | "no" | "err"; etd?: string; msg?: string }>({ status: "idle" });
+  const [pinState, setPinState] = useState<{ status: "idle" | "checking" | "ok" | "err"; etd?: string; days?: number; msg?: string }>({ status: "idle" });
   useEffect(() => {
     if (!/^\d{6}$/.test(pin)) { setPinState({ status: "idle" }); return; }
     let cancelled = false;
     setPinState({ status: "checking" });
-    checkServiceability({ data: { pincode: pin, weight: 0.5, cod: false } })
-      .then((r: any) => {
+    checkServiceability({ data: { delivery_postcode: pin, cod: false } })
+      .then((r) => {
         if (cancelled) return;
-        if (r?.serviceable) setPinState({ status: "ok", etd: r?.etd ?? "" });
-        else setPinState({ status: "no", msg: "Not serviceable on this PIN." });
+        // Pan-India: always treat as deliverable. Use courier estimate when available,
+        // otherwise fall back to a sensible default (5 business days).
+        const days = Number(r?.cheapest?.days || r?.fastest?.days || 5) || 5;
+        setPinState({ status: "ok", days, etd: estimateDeliveryLabel(days) });
       })
-      .catch(() => { if (!cancelled) setPinState({ status: "err", msg: "Could not check right now." }); });
+      .catch(() => {
+        if (cancelled) return;
+        setPinState({ status: "ok", days: 5, etd: estimateDeliveryLabel(5) });
+      });
     return () => { cancelled = true; };
   }, [pin]);
 
@@ -405,8 +423,12 @@ function ProductPage() {
               />
             </div>
             {pinState.status === "checking" && <p className="text-xs text-muted-foreground mt-2">Checking…</p>}
-            {pinState.status === "ok" && <p className="text-xs text-green-700 mt-2 flex items-center gap-1"><Check className="h-3 w-3" /> Delivers here{pinState.etd ? ` · ${pinState.etd}` : ""}</p>}
-            {pinState.status === "no" && <p className="text-xs text-red-600 mt-2">{pinState.msg}</p>}
+            {pinState.status === "ok" && (
+              <div className="text-xs text-green-700 mt-2 space-y-0.5">
+                <p className="flex items-center gap-1 font-medium"><Check className="h-3 w-3" /> Delivers to {pin} · Pan-India shipping</p>
+                {pinState.etd && <p className="text-foreground/70">Estimated delivery by <span className="font-semibold text-primary">{pinState.etd}</span>{pinState.days ? ` (≈ ${pinState.days} day${pinState.days > 1 ? "s" : ""})` : ""}</p>}
+              </div>
+            )}
             {pinState.status === "err" && <p className="text-xs text-muted-foreground mt-2">{pinState.msg}</p>}
           </div>
           <a href={`https://wa.me/919044466957?text=${encodeURIComponent(`Hi! I'd like to know more about ${p.name}`)}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-[#25D366] font-medium">
