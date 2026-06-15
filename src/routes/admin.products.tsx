@@ -393,6 +393,7 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
     Papa.parse(f, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: (h) => h.trim().toLowerCase(),
       complete: (res) => {
         const rows: any[] = [];
         const errs: string[] = [];
@@ -411,11 +412,12 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
               is_published: parseBool(row.is_published, true),
               stock: Math.max(0, parseInt(row.stock || "0", 10) || 0),
               sizes: parseList(row.sizes).length ? parseList(row.sizes) : ["Free Size"],
-              images: parseList(row.images),
+              images: parseList(row.images).map((u) => u.trim()).filter(Boolean),
               low_stock_threshold: parseInt(row.low_stock_threshold || "5", 10) || 5,
               track_inventory: parseBool(row.track_inventory, true),
             };
             if (!mapped.slug) throw new Error("missing slug");
+            if (!/^[a-z0-9-]+$/.test(mapped.slug)) throw new Error("slug must be lowercase letters, digits, dashes");
             if (!mapped.name) throw new Error("missing name");
             if (!mapped.price || mapped.price <= 0) throw new Error("invalid price");
             if (mapped.images.length === 0) throw new Error("at least 1 image required");
@@ -426,6 +428,9 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         });
         setPreview(rows);
         setParseErrors(errs);
+      },
+      error: (err) => {
+        setParseErrors([`CSV parse failed: ${err.message}`]);
       },
     });
   }
