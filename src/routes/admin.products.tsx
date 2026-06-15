@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts } from "@/lib/admin.functions";
+import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import Papa from "papaparse";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
@@ -24,6 +25,7 @@ function ProductsPage() {
   const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -91,6 +93,7 @@ function ProductsPage() {
         </div>
         <div className="flex gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="text-sm border border-border rounded-md px-3 py-1.5 bg-background" />
+          <button type="button" onClick={() => setImportOpen(true)} className="border border-border rounded-full px-4 py-1.5 text-sm flex items-center gap-1 hover:bg-secondary"><Upload className="h-4 w-4" /> Bulk Import</button>
           <button type="button" onClick={() => setEditing({})} className="bg-primary text-primary-foreground rounded-full px-4 py-1.5 text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Add</button>
         </div>
       </div>
@@ -165,6 +168,7 @@ function ProductsPage() {
       )}
 
       {editing && <ProductDrawer initial={editing} cats={cats} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
+      {importOpen && <BulkImportDialog onClose={() => setImportOpen(false)} onDone={() => { setImportOpen(false); load(); }} />}
     </div>
   );
 }
@@ -352,3 +356,168 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
 
 const inputCls = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
 function F({ label, children }: any) { return <label className="block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>{children}</label>; }
+// ============== BULK CSV IMPORT ==============
+const CSV_TEMPLATE = `slug,name,description,category_slug,price,original_price,color,is_new,is_bestseller,is_published,stock,sizes,images,low_stock_threshold,track_inventory
+red-saree-001,Red Banarasi Saree,Handwoven silk saree,sarees,2499,3499,Red,true,false,true,10,"S,M,L,XL,Free Size","https://example.com/img1.jpg,https://example.com/img2.jpg",5,true`;
+
+function parseBool(v: any, def = false): boolean {
+  if (v === undefined || v === null || v === "") return def;
+  const s = String(v).trim().toLowerCase();
+  return s === "true" || s === "1" || s === "yes" || s === "y";
+}
+function parseList(v: any): string[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return String(v).split(/[,|;]/).map((s) => s.trim()).filter(Boolean);
+}
+
+function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<any[]>([]);
+  const [parseErrors, setParseErrors] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<string>("");
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "products-template.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function handleFile(f: File) {
+    setFile(f);
+    setParseErrors([]);
+    Papa.parse(f, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (res) => {
+        const rows: any[] = [];
+        const errs: string[] = [];
+        (res.data as any[]).forEach((row, i) => {
+          try {
+            const mapped = {
+              slug: String(row.slug || "").trim().toLowerCase(),
+              name: String(row.name || "").trim(),
+              description: String(row.description || ""),
+              category_slug: row.category_slug ? String(row.category_slug).trim() : null,
+              price: Number(row.price),
+              original_price: Number(row.original_price || row.price),
+              color: row.color ? String(row.color) : null,
+              is_new: parseBool(row.is_new),
+              is_bestseller: parseBool(row.is_bestseller),
+              is_published: parseBool(row.is_published, true),
+              stock: Math.max(0, parseInt(row.stock || "0", 10) || 0),
+              sizes: parseList(row.sizes).length ? parseList(row.sizes) : ["Free Size"],
+              images: parseList(row.images),
+              low_stock_threshold: parseInt(row.low_stock_threshold || "5", 10) || 5,
+              track_inventory: parseBool(row.track_inventory, true),
+            };
+            if (!mapped.slug) throw new Error("missing slug");
+            if (!mapped.name) throw new Error("missing name");
+            if (!mapped.price || mapped.price <= 0) throw new Error("invalid price");
+            if (mapped.images.length === 0) throw new Error("at least 1 image required");
+            rows.push(mapped);
+          } catch (e: any) {
+            errs.push(`Row ${i + 2}: ${e.message}`);
+          }
+        });
+        setPreview(rows);
+        setParseErrors(errs);
+      },
+    });
+  }
+
+  async function runImport() {
+    if (preview.length === 0) return;
+    setBusy(true);
+    setProgress("");
+    const BATCH = 50;
+    let done = 0;
+    const allErrors: string[] = [];
+    try {
+      for (let i = 0; i < preview.length; i += BATCH) {
+        const batch = preview.slice(i, i + BATCH);
+        const res = await adminBulkUpsertProducts({ data: { rows: batch } });
+        done += res.processed ?? batch.length;
+        if (res.errors?.length) allErrors.push(...res.errors);
+        setProgress(`${done}/${preview.length} uploaded…`);
+      }
+      if (allErrors.length === 0) {
+        toast.success(`Imported ${done} products`);
+        onDone();
+      } else {
+        toast.warning(`Imported ${done}, ${allErrors.length} errors`);
+        setParseErrors(allErrors);
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Import failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-card w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="font-display text-xl text-primary">Bulk Import Products</div>
+            <p className="text-xs text-muted-foreground">Upload a CSV. Existing products (same slug) will be updated.</p>
+          </div>
+          <button type="button" onClick={onClose}><X className="h-5 w-5" /></button>
+        </div>
+
+        <div className="space-y-4 text-sm">
+          <button type="button" onClick={downloadTemplate} className="text-xs flex items-center gap-1 text-primary hover:underline">
+            <Download className="h-3.5 w-3.5" /> Download CSV template
+          </button>
+
+          <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+              className="hidden"
+              id="csv-upload"
+            />
+            <label htmlFor="csv-upload" className="cursor-pointer text-sm">
+              {file ? <span className="font-medium">{file.name}</span> : <span className="text-muted-foreground">Click to choose CSV file</span>}
+            </label>
+          </div>
+
+          {preview.length > 0 && (
+            <div className="bg-secondary/30 rounded p-3 text-xs">
+              <div className="font-medium mb-1">{preview.length} valid rows ready</div>
+              <div className="text-muted-foreground">First: {preview[0].name} (₹{preview[0].price})</div>
+            </div>
+          )}
+
+          {parseErrors.length > 0 && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded p-3 text-xs space-y-1 max-h-40 overflow-y-auto">
+              <div className="font-medium text-red-500">{parseErrors.length} issue(s):</div>
+              {parseErrors.slice(0, 20).map((e, i) => <div key={i}>• {e}</div>)}
+              {parseErrors.length > 20 && <div>…and {parseErrors.length - 20} more</div>}
+            </div>
+          )}
+
+          {progress && <div className="text-xs text-muted-foreground">{progress}</div>}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} disabled={busy} className="text-xs px-4 py-2 border border-border rounded-full hover:bg-secondary">Cancel</button>
+            <button
+              type="button"
+              onClick={runImport}
+              disabled={busy || preview.length === 0}
+              className="text-xs px-4 py-2 bg-primary text-primary-foreground rounded-full disabled:opacity-50"
+            >
+              {busy ? "Importing…" : `Import ${preview.length} products`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
