@@ -151,6 +151,64 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
     return { ok: true, count: ids.length };
   });
 
+// ---- Bulk CSV import (upsert by slug) ----
+const BulkRow = z.object({
+  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
+  name: z.string().min(1).max(200),
+  description: z.string().max(5000).optional().default(""),
+  category_slug: z.string().max(80).optional().nullable(),
+  price: z.number().min(0).max(1_000_000),
+  original_price: z.number().min(0).max(1_000_000),
+  color: z.string().max(80).optional().nullable(),
+  is_new: z.boolean().optional().default(false),
+  is_bestseller: z.boolean().optional().default(false),
+  is_published: z.boolean().optional().default(true),
+  stock: z.number().int().min(0).max(99999).optional().default(0),
+  sizes: z.array(z.string().min(1).max(20)).min(1).max(20),
+  images: z.array(z.string().url().max(2000)).min(1).max(12),
+  low_stock_threshold: z.number().int().min(0).max(9999).optional().default(5),
+  track_inventory: z.boolean().optional().default(true),
+});
+const BulkUpsertInput = z.object({ rows: z.array(BulkRow).min(1).max(500) });
+
+export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((i) => BulkUpsertInput.parse(i))
+  .handler(async ({ data }) => {
+    // Resolve category slugs → ids
+    const slugs = Array.from(
+      new Set(data.rows.map((r) => r.category_slug).filter((s): s is string => !!s)),
+    );
+    const catMap = new Map<string, string>();
+    if (slugs.length > 0) {
+      const { data: cats } = await supabaseAdmin
+        .from("categories")
+        .select("id, slug")
+        .in("slug", slugs);
+      (cats ?? []).forEach((c: any) => catMap.set(c.slug, c.id));
+    }
+    const payload = data.rows.map((r) => {
+      const { category_slug, ...rest } = r;
+      return {
+        ...rest,
+        category_id: category_slug ? catMap.get(category_slug) ?? null : null,
+      };
+    });
+    // Chunk to avoid request size limits
+    const CHUNK = 100;
+    let inserted = 0;
+    const errors: string[] = [];
+    for (let i = 0; i < payload.length; i += CHUNK) {
+      const batch = payload.slice(i, i + CHUNK);
+      const { error, count } = await supabaseAdmin
+        .from("products")
+        .upsert(batch, { onConflict: "slug", count: "exact" });
+      if (error) errors.push(`Rows ${i + 1}-${i + batch.length}: ${error.message}`);
+      else inserted += count ?? batch.length;
+    }
+    return { ok: errors.length === 0, processed: inserted, attempted: payload.length, errors };
+  });
+
 // ============== ORDERS ==============
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
