@@ -165,19 +165,33 @@ const BulkRow = z.object({
   is_published: z.boolean().optional().default(true),
   stock: z.number().int().min(0).max(99999).optional().default(0),
   sizes: z.array(z.string().min(1).max(20)).min(1).max(20),
-  images: z.array(z.string().url().max(2000)).min(1).max(12),
+  images: z.array(z.string().min(1).max(2000)).min(1).max(12),
   low_stock_threshold: z.number().int().min(0).max(9999).optional().default(5),
   track_inventory: z.boolean().optional().default(true),
 });
-const BulkUpsertInput = z.object({ rows: z.array(BulkRow).min(1).max(500) });
+const BulkUpsertInput = z.object({ rows: z.array(z.any()).min(1).max(500) });
 
 export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkUpsertInput.parse(i))
   .handler(async ({ data }) => {
+    // Validate rows individually so one bad row doesn't kill the whole batch.
+    const valid: z.infer<typeof BulkRow>[] = [];
+    const errors: string[] = [];
+    data.rows.forEach((raw: any, idx: number) => {
+      const parsed = BulkRow.safeParse(raw);
+      if (parsed.success) valid.push(parsed.data);
+      else {
+        const msg = parsed.error.issues.map((i) => `${i.path.join(".") || "row"}: ${i.message}`).join("; ");
+        errors.push(`Row ${idx + 1} (${raw?.slug ?? raw?.name ?? "?"}): ${msg}`);
+      }
+    });
+    if (valid.length === 0) {
+      return { ok: false, processed: 0, attempted: data.rows.length, errors };
+    }
     // Resolve category slugs → ids
     const slugs = Array.from(
-      new Set(data.rows.map((r) => r.category_slug).filter((s): s is string => !!s)),
+      new Set(valid.map((r) => r.category_slug).filter((s): s is string => !!s)),
     );
     const catMap = new Map<string, string>();
     if (slugs.length > 0) {
@@ -187,24 +201,34 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
         .in("slug", slugs);
       (cats ?? []).forEach((c: any) => catMap.set(c.slug, c.id));
     }
-    const payload = data.rows.map((r) => {
+    const payload = valid.map((r) => {
       const { category_slug, ...rest } = r;
       return {
         ...rest,
         category_id: category_slug ? catMap.get(category_slug) ?? null : null,
       };
     });
-    // Chunk to avoid request size limits
-    const CHUNK = 100;
+    // Chunk to avoid request size limits. On batch failure, fall back to per-row
+    // upserts so a single bad row doesn't take the whole batch down.
+    const CHUNK = 50;
     let inserted = 0;
-    const errors: string[] = [];
     for (let i = 0; i < payload.length; i += CHUNK) {
       const batch = payload.slice(i, i + CHUNK);
       const { error, count } = await supabaseAdmin
         .from("products")
         .upsert(batch, { onConflict: "slug", count: "exact" });
-      if (error) errors.push(`Rows ${i + 1}-${i + batch.length}: ${error.message}`);
-      else inserted += count ?? batch.length;
+      if (!error) {
+        inserted += count ?? batch.length;
+        continue;
+      }
+      // Retry one-by-one so we can pinpoint the offending row.
+      for (const row of batch) {
+        const { error: rowErr } = await supabaseAdmin
+          .from("products")
+          .upsert(row, { onConflict: "slug" });
+        if (rowErr) errors.push(`${row.slug}: ${rowErr.message}`);
+        else inserted++;
+      }
     }
     return { ok: errors.length === 0, processed: inserted, attempted: payload.length, errors };
   });
