@@ -63,6 +63,21 @@ export const checkServiceability = createServerFn({ method: "POST" })
 // it as an unauthenticated RPC allowed any caller to trigger shipments for
 // arbitrary order UUIDs. Admin path: `adminCreateShipment`.
 
+function shipmentFailureGuidance(shiprocketError: string, delhiveryError: string) {
+  const sr = shiprocketError.toLowerCase();
+  const dlv = delhiveryError.toLowerCase();
+  if (dlv.includes("insufficient balance")) {
+    return "Recharge the Delhivery wallet/prepaid balance, then push this order again.";
+  }
+  if (dlv.includes("clientwarehouse") || dlv.includes("warehouse")) {
+    return "Create or verify the Delhivery pickup warehouse name/PIN, then push this order again.";
+  }
+  if (sr.includes("403") || sr.includes("access forbidden")) {
+    return "Update the Shiprocket API credentials with an active API user, then retry.";
+  }
+  return "Check courier account settings and retry the shipment push.";
+}
+
 // ----- ADMIN -----
 export const adminListShipments = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
@@ -125,7 +140,16 @@ export const adminCreateShipment = createServerFn({ method: "POST" })
         };
       } catch (dlvErr) {
         const dMsg = dlvErr instanceof Error ? dlvErr.message : String(dlvErr);
-        throw new Error(`Shiprocket failed (${srMsg}); Delhivery fallback also failed (${dMsg})`);
+        const message = `Shiprocket failed (${srMsg}); Delhivery fallback also failed (${dMsg})`;
+        console.error("Shipment push failed", { orderId, shiprocket: srMsg, delhivery: dMsg });
+        return {
+          ok: false as const,
+          provider: null,
+          message,
+          shiprocket_error: srMsg,
+          delhivery_error: dMsg,
+          action_required: shipmentFailureGuidance(srMsg, dMsg),
+        };
       }
     }
   });

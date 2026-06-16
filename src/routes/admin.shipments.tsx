@@ -83,8 +83,19 @@ function ShipmentsPage() {
   async function pushOrderToSr() {
     if (!retryOrderId.trim()) return;
     try {
-      await adminCreateShipment({ data: { order_id: retryOrderId.trim() } });
-      toast.success("Pushed to Shiprocket");
+      const res = await adminCreateShipment({ data: { order_id: retryOrderId.trim() } }) as {
+        ok?: false;
+        provider?: "shiprocket" | "delhivery";
+        awb_code?: string | null;
+        action_required?: string;
+        message?: string;
+      };
+      if (res.ok === false) {
+        toast.error(res.action_required ?? res.message ?? "Courier push failed");
+        await load();
+        return;
+      }
+      toast.success(res.provider === "delhivery" ? `Pushed to Delhivery${res.awb_code ? ` · AWB ${res.awb_code}` : ""}` : "Pushed to Shiprocket");
       setRetryOrderId("");
       await load();
     } catch (e) {
@@ -97,13 +108,13 @@ function ShipmentsPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl text-primary flex items-center gap-2"><Truck className="h-5 w-5" /> Shipments</h1>
-          <p className="text-xs text-muted-foreground">All Shiprocket shipments. Created automatically on paid / COD orders.</p>
+          <p className="text-xs text-muted-foreground">All courier shipments. Created automatically on paid / COD orders.</p>
         </div>
         <div className="flex gap-2 items-center">
           <input
             value={retryOrderId}
             onChange={(e) => setRetryOrderId(e.target.value)}
-            placeholder="Order # or UUID — push to Shiprocket"
+            placeholder="Order # or UUID — push to courier"
             className="text-xs border border-border rounded-md px-2 py-1.5 bg-background w-64"
           />
           <button onClick={pushOrderToSr} className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1">

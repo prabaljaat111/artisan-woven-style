@@ -51,10 +51,19 @@ function OrdersPage() {
     const t = toast.loading("Pushing to courier…");
     try {
       const res = await adminCreateShipment({ data: { order_id: orderId } }) as {
+        ok?: false;
         provider?: "shiprocket" | "delhivery";
         awb_code?: string | null;
         fallback_reason?: string;
+        message?: string;
+        action_required?: string;
       };
+      if (res.ok === false) {
+        toast.error(res.action_required ?? res.message ?? "Courier push failed", { id: t });
+        load();
+        if (activeId === orderId) adminGetOrder({ data: { id: orderId } }).then(setDetail);
+        return;
+      }
       await adminUpdateOrder({ data: { id: orderId, status: "shipped" } }).catch(() => {});
       const label = res.provider === "delhivery"
         ? `Pushed to Delhivery (Shiprocket unavailable)${res.awb_code ? ` · AWB ${res.awb_code}` : ""}`
@@ -95,7 +104,7 @@ function OrdersPage() {
                 <th className="text-right px-3 py-2">Total</th>
                 <th className="text-left px-3 py-2">Payment</th>
                 <th className="text-left px-3 py-2">Status</th>
-                <th className="text-right px-3 py-2">Shiprocket</th>
+                  <th className="text-right px-3 py-2">Courier</th>
               </tr>
             </thead>
             <tbody>
@@ -112,7 +121,7 @@ function OrdersPage() {
                       onClick={(e) => pushToShiprocket(o.id, e)}
                       disabled={pushingId === o.id || o.status === "cancelled"}
                       className="text-[11px] px-2.5 py-1 rounded-full bg-primary text-primary-foreground inline-flex items-center gap-1 disabled:opacity-50"
-                      title="Send this order to Shiprocket"
+                       title="Send this order to courier"
                     >
                       {pushingId === o.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Truck className="h-3 w-3" />}
                       Send
@@ -202,9 +211,9 @@ function OrdersPage() {
                     className="w-full text-sm px-4 py-2.5 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {pushingId === detail.order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Truck className="h-4 w-4" />}
-                    Send to Shiprocket
+                     Send to Courier
                   </button>
-                  <p className="text-[10px] text-muted-foreground text-center mt-1.5">Creates the Shiprocket order. Assign AWB &amp; print label in the Shipments tab.</p>
+                  <p className="text-[10px] text-muted-foreground text-center mt-1.5">Creates a courier shipment. If the first provider is unavailable, fallback is attempted automatically.</p>
                 </div>
               </div>
             )}
