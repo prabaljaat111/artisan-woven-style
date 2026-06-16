@@ -13,8 +13,8 @@
     "build:hostinger": "HOSTINGER=1 NITRO_PRESET=node-server vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "start": "node server.js",
-    "start:hostinger": "node server.js",
+    "start": "node hostinger-server.mjs",
+    "start:hostinger": "node hostinger-server.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
