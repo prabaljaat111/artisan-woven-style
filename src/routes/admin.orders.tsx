@@ -48,21 +48,18 @@ function OrdersPage() {
   async function pushToShiprocket(orderId: string, e?: React.MouseEvent) {
     e?.stopPropagation();
     setPushingId(orderId);
-    const t = toast.loading("Sending to Shiprocket…");
+    const t = toast.loading("Pushing to courier…");
     try {
-      const res = await adminCreateShipment({ data: { order_id: orderId } });
-      // Best-effort: auto-assign AWB and schedule pickup so it's truly one click
-      let awbMsg = "";
-      try {
-        if (res.sr_shipment_id) {
-          // shipment row was just created — fetch by sr_shipment_id via list? Simpler: skip if no id helper.
-          // We pass sr internal shipment row id; but adminAssignAwb needs our shipments.id (uuid).
-          // The server fn createSrOrderForOrder upserts the shipments row — we don't have its id here.
-          // So we only mark order as shipped and let the Shipments page handle AWB if needed.
-        }
-      } catch {}
+      const res = await adminCreateShipment({ data: { order_id: orderId } }) as {
+        provider?: "shiprocket" | "delhivery";
+        awb_code?: string | null;
+        fallback_reason?: string;
+      };
       await adminUpdateOrder({ data: { id: orderId, status: "shipped" } }).catch(() => {});
-      toast.success(`Pushed to Shiprocket${awbMsg}`, { id: t });
+      const label = res.provider === "delhivery"
+        ? `Pushed to Delhivery (Shiprocket unavailable)${res.awb_code ? ` · AWB ${res.awb_code}` : ""}`
+        : "Pushed to Shiprocket";
+      toast.success(label, { id: t });
       load();
       if (activeId === orderId) adminGetOrder({ data: { id: orderId } }).then(setDetail);
     } catch (err) {
