@@ -11,6 +11,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:hostinger": "HOSTINGER=1 NITRO_PRESET=node-server vite build",
+    "build:vercel": "NITRO_PRESET=vercel vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "start": "node hostinger-server.mjs",
