@@ -397,6 +397,169 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
 
 const inputCls = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
 function F({ label, children }: any) { return <label className="block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>{children}</label>; }
+
+// ============== IMAGE MANAGER ==============
+const MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMG_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+
+function ImageManager({
+  images,
+  onChange,
+  newImg,
+  setNewImg,
+}: {
+  images: string[];
+  onChange: (imgs: string[]) => void;
+  newImg: string;
+  setNewImg: (v: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  async function uploadFiles(files: FileList | File[]) {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+    setUploading(true);
+    setProgress({ done: 0, total: list.length });
+    const uploaded: string[] = [];
+    try {
+      for (let i = 0; i < list.length; i++) {
+        const f = list[i];
+        if (!ALLOWED_IMG_TYPES.includes(f.type)) {
+          toast.error(`${f.name}: only JPG, PNG, WEBP, AVIF allowed`);
+          continue;
+        }
+        if (f.size > MAX_IMG_BYTES) {
+          toast.error(`${f.name}: max 5MB`);
+          continue;
+        }
+        const ext = f.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const path = `products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("product-images").upload(path, f, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: f.type,
+        });
+        if (error) {
+          toast.error(`${f.name}: ${error.message}`);
+          continue;
+        }
+        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+        uploaded.push(pub.publicUrl);
+        setProgress({ done: i + 1, total: list.length });
+      }
+      if (uploaded.length > 0) {
+        onChange([...images, ...uploaded]);
+        toast.success(`Uploaded ${uploaded.length} image${uploaded.length > 1 ? "s" : ""}`);
+      }
+    } finally {
+      setUploading(false);
+      setProgress(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  function move(from: number, to: number) {
+    if (from === to || to < 0 || to >= images.length) return;
+    const arr = [...images];
+    const [item] = arr.splice(from, 1);
+    arr.splice(to, 0, item);
+    onChange(arr);
+  }
+
+  function removeAt(i: number) {
+    onChange(images.filter((_, j) => j !== i));
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        className={cn(
+          "border-2 border-dashed border-border rounded-lg p-4 text-center transition-colors",
+          uploading && "opacity-60 pointer-events-none",
+        )}
+        onDragOver={(e) => { e.preventDefault(); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files?.length) void uploadFiles(e.dataTransfer.files);
+        }}
+      >
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept={ALLOWED_IMG_TYPES.join(",")}
+          className="hidden"
+          onChange={(e) => e.target.files && uploadFiles(e.target.files)}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-2 text-xs bg-primary text-primary-foreground rounded-full px-4 py-2"
+        >
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+          {uploading && progress ? `Uploading ${progress.done}/${progress.total}…` : "Upload images"}
+        </button>
+        <div className="text-[10px] text-muted-foreground mt-2">or drag & drop · JPG/PNG/WEBP/AVIF · max 5MB each</div>
+      </div>
+
+      {images.length > 0 && (
+        <div className="grid grid-cols-4 gap-2">
+          {images.map((u, i) => (
+            <div
+              key={u + i}
+              draggable
+              onDragStart={() => setDragIdx(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { if (dragIdx !== null) move(dragIdx, i); setDragIdx(null); }}
+              onDragEnd={() => setDragIdx(null)}
+              className={cn(
+                "relative group border border-border rounded-md overflow-hidden bg-secondary",
+                dragIdx === i && "opacity-40",
+              )}
+            >
+              <img src={u} alt="" className="w-full aspect-square object-cover" />
+              {i === 0 && (
+                <span className="absolute top-1 left-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded">MAIN</span>
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical className="h-3 w-3 text-white cursor-move" />
+                <div className="flex gap-0.5">
+                  <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} className="text-white text-[10px] px-1 disabled:opacity-30">←</button>
+                  <button type="button" onClick={() => move(i, i + 1)} disabled={i === images.length - 1} className="text-white text-[10px] px-1 disabled:opacity-30">→</button>
+                  <button type="button" onClick={() => removeAt(i)} className="text-red-300 hover:text-red-500"><X className="h-3 w-3" /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <input value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="…or paste an image URL" className={inputCls + " flex-1 text-xs"} />
+        <button
+          type="button"
+          onClick={() => {
+            const v = newImg.trim();
+            if (!v) return;
+            if (!/^https?:\/\//i.test(v)) { toast.error("URL must start with http(s)://"); return; }
+            onChange([...images, v]);
+            setNewImg("");
+          }}
+          className="text-xs bg-secondary rounded-full px-3"
+        >
+          Add URL
+        </button>
+      </div>
+
+      {images.length === 0 && <p className="text-[10px] text-amber-600">At least 1 image required.</p>}
+    </div>
+  );
+}
+
 // ============== BULK CSV IMPORT ==============
 const CSV_TEMPLATE = `slug,name,description,category_slug,price,original_price,color,is_new,is_bestseller,is_published,stock,sizes,images,low_stock_threshold,track_inventory
 red-saree-001,Red Banarasi Saree,Handwoven silk saree,sarees,2499,3499,Red,true,false,true,10,"S,M,L,XL,Free Size","https://example.com/img1.jpg,https://example.com/img2.jpg",5,true`;
