@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://indianhandicraft.revnlabel.in/" },
     ],
     links: [
-      { rel: "preload", as: "image", href: hero1, fetchpriority: "high" } as never,
+      { rel: "preload", as: "image", href: hero1, fetchPriority: "high" } as never,
       { rel: "prefetch", as: "image", href: hero2 } as never,
       { rel: "prefetch", as: "image", href: hero3 } as never,
       { rel: "prefetch", as: "image", href: hero4 } as never,
