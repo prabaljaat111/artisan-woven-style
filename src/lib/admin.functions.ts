@@ -1,7 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
+
+function createPublicServerClient() {
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Missing backend public environment variables");
+  return createClient<Database>(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 // ============== DASHBOARD ==============
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -61,8 +72,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
 // ============== PRODUCTS ==============
 export const adminListProducts = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .handler(async () => {
-    const { data, error } = await supabaseAdmin
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
       .from("products")
       .select("*, category:categories(name, slug)")
       .order("created_at", { ascending: false });
@@ -73,8 +84,8 @@ export const adminListProducts = createServerFn({ method: "GET" })
 export const adminGetProduct = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ data }) => {
-    const { data: row, error } = await supabaseAdmin.from("products").select("*").eq("id", data.id).single();
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.from("products").select("*").eq("id", data.id).single();
     if (error) throw new Error(error.message);
     return row;
   });
@@ -93,7 +104,7 @@ const ProductInput = z.object({
   is_published: z.boolean().default(true),
   stock: z.number().int().min(0).max(99999).default(0),
   sizes: z.array(z.string().min(1).max(20)).min(1).max(20),
-  images: z.array(z.string().url().max(2000)).min(1).max(12),
+  images: z.array(z.string().min(1).max(2000)).min(1).max(12),
   low_stock_threshold: z.number().int().min(0).max(9999).default(5),
   track_inventory: z.boolean().default(true),
 });
@@ -101,14 +112,14 @@ const ProductInput = z.object({
 export const adminUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => ProductInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { id, ...rest } = data;
     if (id) {
-      const { error } = await supabaseAdmin.from("products").update(rest).eq("id", id);
+      const { error } = await context.supabase.from("products").update(rest).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     } else {
-      const { data: row, error } = await supabaseAdmin.from("products").insert(rest).select("id").single();
+      const { data: row, error } = await context.supabase.from("products").insert(rest).select("id").single();
       if (error) throw new Error(error.message);
       return { id: row.id };
     }
@@ -117,8 +128,8 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
 export const adminDeleteProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("products").delete().eq("id", data.id);
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -131,10 +142,10 @@ const BulkInput = z.object({
 export const adminBulkProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { ids, action } = data;
     if (action === "delete") {
-      const { error } = await supabaseAdmin.from("products").delete().in("id", ids);
+      const { error } = await context.supabase.from("products").delete().in("id", ids);
       if (error) throw new Error(error.message);
       return { ok: true, count: ids.length };
     }
@@ -146,7 +157,7 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
       new_on: { is_new: true },
       new_off: { is_new: false },
     } as const;
-    const { error } = await supabaseAdmin.from("products").update(patches[action]).in("id", ids);
+    const { error } = await context.supabase.from("products").update(patches[action]).in("id", ids);
     if (error) throw new Error(error.message);
     return { ok: true, count: ids.length };
   });
