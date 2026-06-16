@@ -18,6 +18,7 @@ interface Lead {
   budget: string | null;
   for_self: boolean | null;
   status: string;
+  source: string;
   page_url: string | null;
   notes: string | null;
   conversation: { role: string; content: string }[];
@@ -34,6 +35,7 @@ function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Lead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   async function load() {
     setLoading(true);
@@ -58,14 +60,21 @@ function LeadsPage() {
     }
   }
 
-  const filtered = statusFilter === "all" ? leads : leads.filter((l) => l.status === statusFilter);
+  const filtered = leads.filter(
+    (l) =>
+      (statusFilter === "all" || l.status === statusFilter) &&
+      (sourceFilter === "all" || l.source === sourceFilter),
+  );
+  const sources = Array.from(new Set(leads.map((l) => l.source).filter(Boolean)));
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl text-primary">Leads</h1>
-          <p className="text-xs text-muted-foreground">Captured via the website chat stylist.</p>
+          <p className="text-xs text-muted-foreground">
+            Captured from contact, inquiry, support, subscribe, exit-intent and chat across the site.
+          </p>
         </div>
         <div className="flex gap-2 items-center">
           {["all", "new", "qualified", "callback_requested", "stylist_requested", "closed"].map((s) => (
@@ -88,6 +97,23 @@ function LeadsPage() {
         </div>
       </div>
 
+      {sources.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Source</span>
+          {["all", ...sources].map((s) => (
+            <button
+              key={s}
+              onClick={() => setSourceFilter(s)}
+              className={`text-[11px] px-2.5 py-1 rounded-full border ${
+                sourceFilter === s ? "bg-primary text-primary-foreground border-primary" : "border-border bg-secondary/40"
+              }`}
+            >
+              {s.replace(/_/g, " ")}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading leads…</div>
       ) : filtered.length === 0 ? (
@@ -104,6 +130,7 @@ function LeadsPage() {
                   <tr>
                     <th className="text-left px-3 py-2">When</th>
                     <th className="text-left px-3 py-2">Name</th>
+                    <th className="text-left px-3 py-2">Source</th>
                     <th className="text-left px-3 py-2">WhatsApp</th>
                     <th className="text-left px-3 py-2">Interest</th>
                     <th className="text-left px-3 py-2">Status</th>
@@ -122,6 +149,11 @@ function LeadsPage() {
                         {format(new Date(l.created_at), "dd MMM, HH:mm")}
                       </td>
                       <td className="px-3 py-2 font-medium">{l.name}</td>
+                      <td className="px-3 py-2 text-[11px]">
+                        <span className="px-2 py-0.5 rounded-full bg-secondary capitalize">
+                          {(l.source || "—").replace(/_/g, " ")}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 whitespace-nowrap">{l.whatsapp || l.phone}</td>
                       <td className="px-3 py-2 text-xs">
                         {l.interest || "—"}
@@ -156,11 +188,20 @@ function LeadsPage() {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <Info label="WhatsApp" value={active.whatsapp || active.phone} />
                   <Info label="Phone" value={active.phone} />
+                  <Info label="Source" value={active.source} />
                   <Info label="Interest" value={active.interest} />
                   <Info label="Occasion" value={active.occasion} />
                   <Info label="Budget" value={active.budget} />
                   <Info label="For" value={active.for_self === null ? "—" : active.for_self ? "Self" : "Gift"} />
                 </div>
+                {active.notes && (
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground mb-1">Submitted details</div>
+                    <div className="text-xs whitespace-pre-wrap bg-secondary/40 border border-border rounded-md p-3">
+                      {active.notes}
+                    </div>
+                  </div>
+                )}
                 {active.page_url && (
                   <div className="text-[11px] text-muted-foreground truncate">From: {active.page_url}</div>
                 )}
