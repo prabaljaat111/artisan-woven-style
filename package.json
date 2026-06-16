@@ -3,7 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "main": "server.js",
+  "main": "hostinger-server.mjs",
   "engines": {
     "node": ">=22.12.0"
   },
