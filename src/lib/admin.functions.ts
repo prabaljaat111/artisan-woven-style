@@ -464,7 +464,7 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
       .eq("product_id", data.productId);
     const toDelete = (existing ?? [])
       .map((r: { id: string }) => r.id)
-      .filter((id) => !incomingIds.includes(id));
+      .filter((id: string) => !incomingIds.includes(id));
     if (toDelete.length > 0) {
       await context.supabase.from("product_variants").delete().in("id", toDelete);
     }
