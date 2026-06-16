@@ -1,7 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
+
+function createPublicServerClient() {
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Missing backend public environment variables");
+  return createClient<Database>(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 // ============== DASHBOARD ==============
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -61,8 +72,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
 // ============== PRODUCTS ==============
 export const adminListProducts = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .handler(async () => {
-    const { data, error } = await supabaseAdmin
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
       .from("products")
       .select("*, category:categories(name, slug)")
       .order("created_at", { ascending: false });
@@ -73,8 +84,8 @@ export const adminListProducts = createServerFn({ method: "GET" })
 export const adminGetProduct = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ data }) => {
-    const { data: row, error } = await supabaseAdmin.from("products").select("*").eq("id", data.id).single();
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.from("products").select("*").eq("id", data.id).single();
     if (error) throw new Error(error.message);
     return row;
   });
@@ -93,7 +104,7 @@ const ProductInput = z.object({
   is_published: z.boolean().default(true),
   stock: z.number().int().min(0).max(99999).default(0),
   sizes: z.array(z.string().min(1).max(20)).min(1).max(20),
-  images: z.array(z.string().url().max(2000)).min(1).max(12),
+  images: z.array(z.string().min(1).max(2000)).min(1).max(12),
   low_stock_threshold: z.number().int().min(0).max(9999).default(5),
   track_inventory: z.boolean().default(true),
 });
@@ -101,14 +112,14 @@ const ProductInput = z.object({
 export const adminUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => ProductInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { id, ...rest } = data;
     if (id) {
-      const { error } = await supabaseAdmin.from("products").update(rest).eq("id", id);
+      const { error } = await context.supabase.from("products").update(rest).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     } else {
-      const { data: row, error } = await supabaseAdmin.from("products").insert(rest).select("id").single();
+      const { data: row, error } = await context.supabase.from("products").insert(rest).select("id").single();
       if (error) throw new Error(error.message);
       return { id: row.id };
     }
@@ -117,8 +128,8 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
 export const adminDeleteProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("products").delete().eq("id", data.id);
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -131,10 +142,10 @@ const BulkInput = z.object({
 export const adminBulkProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { ids, action } = data;
     if (action === "delete") {
-      const { error } = await supabaseAdmin.from("products").delete().in("id", ids);
+      const { error } = await context.supabase.from("products").delete().in("id", ids);
       if (error) throw new Error(error.message);
       return { ok: true, count: ids.length };
     }
@@ -146,7 +157,7 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
       new_on: { is_new: true },
       new_off: { is_new: false },
     } as const;
-    const { error } = await supabaseAdmin.from("products").update(patches[action]).in("id", ids);
+    const { error } = await context.supabase.from("products").update(patches[action]).in("id", ids);
     if (error) throw new Error(error.message);
     return { ok: true, count: ids.length };
   });
@@ -174,7 +185,7 @@ const BulkUpsertInput = z.object({ rows: z.array(z.any()).min(1).max(500) });
 export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkUpsertInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Validate rows individually so one bad row doesn't kill the whole batch.
     const valid: z.infer<typeof BulkRow>[] = [];
     const errors: string[] = [];
@@ -195,7 +206,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
     );
     const catMap = new Map<string, string>();
     if (slugs.length > 0) {
-      const { data: cats } = await supabaseAdmin
+      const { data: cats } = await context.supabase
         .from("categories")
         .select("id, slug")
         .in("slug", slugs);
@@ -214,7 +225,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
     let inserted = 0;
     for (let i = 0; i < payload.length; i += CHUNK) {
       const batch = payload.slice(i, i + CHUNK);
-      const { error, count } = await supabaseAdmin
+      const { error, count } = await context.supabase
         .from("products")
         .upsert(batch, { onConflict: "slug", count: "exact" });
       if (!error) {
@@ -223,7 +234,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
       }
       // Retry one-by-one so we can pinpoint the offending row.
       for (const row of batch) {
-        const { error: rowErr } = await supabaseAdmin
+        const { error: rowErr } = await context.supabase
           .from("products")
           .upsert(row, { onConflict: "slug" });
         if (rowErr) errors.push(`${row.slug}: ${rowErr.message}`);
@@ -307,8 +318,8 @@ export const adminListCustomers = createServerFn({ method: "GET" })
 // ============== CATEGORIES ==============
 export const adminListCategories = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .handler(async () => {
-    const { data } = await supabaseAdmin.from("categories").select("*").order("sort_order");
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase.from("categories").select("*").order("sort_order");
     return data ?? [];
   });
 
@@ -416,8 +427,8 @@ export const adminListVariants = createServerFn({ method: "GET" })
   .inputValidator((i: { productId: string }) =>
     z.object({ productId: z.string().uuid() }).parse(i),
   )
-  .handler(async ({ data }) => {
-    const { data: rows, error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
       .from("product_variants")
       .select("*")
       .eq("product_id", data.productId)
@@ -444,18 +455,18 @@ const VariantUpsert = z.object({
 export const adminSaveVariants = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => VariantUpsert.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Replace strategy: delete rows missing from input, upsert the rest.
     const incomingIds = data.variants.map((v) => v.id).filter(Boolean) as string[];
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await context.supabase
       .from("product_variants")
       .select("id")
       .eq("product_id", data.productId);
     const toDelete = (existing ?? [])
       .map((r: { id: string }) => r.id)
-      .filter((id) => !incomingIds.includes(id));
+      .filter((id: string) => !incomingIds.includes(id));
     if (toDelete.length > 0) {
-      await supabaseAdmin.from("product_variants").delete().in("id", toDelete);
+      await context.supabase.from("product_variants").delete().in("id", toDelete);
     }
     for (const v of data.variants) {
       const row = {
@@ -466,13 +477,13 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
         stock: v.stock,
       };
       if (v.id) {
-        const { error } = await supabaseAdmin
+        const { error } = await context.supabase
           .from("product_variants")
           .update(row)
           .eq("id", v.id);
         if (error) throw new Error(error.message);
       } else {
-        const { error } = await supabaseAdmin
+        const { error } = await context.supabase
           .from("product_variants")
           .insert(row);
         if (error) throw new Error(error.message);
@@ -481,22 +492,22 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Public read for storefront PDP (RLS already filters to published parents,
-// but we go through service role for predictability and to avoid an extra
-// round-trip when products are switched between draft/live).
+// Public read for storefront PDP. Uses publishable-key RLS so Hostinger does
+// not need a private service-role secret for product page stock display.
 export const getProductVariantsBySlug = createServerFn({ method: "GET" })
   .inputValidator((i: { slug: string }) =>
     z.object({ slug: z.string().min(1).max(200) }).parse(i),
   )
   .handler(async ({ data }) => {
-    const { data: product } = await supabaseAdmin
+    const supabasePublic = createPublicServerClient();
+    const { data: product } = await supabasePublic
       .from("products")
       .select("id")
       .eq("slug", data.slug)
       .eq("is_published", true)
       .maybeSingle();
     if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
-    const { data: rows } = await supabaseAdmin
+    const { data: rows } = await supabasePublic
       .from("product_variants")
       .select("size, color, stock")
       .eq("product_id", product.id);

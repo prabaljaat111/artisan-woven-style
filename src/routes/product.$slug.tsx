@@ -272,7 +272,7 @@ function ProductPage() {
               src={gallery[imgIdx]}
               alt={p.name}
               decoding="async"
-              {...({ fetchpriority: "high" } as Record<string, string>)}
+              fetchPriority="high"
               className="w-full h-full object-cover transition-transform duration-200"
               style={zoom.on ? { transform: "scale(1.8)", transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
             />
