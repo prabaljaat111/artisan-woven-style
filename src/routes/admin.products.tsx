@@ -252,6 +252,11 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   const [variants, setVariants] = useState<Array<{ id?: string; size: string; color: string | null; sku: string | null; stock: number }>>([]);
   const [variantsDirty, setVariantsDirty] = useState(false);
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  useEffect(() => {
     if (!form.id) { setVariants([]); return; }
     adminListVariants({ data: { productId: form.id } })
       .then((rows: any[]) => {
@@ -302,8 +307,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
-      <div className="bg-card w-full max-w-xl h-full overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" role="dialog" aria-modal="true">
+      <div className="bg-card w-full max-w-xl h-full overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="font-display text-xl text-primary">{form.id ? "Edit" : "Add"} Product</div>
           <button type="button" onClick={onClose}><X className="h-5 w-5" /></button>
