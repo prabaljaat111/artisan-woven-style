@@ -36,6 +36,13 @@ function ProductsPage() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim().toLowerCase()), 250);
+    return () => clearTimeout(t);
+  }, [q]);
 
   async function load() {
     setLoading(true);
@@ -61,14 +68,15 @@ function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAdmin]);
 
-  async function remove(id: string) {
-    if (!confirm("Delete this product?")) return;
-    try { await adminDeleteProduct({ data: { id } }); toast.success("Deleted"); load(); }
+  async function confirmRemove() {
+    if (!deleteTarget) return;
+    try { await adminDeleteProduct({ data: { id: deleteTarget.id } }); toast.success("Deleted"); load(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+    finally { setDeleteTarget(null); }
   }
 
   const filtered = rows.filter((r) => {
-    if (q && !(r.name.toLowerCase().includes(q.toLowerCase()) || r.slug.includes(q.toLowerCase()))) return false;
+    if (debouncedQ && !(r.name.toLowerCase().includes(debouncedQ) || r.slug.includes(debouncedQ))) return false;
     if (catFilter && r.category_id !== catFilter) return false;
     if (statusFilter === "published" && !r.is_published) return false;
     if (statusFilter === "draft" && r.is_published) return false;
@@ -83,7 +91,11 @@ function ProductsPage() {
 
   async function runBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
     if (selectedIds.length === 0) return;
-    if (action === "delete" && !confirm(`Delete ${selectedIds.length} product(s)? This cannot be undone.`)) return;
+    if (action === "delete") { setBulkDeleteOpen(true); return; }
+    await doBulk(action);
+  }
+
+  async function doBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
     setBulkBusy(true);
     try {
       await adminBulkProducts({ data: { ids: selectedIds, action } });
@@ -91,7 +103,7 @@ function ProductsPage() {
       setSelected({});
       load();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Bulk action failed"); }
-    finally { setBulkBusy(false); }
+    finally { setBulkBusy(false); setBulkDeleteOpen(false); }
   }
 
   return (
