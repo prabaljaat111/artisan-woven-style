@@ -1,12 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Upload, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
