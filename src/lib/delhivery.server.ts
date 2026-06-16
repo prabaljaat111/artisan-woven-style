@@ -4,6 +4,44 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const DLV_BASE = "https://track.delhivery.com";
 
+async function registerDelhiveryWarehouse(s: DlvSettings): Promise<{ ok: boolean; error?: string; raw?: unknown }> {
+  const token = process.env.DELHIVERY_API_TOKEN;
+  if (!token) return { ok: false, error: "DELHIVERY_API_TOKEN missing" };
+  const payload = {
+    name: s.pickup_location,
+    email: s.pickup_email ?? "support@example.com",
+    phone: (s.pickup_phone ?? "9999999999").replace(/\D/g, "").slice(-10),
+    address: s.pickup_address ?? "Warehouse address",
+    city: s.pickup_city ?? "Lucknow",
+    country: s.pickup_country ?? "India",
+    pin: s.pickup_pincode,
+    return_address: s.pickup_address ?? "Warehouse address",
+    return_pin: s.pickup_pincode,
+    return_city: s.pickup_city ?? "Lucknow",
+    return_state: s.pickup_state ?? "Uttar Pradesh",
+    return_country: s.pickup_country ?? "India",
+    registered_name: s.registered_name ?? s.pickup_location,
+  };
+  const r = await fetch(`${DLV_BASE}/api/backend/clientwarehouse/create/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const text = await r.text();
+  let body: Record<string, unknown> = {};
+  try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+  if (!r.ok) return { ok: false, error: `HTTP ${r.status}: ${text.slice(0, 200)}`, raw: body };
+  const success = (body as { success?: boolean }).success;
+  if (success === false) {
+    return { ok: false, error: String((body as { error?: unknown }).error ?? text.slice(0, 200)), raw: body };
+  }
+  return { ok: true, raw: body };
+}
+
 interface DlvSettings {
   pickup_location: string;
   length_cm: number;
