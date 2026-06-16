@@ -1,4 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+function createPublicServerClient() {
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Missing backend public environment variables for storefront products");
+  }
+
+  return createClient<Database>(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 /**
  * Public, unauthenticated read of published products. Used by the storefront
@@ -7,8 +22,8 @@ import { createServerFn } from "@tanstack/react-start";
  * existing UI components work without per-route changes.
  */
 export const listPublishedProducts = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  const supabasePublic = createPublicServerClient();
+  const { data, error } = await supabasePublic
     .from("products")
     .select("id, slug, name, description, price, original_price, color, is_new, is_bestseller, stock, sizes, images, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
     .eq("is_published", true)

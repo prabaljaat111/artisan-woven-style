@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:hostinger": "HOSTINGER=1 NITRO_PRESET=node-server vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "start": "node dist/server/index.mjs",
+    "start:hostinger": "node dist/server/index.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
