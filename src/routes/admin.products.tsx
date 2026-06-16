@@ -252,6 +252,11 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   const [variants, setVariants] = useState<Array<{ id?: string; size: string; color: string | null; sku: string | null; stock: number }>>([]);
   const [variantsDirty, setVariantsDirty] = useState(false);
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  useEffect(() => {
     if (!form.id) { setVariants([]); return; }
     adminListVariants({ data: { productId: form.id } })
       .then((rows: any[]) => {
