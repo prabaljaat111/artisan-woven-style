@@ -8,7 +8,8 @@ Use this when deploying the GitHub repo to Hostinger while continuing to edit in
 - **Install command:** `npm install`
 - **Build command:** `npm run build:hostinger`
 - **Start command:** `npm run start:hostinger`
-- **Startup file:** `dist/server/index.mjs`
+- **Startup file / Entry file:** `server.js`
+- **Output directory:** `dist`
 
 ## Required environment variables
 
@@ -25,7 +26,9 @@ Admin-only backend actions also need `SUPABASE_SERVICE_ROLE_KEY`. If that secret
 
 ## Why 403 happens
 
-Hostinger shows 403 when the domain points to a folder with no runnable built app, or when the Node app never starts. This repo must be built first with `npm run build:hostinger`, then started from `dist/server/index.mjs`.
+Hostinger shows 403 when the domain points to `public_html` instead of the Node app, when the generated `.htaccess` is stale, or when the Node app never starts. This repo must be built first with `npm run build:hostinger`, then started from `server.js`.
+
+If 403 still appears after a successful build, open Hostinger **Node.js App → Settings & Redeploy**, set **Entry file** to `server.js`, then redeploy/restart so Hostinger regenerates `public_html/.htaccess`.
 
 ## GitHub sync flow
 
