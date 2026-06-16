@@ -2,6 +2,35 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { categories } from "@/data/products";
 import { useProductsByCategory } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
+import kurtiWhite from "@/assets/products/kurti-white.jpg";
+import kurtaSetIvory from "@/assets/products/kurta-set-ivory.jpg";
+import coordPeach from "@/assets/products/coord-peach.jpg";
+import palazzoCream from "@/assets/products/palazzo-cream.jpg";
+import shararaMaroon from "@/assets/products/sharara-maroon.jpg";
+import gararaGold from "@/assets/products/garara-gold.jpg";
+import sareePink from "@/assets/products/saree-pink.jpg";
+import unstitchedBeige from "@/assets/products/unstitched-beige.jpg";
+import tunicWhite from "@/assets/products/tunic-white.jpg";
+import noodleStrap from "@/assets/products/noodle-strap.jpg";
+import pantsWhite from "@/assets/products/pants-white.jpg";
+import anarkaliBridal from "@/assets/products/anarkali-bridal.jpg";
+
+const CATEGORY_BANNERS: Record<string, { image: string; tagline: string; blurb: string }> = {
+  "kurtis": { image: kurtiWhite, tagline: "Everyday Elegance", blurb: "Breathable cotton kurtis hand-embroidered with delicate Lucknowi Chikankari — pieces made to wear from morning chai to evening soirée." },
+  "kurta-sets": { image: kurtaSetIvory, tagline: "Festive Couture", blurb: "Coordinated kurta, bottom and dupatta — meticulously crafted ensembles for weddings, pujas and milestone moments." },
+  "co-ord-sets": { image: coordPeach, tagline: "Effortless Pairing", blurb: "Twin-toned co-ord sets that move with you — modern silhouettes rooted in 400-year-old needlework." },
+  "palazzo-sets": { image: palazzoCream, tagline: "Fluid Drapes", blurb: "Flowing palazzos with intricate chikan jaals — comfort tailored for warm Indian afternoons." },
+  "sharara-sets": { image: shararaMaroon, tagline: "Royal Lucknow", blurb: "Regal sharara sets inspired by Nawabi heritage — voluminous flares, rich palettes, hand-stitched grace." },
+  "garara-sets": { image: gararaGold, tagline: "Bridal Heirloom", blurb: "Statement gararas with heirloom embroidery — designed for the brides and the women who stand beside them." },
+  "sarees": { image: sareePink, tagline: "Threaded Poetry", blurb: "Featherlight georgette and cotton sarees whispering centuries-old motifs across every pleat." },
+  "unstitched-suits": { image: unstitchedBeige, tagline: "Your Canvas", blurb: "Premium unstitched suit pieces — let your tailor finish the story we began on the loom." },
+  "tops-tunics": { image: tunicWhite, tagline: "Modern Heritage", blurb: "Short tops and tunics built for jeans, palazzos and skirts — Chikankari for the everyday wardrobe." },
+  "noodle-strap": { image: noodleStrap, tagline: "Summer Soft", blurb: "Breezy noodle-strap tops in handworked cotton — light as a Lucknow monsoon breeze." },
+  "pants": { image: pantsWhite, tagline: "Tailored Comfort", blurb: "Chikankari pants and palazzos crafted to pair effortlessly with kurtis from across the collection." },
+  "budget": { image: kurtiWhite, tagline: "Under ₹499", blurb: "Authentic Chikankari at honest prices — handpicked styles that make heritage craft accessible." },
+  "mid-range": { image: kurtaSetIvory, tagline: "₹500 — ₹1499", blurb: "Our most-loved everyday edits — beautifully balanced craft, comfort and value." },
+  "premium": { image: anarkaliBridal, tagline: "₹1500 & Beyond", blurb: "Statement and bridal pieces with the deepest embroidery densities and finest fabrics in our atelier." },
+};
 
 export const Route = createFileRoute("/category/$slug")({
   component: CategoryPage,
@@ -37,17 +66,29 @@ function CategoryPage() {
   const { slug } = Route.useParams();
   const cat = Route.useLoaderData();
   const items = useProductsByCategory(slug);
+  const banner = CATEGORY_BANNERS[slug] ?? { image: kurtiWhite, tagline: "Collection", blurb: "Each piece is hand-embroidered in Lucknow using traditional Chikankari techniques — a heritage craft over 400 years old." };
   return (
     <div>
-      <section className="relative bg-secondary/60 border-b border-border overflow-hidden">
-        <div className="absolute inset-x-0 top-0 mx-auto opacity-10 clip-arch bg-primary h-64 w-64" />
-        <div className="relative max-w-7xl mx-auto px-4 py-14 md:py-20 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-gold">Collection</p>
-          <h1 className="font-display text-4xl md:text-5xl text-primary mt-2">{cat.name}</h1>
-          <div className="gold-underline w-24 mx-auto mt-4" />
-          <p className="text-sm text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
-            Each piece is hand-embroidered in Lucknow using traditional Chikankari techniques — a heritage craft over 400 years old.
-          </p>
+      <section className="relative border-b border-border overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={banner.image} alt="" className="w-full h-full object-cover" loading="eager" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 lg:py-28">
+          <div className="max-w-xl">
+            <p className="text-xs uppercase tracking-[0.3em] text-gold">{banner.tagline}</p>
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-primary mt-3 leading-tight">{cat.name}</h1>
+            <div className="gold-underline w-24 mt-4" />
+            <p className="text-sm md:text-base text-foreground/80 mt-5 leading-relaxed">
+              {banner.blurb}
+            </p>
+            <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+              <span>{items.length} {items.length === 1 ? "Piece" : "Pieces"}</span>
+              <span className="h-px w-8 bg-border" />
+              <span>Hand-Crafted in Lucknow</span>
+            </div>
+          </div>
         </div>
       </section>
       <section className="max-w-7xl mx-auto px-4 py-10">
