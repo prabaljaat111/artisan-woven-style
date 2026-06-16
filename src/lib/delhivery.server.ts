@@ -134,23 +134,47 @@ export async function createDelhiveryOrderForOrder(orderId: string) {
     }),
   );
 
-  const res = await fetch(`${DLV_BASE}/api/cmu/create.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-      Authorization: `Token ${token}`,
-    },
-    body: body.toString(),
-  });
-  const text = await res.text();
-  let resp: Record<string, unknown> = {};
-  try { resp = text ? JSON.parse(text) : {}; } catch { resp = { raw: text }; }
+  const doCreate = async () => {
+    const r = await fetch(`${DLV_BASE}/api/cmu/create.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: body.toString(),
+    });
+    const t = await r.text();
+    let j: Record<string, unknown> = {};
+    try { j = t ? JSON.parse(t) : {}; } catch { j = { raw: t }; }
+    return { http: r, resp: j };
+  };
 
-  const pkgs = (resp as { packages?: Array<{ waybill?: string; status?: string; remarks?: string[] }> }).packages ?? [];
-  const first = pkgs[0];
-  const waybill = first?.waybill ?? null;
-  const ok = res.ok && Boolean(waybill) && (first?.status?.toLowerCase() !== "fail");
+  let { http: res, resp } = await doCreate();
+  let pkgs = (resp as { packages?: Array<{ waybill?: string; status?: string; remarks?: string[] }> }).packages ?? [];
+  let first = pkgs[0];
+  let waybill = first?.waybill ?? null;
+  let ok = res.ok && Boolean(waybill) && (first?.status?.toLowerCase() !== "fail");
+
+  // If warehouse isn't registered yet, auto-register it once and retry.
+  const errBlob = JSON.stringify(resp).toLowerCase();
+  if (!ok && (errBlob.includes("clientwarehouse") || errBlob.includes("warehouse"))) {
+    const reg = await registerDelhiveryWarehouse(settings);
+    if (reg.ok) {
+      ({ http: res, resp } = await doCreate());
+      pkgs = (resp as { packages?: Array<{ waybill?: string; status?: string; remarks?: string[] }> }).packages ?? [];
+      first = pkgs[0];
+      waybill = first?.waybill ?? null;
+      ok = res.ok && Boolean(waybill) && (first?.status?.toLowerCase() !== "fail");
+    } else {
+      throw new Error(
+        `Delhivery pickup warehouse "${settings.pickup_location}" is not registered, ` +
+        `and auto-registration failed: ${reg.error}. ` +
+        `Please create a warehouse named "${settings.pickup_location}" in your Delhivery One dashboard ` +
+        `(Settings → Warehouse) with PIN ${settings.pickup_pincode}.`,
+      );
+    }
+  }
 
   if (!ok) {
     const msg = first?.remarks?.join("; ") || (resp as { rmk?: string }).rmk || `Delhivery create failed (${res.status})`;
