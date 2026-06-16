@@ -185,7 +185,7 @@ const BulkUpsertInput = z.object({ rows: z.array(z.any()).min(1).max(500) });
 export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkUpsertInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Validate rows individually so one bad row doesn't kill the whole batch.
     const valid: z.infer<typeof BulkRow>[] = [];
     const errors: string[] = [];
@@ -206,7 +206,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
     );
     const catMap = new Map<string, string>();
     if (slugs.length > 0) {
-      const { data: cats } = await supabaseAdmin
+      const { data: cats } = await context.supabase
         .from("categories")
         .select("id, slug")
         .in("slug", slugs);
@@ -225,7 +225,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
     let inserted = 0;
     for (let i = 0; i < payload.length; i += CHUNK) {
       const batch = payload.slice(i, i + CHUNK);
-      const { error, count } = await supabaseAdmin
+      const { error, count } = await context.supabase
         .from("products")
         .upsert(batch, { onConflict: "slug", count: "exact" });
       if (!error) {
@@ -234,7 +234,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
       }
       // Retry one-by-one so we can pinpoint the offending row.
       for (const row of batch) {
-        const { error: rowErr } = await supabaseAdmin
+        const { error: rowErr } = await context.supabase
           .from("products")
           .upsert(row, { onConflict: "slug" });
         if (rowErr) errors.push(`${row.slug}: ${rowErr.message}`);
@@ -318,8 +318,8 @@ export const adminListCustomers = createServerFn({ method: "GET" })
 // ============== CATEGORIES ==============
 export const adminListCategories = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .handler(async () => {
-    const { data } = await supabaseAdmin.from("categories").select("*").order("sort_order");
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase.from("categories").select("*").order("sort_order");
     return data ?? [];
   });
 
@@ -427,8 +427,8 @@ export const adminListVariants = createServerFn({ method: "GET" })
   .inputValidator((i: { productId: string }) =>
     z.object({ productId: z.string().uuid() }).parse(i),
   )
-  .handler(async ({ data }) => {
-    const { data: rows, error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
       .from("product_variants")
       .select("*")
       .eq("product_id", data.productId)
@@ -455,10 +455,10 @@ const VariantUpsert = z.object({
 export const adminSaveVariants = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => VariantUpsert.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Replace strategy: delete rows missing from input, upsert the rest.
     const incomingIds = data.variants.map((v) => v.id).filter(Boolean) as string[];
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await context.supabase
       .from("product_variants")
       .select("id")
       .eq("product_id", data.productId);
@@ -466,7 +466,7 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
       .map((r: { id: string }) => r.id)
       .filter((id) => !incomingIds.includes(id));
     if (toDelete.length > 0) {
-      await supabaseAdmin.from("product_variants").delete().in("id", toDelete);
+      await context.supabase.from("product_variants").delete().in("id", toDelete);
     }
     for (const v of data.variants) {
       const row = {
@@ -477,13 +477,13 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
         stock: v.stock,
       };
       if (v.id) {
-        const { error } = await supabaseAdmin
+        const { error } = await context.supabase
           .from("product_variants")
           .update(row)
           .eq("id", v.id);
         if (error) throw new Error(error.message);
       } else {
-        const { error } = await supabaseAdmin
+        const { error } = await context.supabase
           .from("product_variants")
           .insert(row);
         if (error) throw new Error(error.message);
