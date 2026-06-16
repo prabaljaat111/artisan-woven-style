@@ -492,22 +492,22 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Public read for storefront PDP (RLS already filters to published parents,
-// but we go through service role for predictability and to avoid an extra
-// round-trip when products are switched between draft/live).
+// Public read for storefront PDP. Uses publishable-key RLS so Hostinger does
+// not need a private service-role secret for product page stock display.
 export const getProductVariantsBySlug = createServerFn({ method: "GET" })
   .inputValidator((i: { slug: string }) =>
     z.object({ slug: z.string().min(1).max(200) }).parse(i),
   )
   .handler(async ({ data }) => {
-    const { data: product } = await supabaseAdmin
+    const supabasePublic = createPublicServerClient();
+    const { data: product } = await supabasePublic
       .from("products")
       .select("id")
       .eq("slug", data.slug)
       .eq("is_published", true)
       .maybeSingle();
     if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
-    const { data: rows } = await supabaseAdmin
+    const { data: rows } = await supabasePublic
       .from("product_variants")
       .select("size, color, stock")
       .eq("product_id", product.id);
