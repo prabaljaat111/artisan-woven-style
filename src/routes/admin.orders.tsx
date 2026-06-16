@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { adminListOrders, adminGetOrder, adminUpdateOrder } from "@/lib/admin.functions";
-import { adminCreateShipment, adminAssignAwb, adminGeneratePickup } from "@/lib/shiprocket.functions";
+import { adminCreateShipment } from "@/lib/shiprocket.functions";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { RefreshCw, X, Truck, Loader2 } from "lucide-react";
