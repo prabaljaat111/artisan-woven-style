@@ -11,6 +11,13 @@ interface DlvSettings {
   height_cm: number;
   weight_kg: number;
   pickup_pincode: string;
+  pickup_address?: string;
+  pickup_city?: string;
+  pickup_state?: string;
+  pickup_country?: string;
+  pickup_phone?: string;
+  pickup_email?: string;
+  registered_name?: string;
 }
 
 const DEFAULT_DLV: DlvSettings = {
@@ -20,6 +27,13 @@ const DEFAULT_DLV: DlvSettings = {
   height_cm: 5,
   weight_kg: 0.5,
   pickup_pincode: "226003",
+  pickup_address: "Indian Handicraft Standards Atelier, Chowk",
+  pickup_city: "Lucknow",
+  pickup_state: "Uttar Pradesh",
+  pickup_country: "India",
+  pickup_phone: "9999999999",
+  pickup_email: "support@indianhandicraftstandards.com",
+  registered_name: "Indian Handicraft Standards",
 };
 
 export async function getDelhiverySettings(): Promise<DlvSettings> {
