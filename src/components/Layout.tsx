@@ -42,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col bg-background">
       <AnnouncementBar />
       <Header />
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
       <MobileBottomNav />
       <FloatingButtons />
