@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { products as staticProducts, categories } from "@/data/products";
 
-const BASE_URL = "https://indianhandicraft.revnlabel.in";
+const BASE_URL = "https://indianhandicraftstandards.com";
 
 interface SitemapEntry {
   path: string;
