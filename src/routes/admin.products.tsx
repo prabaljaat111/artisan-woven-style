@@ -1,12 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Upload, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
@@ -26,6 +36,13 @@ function ProductsPage() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim().toLowerCase()), 250);
+    return () => clearTimeout(t);
+  }, [q]);
 
   async function load() {
     setLoading(true);
@@ -51,14 +68,15 @@ function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAdmin]);
 
-  async function remove(id: string) {
-    if (!confirm("Delete this product?")) return;
-    try { await adminDeleteProduct({ data: { id } }); toast.success("Deleted"); load(); }
+  async function confirmRemove() {
+    if (!deleteTarget) return;
+    try { await adminDeleteProduct({ data: { id: deleteTarget.id } }); toast.success("Deleted"); load(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+    finally { setDeleteTarget(null); }
   }
 
   const filtered = rows.filter((r) => {
-    if (q && !(r.name.toLowerCase().includes(q.toLowerCase()) || r.slug.includes(q.toLowerCase()))) return false;
+    if (debouncedQ && !(r.name.toLowerCase().includes(debouncedQ) || r.slug.includes(debouncedQ))) return false;
     if (catFilter && r.category_id !== catFilter) return false;
     if (statusFilter === "published" && !r.is_published) return false;
     if (statusFilter === "draft" && r.is_published) return false;
@@ -73,7 +91,11 @@ function ProductsPage() {
 
   async function runBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
     if (selectedIds.length === 0) return;
-    if (action === "delete" && !confirm(`Delete ${selectedIds.length} product(s)? This cannot be undone.`)) return;
+    if (action === "delete") { setBulkDeleteOpen(true); return; }
+    await doBulk(action);
+  }
+
+  async function doBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
     setBulkBusy(true);
     try {
       await adminBulkProducts({ data: { ids: selectedIds, action } });
@@ -81,7 +103,7 @@ function ProductsPage() {
       setSelected({});
       load();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Bulk action failed"); }
-    finally { setBulkBusy(false); }
+    finally { setBulkBusy(false); setBulkDeleteOpen(false); }
   }
 
   return (
@@ -157,7 +179,7 @@ function ProductsPage() {
                   <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
                   <td className="p-2 text-right whitespace-nowrap">
                     <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button type="button" onClick={() => remove(p.id)} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                   </td>
                 </tr>
               ))}
@@ -169,6 +191,38 @@ function ProductsPage() {
 
       {editing && <ProductDrawer initial={editing} cats={cats} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
       {importOpen && <BulkImportDialog onClose={() => setImportOpen(false)} onDone={() => { setImportOpen(false); load(); }} />}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span> and its variants. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemove} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => !o && setBulkDeleteOpen(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.length} products?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All selected products and their variants will be permanently removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={bulkBusy} onClick={() => doBulk("delete")} className="bg-red-600 hover:bg-red-700">
+              {bulkBusy ? "Deleting…" : `Delete ${selectedIds.length}`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -326,21 +380,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               💡 Save the product first, then re-open it to set per-size stock.
             </p>
           )}
-          <F label="Images (URLs)">
-            <div className="space-y-1.5">
-              {form.images.map((u: string, i: number) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <img src={u} className="w-10 h-10 rounded object-cover" />
-                  <input value={u} onChange={(e) => { const a = [...form.images]; a[i] = e.target.value; setForm({ ...form, images: a }); }} className={inputCls + " flex-1"} />
-                  <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_: any, j: number) => j !== i) })}><X className="h-4 w-4 text-red-500" /></button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <input value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="https://…" className={inputCls + " flex-1"} />
-                <button type="button" onClick={() => { const v = newImg.trim(); if (v) { setForm({ ...form, images: [...form.images, v] }); setNewImg(""); } }} className="text-xs bg-secondary rounded-full px-3">Add</button>
-              </div>
-              {form.images.length === 0 && <p className="text-[10px] text-amber-600">At least 1 image required.</p>}
-            </div>
+          <F label="Images (first = main; drag to reorder)">
+            <ImageManager images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} newImg={newImg} setNewImg={setNewImg} />
           </F>
           <div className="flex flex-wrap gap-4 text-xs">
             <label className="flex items-center gap-1.5"><input type="checkbox" checked={form.is_published} onChange={(e) => setForm({ ...form, is_published: e.target.checked })} /> Published</label>
@@ -356,6 +397,169 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
 
 const inputCls = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
 function F({ label, children }: any) { return <label className="block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>{children}</label>; }
+
+// ============== IMAGE MANAGER ==============
+const MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMG_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+
+function ImageManager({
+  images,
+  onChange,
+  newImg,
+  setNewImg,
+}: {
+  images: string[];
+  onChange: (imgs: string[]) => void;
+  newImg: string;
+  setNewImg: (v: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  async function uploadFiles(files: FileList | File[]) {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+    setUploading(true);
+    setProgress({ done: 0, total: list.length });
+    const uploaded: string[] = [];
+    try {
+      for (let i = 0; i < list.length; i++) {
+        const f = list[i];
+        if (!ALLOWED_IMG_TYPES.includes(f.type)) {
+          toast.error(`${f.name}: only JPG, PNG, WEBP, AVIF allowed`);
+          continue;
+        }
+        if (f.size > MAX_IMG_BYTES) {
+          toast.error(`${f.name}: max 5MB`);
+          continue;
+        }
+        const ext = f.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const path = `products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("product-images").upload(path, f, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: f.type,
+        });
+        if (error) {
+          toast.error(`${f.name}: ${error.message}`);
+          continue;
+        }
+        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+        uploaded.push(pub.publicUrl);
+        setProgress({ done: i + 1, total: list.length });
+      }
+      if (uploaded.length > 0) {
+        onChange([...images, ...uploaded]);
+        toast.success(`Uploaded ${uploaded.length} image${uploaded.length > 1 ? "s" : ""}`);
+      }
+    } finally {
+      setUploading(false);
+      setProgress(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  function move(from: number, to: number) {
+    if (from === to || to < 0 || to >= images.length) return;
+    const arr = [...images];
+    const [item] = arr.splice(from, 1);
+    arr.splice(to, 0, item);
+    onChange(arr);
+  }
+
+  function removeAt(i: number) {
+    onChange(images.filter((_, j) => j !== i));
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        className={cn(
+          "border-2 border-dashed border-border rounded-lg p-4 text-center transition-colors",
+          uploading && "opacity-60 pointer-events-none",
+        )}
+        onDragOver={(e) => { e.preventDefault(); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files?.length) void uploadFiles(e.dataTransfer.files);
+        }}
+      >
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept={ALLOWED_IMG_TYPES.join(",")}
+          className="hidden"
+          onChange={(e) => e.target.files && uploadFiles(e.target.files)}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-2 text-xs bg-primary text-primary-foreground rounded-full px-4 py-2"
+        >
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+          {uploading && progress ? `Uploading ${progress.done}/${progress.total}…` : "Upload images"}
+        </button>
+        <div className="text-[10px] text-muted-foreground mt-2">or drag & drop · JPG/PNG/WEBP/AVIF · max 5MB each</div>
+      </div>
+
+      {images.length > 0 && (
+        <div className="grid grid-cols-4 gap-2">
+          {images.map((u, i) => (
+            <div
+              key={u + i}
+              draggable
+              onDragStart={() => setDragIdx(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { if (dragIdx !== null) move(dragIdx, i); setDragIdx(null); }}
+              onDragEnd={() => setDragIdx(null)}
+              className={cn(
+                "relative group border border-border rounded-md overflow-hidden bg-secondary",
+                dragIdx === i && "opacity-40",
+              )}
+            >
+              <img src={u} alt="" className="w-full aspect-square object-cover" />
+              {i === 0 && (
+                <span className="absolute top-1 left-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded">MAIN</span>
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical className="h-3 w-3 text-white cursor-move" />
+                <div className="flex gap-0.5">
+                  <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} className="text-white text-[10px] px-1 disabled:opacity-30">←</button>
+                  <button type="button" onClick={() => move(i, i + 1)} disabled={i === images.length - 1} className="text-white text-[10px] px-1 disabled:opacity-30">→</button>
+                  <button type="button" onClick={() => removeAt(i)} className="text-red-300 hover:text-red-500"><X className="h-3 w-3" /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <input value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="…or paste an image URL" className={inputCls + " flex-1 text-xs"} />
+        <button
+          type="button"
+          onClick={() => {
+            const v = newImg.trim();
+            if (!v) return;
+            if (!/^https?:\/\//i.test(v)) { toast.error("URL must start with http(s)://"); return; }
+            onChange([...images, v]);
+            setNewImg("");
+          }}
+          className="text-xs bg-secondary rounded-full px-3"
+        >
+          Add URL
+        </button>
+      </div>
+
+      {images.length === 0 && <p className="text-[10px] text-amber-600">At least 1 image required.</p>}
+    </div>
+  );
+}
+
 // ============== BULK CSV IMPORT ==============
 const CSV_TEMPLATE = `slug,name,description,category_slug,price,original_price,color,is_new,is_bestseller,is_published,stock,sizes,images,low_stock_threshold,track_inventory
 red-saree-001,Red Banarasi Saree,Handwoven silk saree,sarees,2499,3499,Red,true,false,true,10,"S,M,L,XL,Free Size","https://example.com/img1.jpg,https://example.com/img2.jpg",5,true`;
