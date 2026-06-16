@@ -101,8 +101,33 @@ export const adminCreateShipment = createServerFn({ method: "POST" })
       if (!row) throw new Error(`Order not found: ${raw}`);
       orderId = (row as { id: string }).id;
     }
-    const r = await createSrOrderForOrder(orderId);
-    return { sr_order_id: r.sr_order_id, sr_shipment_id: r.sr_shipment_id };
+    // Try Shiprocket first. If it fails (auth, serviceability, downtime), fall
+    // back to Delhivery One Platform so the order is still pushed.
+    try {
+      const r = await createSrOrderForOrder(orderId);
+      if (!r.sr_shipment_id) throw new Error("Shiprocket returned no shipment id");
+      return {
+        provider: "shiprocket" as const,
+        sr_order_id: r.sr_order_id,
+        sr_shipment_id: r.sr_shipment_id,
+      };
+    } catch (srErr) {
+      const srMsg = srErr instanceof Error ? srErr.message : String(srErr);
+      try {
+        const { createDelhiveryOrderForOrder } = await import("./delhivery.server");
+        const d = await createDelhiveryOrderForOrder(orderId);
+        return {
+          provider: "delhivery" as const,
+          sr_order_id: d.waybill,
+          sr_shipment_id: d.waybill,
+          awb_code: d.waybill,
+          fallback_reason: srMsg,
+        };
+      } catch (dlvErr) {
+        const dMsg = dlvErr instanceof Error ? dlvErr.message : String(dlvErr);
+        throw new Error(`Shiprocket failed (${srMsg}); Delhivery fallback also failed (${dMsg})`);
+      }
+    }
   });
 
 export const adminAssignAwb = createServerFn({ method: "POST" })
