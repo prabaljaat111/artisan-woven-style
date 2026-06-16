@@ -380,11 +380,11 @@ function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground pb-36 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div className="col-span-2 md:col-span-1">
-          <div className="bg-primary-foreground/5 rounded-md p-3 inline-block">
-            <FullBrandLogo className="h-40 w-auto" />
+        <div className="col-span-2 md:col-span-1 text-center md:text-left">
+          <div className="bg-primary-foreground/5 rounded-md p-3 inline-block mx-auto md:mx-0">
+            <FullBrandLogo className="h-40 w-auto mx-auto md:mx-0" />
           </div>
-          <p className="text-xs mt-3 opacity-80 leading-relaxed">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
+          <p className="text-xs mt-3 opacity-80 leading-relaxed text-center md:text-left">Authenticity Woven in Every Thread. Championing genuine Lucknowi Chikankari since 2015.</p>
         </div>
         <div>
           <h4 className="font-display text-sm mb-3 text-gold">Quick Links</h4>
