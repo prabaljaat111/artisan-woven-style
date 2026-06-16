@@ -380,21 +380,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               💡 Save the product first, then re-open it to set per-size stock.
             </p>
           )}
-          <F label="Images (URLs)">
-            <div className="space-y-1.5">
-              {form.images.map((u: string, i: number) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <img src={u} className="w-10 h-10 rounded object-cover" />
-                  <input value={u} onChange={(e) => { const a = [...form.images]; a[i] = e.target.value; setForm({ ...form, images: a }); }} className={inputCls + " flex-1"} />
-                  <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_: any, j: number) => j !== i) })}><X className="h-4 w-4 text-red-500" /></button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <input value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="https://…" className={inputCls + " flex-1"} />
-                <button type="button" onClick={() => { const v = newImg.trim(); if (v) { setForm({ ...form, images: [...form.images, v] }); setNewImg(""); } }} className="text-xs bg-secondary rounded-full px-3">Add</button>
-              </div>
-              {form.images.length === 0 && <p className="text-[10px] text-amber-600">At least 1 image required.</p>}
-            </div>
+          <F label="Images (first = main; drag to reorder)">
+            <ImageManager images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} newImg={newImg} setNewImg={setNewImg} />
           </F>
           <div className="flex flex-wrap gap-4 text-xs">
             <label className="flex items-center gap-1.5"><input type="checkbox" checked={form.is_published} onChange={(e) => setForm({ ...form, is_published: e.target.checked })} /> Published</label>
