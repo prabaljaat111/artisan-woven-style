@@ -26,15 +26,31 @@ export function useAuth(): AuthState {
     }
 
     // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      // Ignore noisy events that fire on tab focus / token refresh and don't
+      // change identity — they were causing the admin pages to flash "Loading…"
+      // every time the user switched browser tabs.
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        setState((s) => (s.session?.user.id === session?.user.id
+          ? { ...s, session, user: session?.user ?? null }
+          : s));
+        return;
+      }
+      if (event === "INITIAL_SESSION") return; // handled by getSession() below
       if (!session) {
         setState({ loading: false, user: null, session: null, isAdmin: false });
         return;
       }
-      // Keep loading=true until the role check resolves so consumers
-      // (e.g. /login redirect) don't act on a stale isAdmin=false.
-      setState((s) => ({ ...s, loading: true, user: session.user, session }));
+      // If it's the same user we already know about, just refresh the session
+      // object — don't flip loading back to true (that re-runs every page's
+      // data loaders and looks like a full refresh).
+      setState((s) => {
+        const sameUser = s.user?.id === session.user.id;
+        return sameUser
+          ? { ...s, user: session.user, session }
+          : { ...s, loading: true, user: session.user, session };
+      });
       // Defer role lookup so it doesn't deadlock the listener
       setTimeout(async () => {
         const isAdmin = await checkRole(session.user.id);
