@@ -21,6 +21,6 @@ export default defineConfig({
       }
     : undefined,
   tanstackStart: {
-    server: { entry: "/src/server.ts" },
+    server: { entry: "server" },
   },
 });
