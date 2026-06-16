@@ -179,7 +179,7 @@ function ProductsPage() {
                   <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
                   <td className="p-2 text-right whitespace-nowrap">
                     <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button type="button" onClick={() => remove(p.id)} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                   </td>
                 </tr>
               ))}
