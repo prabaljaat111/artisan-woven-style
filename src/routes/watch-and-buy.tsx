@@ -30,17 +30,17 @@ function WatchAndBuy() {
   const wished = ids.includes(product.id);
 
   return (
-    <div className="pb-24 md:pb-10">
+    <div className="pb-20 md:pb-10">
       <section className="bg-primary text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 text-center">
+        <div className="max-w-7xl mx-auto px-4 py-6 md:py-12 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-gold">Shoppable looks</p>
-          <h1 className="font-display text-3xl md:text-5xl mt-2">Watch & Buy</h1>
-          <p className="text-sm text-primary-foreground/80 mt-3 max-w-lg mx-auto">Browse styled looks and add to cart in one tap.</p>
+          <h1 className="font-display text-2xl md:text-5xl mt-1.5">Watch & Buy</h1>
+          <p className="text-xs md:text-sm text-primary-foreground/80 mt-2 max-w-lg mx-auto">Browse styled looks and add to cart in one tap.</p>
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-2 gap-6 items-start">
-        <div className="relative rounded-2xl overflow-hidden bg-secondary aspect-[3/4] max-h-[70vh] mx-auto w-full">
+      <section className="max-w-5xl mx-auto px-4 py-4 md:py-8 grid md:grid-cols-2 gap-4 md:gap-6 items-start">
+        <div className="relative rounded-2xl overflow-hidden bg-secondary aspect-[3/4] max-h-[60vh] md:max-h-[70vh] mx-auto w-full">
           <img src={product.images[0]} alt={product.name} decoding="async" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 bg-background/90 backdrop-blur rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-primary">
