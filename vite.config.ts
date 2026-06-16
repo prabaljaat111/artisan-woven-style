@@ -11,6 +11,8 @@ const hostingerNodeBuild =
   process.env.NITRO_PRESET === "node-server" ||
   process.env.NITRO_PRESET === "node";
 
+const vercelBuild = process.env.NITRO_PRESET === "vercel";
+
 // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
 export default defineConfig({
@@ -18,6 +20,10 @@ export default defineConfig({
     ? {
         preset: "node-server",
         output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
+      }
+    : vercelBuild
+    ? {
+        preset: "vercel",
       }
     : undefined,
   tanstackStart: {
