@@ -579,6 +579,36 @@ function parseList(v: any): string[] {
   if (Array.isArray(v)) return v;
   return String(v).split(/[,|;]/).map((s) => s.trim()).filter(Boolean);
 }
+function slugify(s: string): string {
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 200);
+}
+function pick(row: any, keys: string[]): any {
+  for (const k of keys) {
+    const v = row[k];
+    if (v !== undefined && v !== null && String(v).trim() !== "") return v;
+  }
+  return undefined;
+}
+function collectImages(row: any): string[] {
+  // Accept: images | image | image_url | photo | picture | image_1..image_10
+  const collected = parseList(
+    pick(row, ["images", "image", "image_url", "image_urls", "photos", "photo", "picture", "pictures"]),
+  );
+  for (let i = 1; i <= 10; i++) {
+    const v = row[`image_${i}`] ?? row[`image${i}`] ?? row[`img_${i}`] ?? row[`img${i}`];
+    if (v && String(v).trim()) collected.push(String(v).trim());
+  }
+  return collected
+    .map((u) => String(u).trim())
+    .filter((u) => /^https?:\/\//i.test(u));
+}
 
 function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -608,34 +638,51 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         const errs: string[] = [];
         (res.data as any[]).forEach((row, i) => {
           try {
+            const name = String(pick(row, ["name", "title", "product_name", "product"]) ?? "").trim();
+            const rawSlug = String(pick(row, ["slug", "handle", "url_key"]) ?? "").trim();
+            const slug = (rawSlug ? slugify(rawSlug) : slugify(name));
+            const priceRaw = pick(row, ["price", "selling_price", "sale_price", "final_price"]);
+            const mrpRaw = pick(row, ["original_price", "mrp", "compare_at_price", "list_price"]);
+            const price = Number(String(priceRaw ?? "").replace(/[^0-9.]/g, ""));
+            const original = Number(String(mrpRaw ?? "").replace(/[^0-9.]/g, "")) || price;
+            const images = collectImages(row);
+            const sizesList = parseList(pick(row, ["sizes", "size", "variants"]));
             const mapped = {
-              slug: String(row.slug || "").trim().toLowerCase(),
-              name: String(row.name || "").trim(),
-              description: String(row.description || ""),
-              category_slug: row.category_slug ? String(row.category_slug).trim() : null,
-              price: Number(row.price),
-              original_price: Number(row.original_price || row.price),
-              color: row.color ? String(row.color) : null,
-              is_new: parseBool(row.is_new),
-              is_bestseller: parseBool(row.is_bestseller),
-              is_published: parseBool(row.is_published, true),
-              stock: Math.max(0, parseInt(row.stock || "0", 10) || 0),
-              sizes: parseList(row.sizes).length ? parseList(row.sizes) : ["Free Size"],
-              images: parseList(row.images).map((u) => u.trim()).filter(Boolean),
-              low_stock_threshold: parseInt(row.low_stock_threshold || "5", 10) || 5,
-              track_inventory: parseBool(row.track_inventory, true),
+              slug,
+              name,
+              description: String(pick(row, ["description", "desc", "details"]) ?? ""),
+              category_slug: (() => {
+                const c = pick(row, ["category_slug", "category", "category_name"]);
+                return c ? slugify(String(c)) : null;
+              })(),
+              price,
+              original_price: original,
+              color: (() => { const c = pick(row, ["color", "colour"]); return c ? String(c) : null; })(),
+              is_new: parseBool(pick(row, ["is_new", "new"])),
+              is_bestseller: parseBool(pick(row, ["is_bestseller", "bestseller"])),
+              is_published: parseBool(pick(row, ["is_published", "published", "active", "status"]), true),
+              stock: Math.max(0, parseInt(String(pick(row, ["stock", "quantity", "qty", "inventory"]) ?? "0"), 10) || 0),
+              sizes: sizesList.length ? sizesList : ["Free Size"],
+              images,
+              low_stock_threshold: parseInt(String(pick(row, ["low_stock_threshold", "low_stock"]) ?? "5"), 10) || 5,
+              track_inventory: parseBool(pick(row, ["track_inventory", "track"]), true),
             };
-            if (!mapped.slug) throw new Error("missing slug");
-            if (!/^[a-z0-9-]+$/.test(mapped.slug)) throw new Error("slug must be lowercase letters, digits, dashes");
-            if (!mapped.name) throw new Error("missing name");
-            if (!mapped.price || mapped.price <= 0) throw new Error("invalid price");
-            if (mapped.images.length === 0) throw new Error("at least 1 image required");
+            if (!mapped.name) throw new Error("missing name (column: name/title/product_name)");
+            if (!mapped.slug) throw new Error("could not derive slug from name");
+            if (!Number.isFinite(mapped.price) || mapped.price <= 0) throw new Error("invalid price (column: price/selling_price/mrp)");
+            if (mapped.images.length === 0) throw new Error("at least 1 image URL required (column: images/image/image_url/image_1…) — must start with http(s)://");
             rows.push(mapped);
           } catch (e: any) {
             errs.push(`Row ${i + 2}: ${e.message}`);
           }
         });
-        setPreview(rows);
+        // De-duplicate by slug within the same file (last one wins)
+        const seen = new Map<string, any>();
+        for (const r of rows) {
+          if (seen.has(r.slug)) errs.push(`Duplicate slug "${r.slug}" — keeping the last occurrence`);
+          seen.set(r.slug, r);
+        }
+        setPreview(Array.from(seen.values()));
         setParseErrors(errs);
       },
       error: (err) => {
@@ -688,6 +735,12 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
           <button type="button" onClick={downloadTemplate} className="text-xs flex items-center gap-1 text-primary hover:underline">
             <Download className="h-3.5 w-3.5" /> Download CSV template
           </button>
+
+          <div className="text-[11px] text-muted-foreground bg-secondary/30 rounded p-2">
+            <div className="font-medium mb-1">Accepted columns (any of these work):</div>
+            <div>name / title · price / selling_price · original_price / mrp · category / category_slug · images / image / image_url / image_1…image_10</div>
+            <div>slug is auto-generated from name if omitted. Image URLs must start with http(s)://</div>
+          </div>
 
           <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
             <input
