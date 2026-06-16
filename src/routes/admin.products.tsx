@@ -736,6 +736,12 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
             <Download className="h-3.5 w-3.5" /> Download CSV template
           </button>
 
+          <div className="text-[11px] text-muted-foreground bg-secondary/30 rounded p-2">
+            <div className="font-medium mb-1">Accepted columns (any of these work):</div>
+            <div>name / title · price / selling_price · original_price / mrp · category / category_slug · images / image / image_url / image_1…image_10</div>
+            <div>slug is auto-generated from name if omitted. Image URLs must start with http(s)://</div>
+          </div>
+
           <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
             <input
               type="file"
