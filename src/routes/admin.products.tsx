@@ -302,8 +302,8 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
-      <div className="bg-card w-full max-w-xl h-full overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" role="dialog" aria-modal="true">
+      <div className="bg-card w-full max-w-xl h-full overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="font-display text-xl text-primary">{form.id ? "Edit" : "Add"} Product</div>
           <button type="button" onClick={onClose}><X className="h-5 w-5" /></button>
