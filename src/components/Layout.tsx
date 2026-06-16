@@ -378,7 +378,7 @@ function ExitIntent() {
 
 function Footer() {
   return (
-    <footer className="bg-primary text-primary-foreground mt-16 pb-36 md:pb-0">
+    <footer className="bg-primary text-primary-foreground pb-36 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <div className="col-span-2 md:col-span-1">
           <div className="bg-primary-foreground/5 rounded-md p-3 inline-block">
