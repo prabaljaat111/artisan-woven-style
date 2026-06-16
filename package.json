@@ -3,6 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "main": "server.js",
   "engines": {
     "node": ">=22.12.0"
   },
