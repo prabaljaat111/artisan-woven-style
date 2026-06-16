@@ -676,7 +676,13 @@ function BulkImportDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
             errs.push(`Row ${i + 2}: ${e.message}`);
           }
         });
-        setPreview(rows);
+        // De-duplicate by slug within the same file (last one wins)
+        const seen = new Map<string, any>();
+        for (const r of rows) {
+          if (seen.has(r.slug)) errs.push(`Duplicate slug "${r.slug}" — keeping the last occurrence`);
+          seen.set(r.slug, r);
+        }
+        setPreview(Array.from(seen.values()));
         setParseErrors(errs);
       },
       error: (err) => {
