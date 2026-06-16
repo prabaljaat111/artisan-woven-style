@@ -39,8 +39,8 @@ function WatchAndBuy() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 py-4 md:py-8 grid md:grid-cols-2 gap-4 md:gap-6 items-start">
-        <div className="relative rounded-2xl overflow-hidden bg-secondary aspect-[3/4] max-h-[60vh] md:max-h-[70vh] mx-auto w-full">
+      <section className="max-w-5xl mx-auto md:px-4 md:py-8 grid md:grid-cols-2 gap-0 md:gap-6 items-start">
+        <div className="relative md:rounded-2xl overflow-hidden bg-secondary aspect-[3/4] md:max-h-[70vh] mx-auto w-full">
           <img src={product.images[0]} alt={product.name} decoding="async" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 bg-background/90 backdrop-blur rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-primary">
@@ -60,7 +60,7 @@ function WatchAndBuy() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 px-4 pt-3 md:p-0">
           <div className="flex gap-2">
             <button
               onClick={() => { addItem({ id: product.id, slug: product.slug, name: product.name, price: product.price, image: product.images[0], size: product.sizes[2], color: product.colors[0], qty: 1 }); toast("Added to cart 🛍️"); }}
