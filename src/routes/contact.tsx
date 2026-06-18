@@ -67,7 +67,7 @@ function ContactPage() {
         <div className="space-y-4">
           {[
             { icon: MessageCircle, label: "WhatsApp", value: "+91 90444 66957", href: "https://wa.me/919044466957" },
-            { icon: Phone, label: "Call us", value: "+91 79713 24559", href: "tel:+917971324559" },
+            { icon: Phone, label: "Call us", value: "+91 90444 66957", href: "tel:+919044466957" },
             { icon: Mail, label: "Email", value: "hello@indianhandicraftstandards.com", href: "mailto:hello@indianhandicraftstandards.com" },
             { icon: MapPin, label: "Atelier", value: "Chowk, Lucknow, Uttar Pradesh, India 226003" },
             { icon: Instagram, label: "Instagram", value: "@indian_handicraft_standards", href: "https://www.instagram.com/indian_handicraft_standards" },
