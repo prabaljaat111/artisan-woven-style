@@ -7,7 +7,6 @@ import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { BrandLogo, FullBrandLogo } from "./BrandLogo";
 import { LotusMark } from "./LotusMark";
-import { AdPopup } from "./AdPopup";
 import { categories } from "@/data/products";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { cn } from "@/lib/utils";
@@ -51,7 +50,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <SearchOverlay />
       <ExitIntent />
       <ProactiveNudge />
-      <AdPopup />
     </div>
   );
 }
