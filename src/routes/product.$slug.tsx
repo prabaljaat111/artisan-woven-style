@@ -229,6 +229,7 @@ function ProductPage() {
     const matched = p.images.filter((src: string) => src.toLowerCase().includes(tag));
     return matched.length ? matched : p.images;
   }, [p.images, color]);
+  const details = useMemo(() => buildProductDetailSections(p, color), [p, color]);
   useEffect(() => { setImgIdx(0); }, [color]);
   function nextImg() { setImgIdx((i) => (i + 1) % gallery.length); }
   function prevImg() { setImgIdx((i) => (i - 1 + gallery.length) % gallery.length); }
@@ -485,13 +486,23 @@ function ProductPage() {
               <AccordionTrigger>Specifications</AccordionTrigger>
               <AccordionContent>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {specsForCategory(p.category, color).map(([k, v]) => (
+                  {details.specifications.map(([k, v]) => (
                     <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
                       <dt className="text-muted-foreground">{k}</dt>
                       <dd className="text-foreground font-medium text-right">{v}</dd>
                     </div>
                   ))}
                 </dl>
+                {details.attributes.length > 0 && (
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3 pt-3 border-t border-border/60">
+                    {details.attributes.map(([k, v]) => (
+                      <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
+                        <dt className="text-muted-foreground">{k}</dt>
+                        <dd className="text-foreground font-medium text-right">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="ship">
