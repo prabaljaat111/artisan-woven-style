@@ -25,7 +25,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
   const supabasePublic = createPublicServerClient();
   const { data, error } = await supabasePublic
     .from("products")
-    .select("id, slug, name, description, price, original_price, color, colors, is_new, is_bestseller, stock, sizes, images, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
+    .select("id, slug, name, description, specifications, attributes, care_instructions, shipping_info, return_policy, authenticity, price, original_price, color, colors, is_new, is_bestseller, stock, sizes, images, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -41,6 +41,12 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
     colors: (Array.isArray(r.colors) && r.colors.length > 0)
       ? r.colors
       : (r.color ? [r.color] : []),
+    specifications: r.specifications && typeof r.specifications === "object" ? r.specifications : {},
+    attributes: r.attributes && typeof r.attributes === "object" ? r.attributes : {},
+    careInstructions: Array.isArray(r.care_instructions) ? r.care_instructions : [],
+    shippingInfo: Array.isArray(r.shipping_info) ? r.shipping_info : [],
+    returnPolicy: Array.isArray(r.return_policy) ? r.return_policy : [],
+    authenticity: r.authenticity ?? null,
     description: r.description ?? "",
     inStock: (r.stock ?? 0) > 0,
     stock: Number(r.stock ?? 0),
