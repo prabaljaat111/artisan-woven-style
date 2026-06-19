@@ -144,15 +144,22 @@ function Index() {
       setNews((n) => ({ ...n, sending: false }));
     }
   }
+  const pickByCat = (slug: string) =>
+    products.find((p) => p.category === slug && p.images?.[0])?.images[0] ?? products[0].images[0];
+  const saleImg =
+    products
+      .filter((p) => p.isSale || p.originalPrice > p.price)
+      .sort((a, b) => (b.originalPrice - b.price) - (a.originalPrice - a.price))[0]?.images[0]
+      ?? products[0].images[0];
   const circleCats = [
-    { label: "Sale", img: products[5].images[0], to: "/shop" },
-    { label: "Kurtis", img: products[0].images[0], to: "/category/$slug", params: { slug: "kurtis" } },
-    { label: "Kurta Sets", img: products[2].images[0], to: "/category/$slug", params: { slug: "kurta-sets" } },
-    { label: "Suits", img: products[9].images[0], to: "/category/$slug", params: { slug: "unstitched-suits" } },
-    { label: "Sarees", img: products[7].images[0], to: "/category/$slug", params: { slug: "sarees" } },
-    { label: "Tops", img: products[10]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "tops-tunics" } },
-    { label: "Bottoms", img: products[12]?.images[0] ?? products[4].images[0], to: "/category/$slug", params: { slug: "pants" } },
-    { label: "Inners", img: products[11]?.images[0] ?? products[0].images[0], to: "/category/$slug", params: { slug: "noodle-strap" } },
+    { label: "Sale", img: saleImg, to: "/shop" },
+    { label: "Kurtis", img: pickByCat("kurtis"), to: "/category/$slug", params: { slug: "kurtis" } },
+    { label: "Kurta Sets", img: pickByCat("kurta-sets"), to: "/category/$slug", params: { slug: "kurta-sets" } },
+    { label: "Suits", img: pickByCat("unstitched-suits"), to: "/category/$slug", params: { slug: "unstitched-suits" } },
+    { label: "Sarees", img: pickByCat("sarees"), to: "/category/$slug", params: { slug: "sarees" } },
+    { label: "Tops", img: pickByCat("tops-tunics"), to: "/category/$slug", params: { slug: "tops-tunics" } },
+    { label: "Bottoms", img: pickByCat("pants"), to: "/category/$slug", params: { slug: "pants" } },
+    { label: "Inners", img: pickByCat("noodle-strap"), to: "/category/$slug", params: { slug: "noodle-strap" } },
   ];
 
   return (
