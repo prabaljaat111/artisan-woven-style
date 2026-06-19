@@ -120,7 +120,8 @@ function ProductPage() {
   const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
   const sizes = useMemo(() => {
     const set = new Set<string>(p.sizes ?? []);
-    return ALL_SIZES.filter((s) => set.has(s) || (p.sizes ?? []).length === 0 ? true : set.has(s));
+    if (set.size === 0) return ALL_SIZES;
+    return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s) => !ALL_SIZES.includes(s))];
   }, [p.sizes]);
   const [size, setSize] = useState(sizes[1] ?? sizes[0]);
   const [color, setColor] = useState(p.colors[0]);
@@ -142,6 +143,10 @@ function ProductPage() {
   useEffect(() => {
     let cancelled = false;
     const fetchVariants = () => {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) {
+        setVariantMap(null);
+        return;
+      }
       getProductVariantsByProductId({ data: { productId: p.id } })
         .then((rows: Array<{ size: string; stock: number }>) => {
           if (cancelled) return;
