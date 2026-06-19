@@ -40,8 +40,8 @@ function WatchAndBuy() {
       </section>
 
       <section className="max-w-5xl mx-auto md:px-4 md:py-8 grid md:grid-cols-2 gap-0 md:gap-6 items-start">
-        <div className="relative md:rounded-2xl overflow-hidden bg-secondary aspect-[3/4] md:max-h-[70vh] mx-auto w-full">
-          <img src={product.images[0]} alt={product.name} decoding="async" className="h-full w-full object-cover" />
+        <div className="relative md:rounded-2xl overflow-hidden bg-secondary aspect-[9/16] md:aspect-[3/4] md:max-h-[70vh] mx-auto w-full">
+          <img src={product.images[0]} alt={product.name} decoding="async" className="h-full w-full object-cover scale-110 md:scale-100" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 bg-background/90 backdrop-blur rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-primary">
             <Play className="h-3 w-3 fill-primary" /> Reel {active + 1}/{all.length}
