@@ -240,6 +240,12 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     colors: Array.isArray(initial.colors) && initial.colors.length > 0
       ? initial.colors
       : (initial.color ? [initial.color] : []),
+    specifications: initial.specifications && typeof initial.specifications === "object" ? initial.specifications : {},
+    attributes: initial.attributes && typeof initial.attributes === "object" ? initial.attributes : {},
+    care_instructions: Array.isArray(initial.care_instructions) ? initial.care_instructions : [],
+    shipping_info: Array.isArray(initial.shipping_info) ? initial.shipping_info : [],
+    return_policy: Array.isArray(initial.return_policy) ? initial.return_policy : [],
+    authenticity: initial.authenticity ?? "",
     is_new: !!initial.is_new,
     is_bestseller: !!initial.is_bestseller,
     is_published: initial.is_published ?? true,
@@ -294,7 +300,17 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
         : [];
       const primaryColor = colorsList[0] ?? (form.color || null);
       const result = await adminUpsertProduct({
-        data: { ...form, color: primaryColor, colors: colorsList },
+        data: {
+          ...form,
+          color: primaryColor,
+          colors: colorsList,
+          specifications: cleanRecord(form.specifications),
+          attributes: cleanRecord(form.attributes),
+          care_instructions: cleanList(form.care_instructions),
+          shipping_info: cleanList(form.shipping_info),
+          return_policy: cleanList(form.return_policy),
+          authenticity: String(form.authenticity ?? "").trim() || null,
+        },
       });
       // Save variants too if there are any.
       if (variants.length > 0 && (form.id || result?.id)) {
