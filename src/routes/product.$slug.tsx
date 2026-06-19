@@ -42,10 +42,14 @@ const COLOR_HEX: Record<string, string> = {
 function colorToHex(name: string): string {
   const k = (name || "").trim().toLowerCase();
   if (COLOR_HEX[k]) return COLOR_HEX[k];
-  // soft hash fallback so unknown colours still get a swatch
-  let h = 0;
-  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
-  return `hsl(${h % 360}, 35%, 60%)`;
+  // Try to match a known colour word inside multi-word names like "Stone Beige"
+  // or "Powder Blue" before falling back to a neutral swatch.
+  const keys = Object.keys(COLOR_HEX).sort((a, b) => b.length - a.length);
+  for (const key of keys) {
+    if (k.includes(key)) return COLOR_HEX[key];
+  }
+  // Neutral beige fallback — never random purple for unknown names.
+  return "#d9c9ad";
 }
 
 function inferFabric(category: string): string {
