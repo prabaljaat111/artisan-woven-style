@@ -514,10 +514,16 @@ export const getProductVariantsByProductId = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const supabasePublic = createPublicServerClient();
+    const { data: product } = await supabasePublic
+      .from("products")
+      .select("id")
+      .eq("id", data.productId)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
     const { data: rows } = await supabasePublic
       .from("product_variants")
       .select("size, color, stock")
-      .eq("product_id", data.productId)
-      .eq("product.is_published", true);
+      .eq("product_id", product.id);
     return rows ?? [];
   });
