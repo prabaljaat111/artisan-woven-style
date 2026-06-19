@@ -121,7 +121,7 @@ function ProductPage() {
   const sizes = useMemo(() => {
     const set = new Set<string>(p.sizes ?? []);
     if (set.size === 0) return ALL_SIZES;
-    return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s) => !ALL_SIZES.includes(s))];
+    return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s: string) => !ALL_SIZES.includes(s))];
   }, [p.sizes]);
   const [size, setSize] = useState(sizes[1] ?? sizes[0]);
   const [color, setColor] = useState(p.colors[0]);
