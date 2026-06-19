@@ -99,6 +99,7 @@ const ProductInput = z.object({
   price: z.number().min(0).max(1_000_000),
   original_price: z.number().min(0).max(1_000_000),
   color: z.string().max(80).nullable().optional(),
+  colors: z.array(z.string().min(1).max(80)).max(30).optional().default([]),
   is_new: z.boolean().default(false),
   is_bestseller: z.boolean().default(false),
   is_published: z.boolean().default(true),
