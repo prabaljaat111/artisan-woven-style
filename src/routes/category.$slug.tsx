@@ -70,11 +70,7 @@ function CategoryPage() {
   return (
     <div>
       <section className="relative border-b border-border overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={banner.image} alt="" className="w-full h-full object-cover" loading="eager" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        </div>
+        <div className="absolute inset-0 bg-secondary/60" aria-hidden="true" />
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 lg:py-28">
           <div className="max-w-xl">
             <p className="text-xs uppercase tracking-[0.3em] text-gold">{banner.tagline}</p>
