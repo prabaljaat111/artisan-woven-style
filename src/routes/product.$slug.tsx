@@ -508,33 +508,30 @@ function ProductPage() {
             <AccordionItem value="ship">
               <AccordionTrigger>Shipping Information</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· Delivered in 3–5 business days across India.</p>
-                <p>· Free shipping on orders above ₹999.</p>
-                <p>· Cash on Delivery available on most pincodes.</p>
-                <p>· Dispatched within 24–48 hours of order confirmation.</p>
-                <p>· International shipping available on request via WhatsApp.</p>
+                {(details.shippingInfo.length > 0 ? details.shippingInfo : ["Delivered in 3–5 business days across India.", "Free shipping on orders above ₹999.", "Cash on Delivery available on most pincodes.", "Dispatched within 24–48 hours of order confirmation.", "International shipping available on request via WhatsApp."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="returns">
               <AccordionTrigger>Return Policy</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· 7-day easy returns on unworn, unwashed items with original tags.</p>
-                <p>· Refund processed within 5–7 business days after pickup.</p>
-                <p>· Sale and customised pieces are non-returnable.</p>
+                {(details.returnPolicy.length > 0 ? details.returnPolicy : ["7-day easy returns on unworn, unwashed items with original tags.", "Refund processed within 5–7 business days after pickup.", "Sale and customised pieces are non-returnable."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="care">
               <AccordionTrigger>Care Instructions</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· Gentle hand wash separately in cold water.</p>
-                <p>· Do not bleach. Dry in shade to preserve colour.</p>
-                <p>· Iron on reverse on medium heat.</p>
-                <p>· Store folded with a muslin cloth between pieces.</p>
+                {(details.careInstructions.length > 0 ? details.careInstructions : ["Gentle hand wash separately in cold water.", "Do not bleach. Dry in shade to preserve colour.", "Iron on reverse on medium heat.", "Store folded with a muslin cloth between pieces."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="auth">
               <AccordionTrigger>Authenticity</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent>
+              <AccordionContent className="text-sm text-muted-foreground">{details.authenticity ?? "Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages."}</AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
