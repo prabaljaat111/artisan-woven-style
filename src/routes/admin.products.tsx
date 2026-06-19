@@ -349,7 +349,67 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               <span className="text-muted-foreground">(off = always purchasable)</span>
             </label>
           </div>
-          <F label="Color"><input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className={inputCls} /></F>
+          <F label="Colors">
+            <div className="space-y-2">
+              {form.colors.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {form.colors.map((c: string, idx: number) => (
+                    <span
+                      key={`${c}-${idx}`}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-2.5 py-1 text-xs"
+                    >
+                      <span
+                        className="inline-block h-3 w-3 rounded-full border border-border"
+                        style={{ background: c }}
+                        aria-hidden="true"
+                      />
+                      {c}
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, colors: form.colors.filter((_: string, i: number) => i !== idx) })}
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label={`Remove ${c}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  value={newColor}
+                  onChange={(e) => setNewColor(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const v = newColor.trim();
+                      if (v && !form.colors.includes(v)) {
+                        setForm({ ...form, colors: [...form.colors, v] });
+                      }
+                      setNewColor("");
+                    }
+                  }}
+                  placeholder="Add a color (e.g. Stone Beige)"
+                  className={inputCls}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const v = newColor.trim();
+                    if (v && !form.colors.includes(v)) {
+                      setForm({ ...form, colors: [...form.colors, v] });
+                    }
+                    setNewColor("");
+                  }}
+                  className="px-3 rounded-md border border-border bg-secondary hover:bg-secondary/80 text-xs whitespace-nowrap"
+                >
+                  + Add
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">First color is the primary. Press Enter or click Add.</p>
+            </div>
+          </F>
           <F label="Sizes (comma-separated)"><input value={form.sizes.join(",")} onChange={(e) => setForm({ ...form, sizes: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })} className={inputCls} /></F>
           {form.id && (
             <div>
