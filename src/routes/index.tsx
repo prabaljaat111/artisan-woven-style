@@ -144,8 +144,18 @@ function Index() {
       setNews((n) => ({ ...n, sending: false }));
     }
   }
-  const pickByCat = (slug: string) =>
-    products.find((p) => p.category === slug && p.images?.[0])?.images[0] ?? products[0].images[0];
+  const pickByCat = (slug: string, keywords: string[] = []) => {
+    const inCat = products.filter((p) => p.category === slug && p.images?.[0]);
+    if (keywords.length) {
+      const kw = keywords.map((k) => k.toLowerCase());
+      const match = inCat.find((p) => {
+        const n = p.name.toLowerCase();
+        return kw.some((k) => n.includes(k));
+      });
+      if (match) return match.images[0];
+    }
+    return inCat[0]?.images[0] ?? products[0].images[0];
+  };
   const saleImg =
     products
       .filter((p) => p.isSale || p.originalPrice > p.price)
@@ -153,13 +163,13 @@ function Index() {
       ?? products[0].images[0];
   const circleCats = [
     { label: "Sale", img: saleImg, to: "/shop" },
-    { label: "Kurtis", img: pickByCat("kurtis"), to: "/category/$slug", params: { slug: "kurtis" } },
-    { label: "Kurta Sets", img: pickByCat("kurta-sets"), to: "/category/$slug", params: { slug: "kurta-sets" } },
-    { label: "Suits", img: pickByCat("unstitched-suits"), to: "/category/$slug", params: { slug: "unstitched-suits" } },
-    { label: "Sarees", img: pickByCat("sarees"), to: "/category/$slug", params: { slug: "sarees" } },
-    { label: "Tops", img: pickByCat("tops-tunics"), to: "/category/$slug", params: { slug: "tops-tunics" } },
-    { label: "Bottoms", img: pickByCat("pants"), to: "/category/$slug", params: { slug: "pants" } },
-    { label: "Inners", img: pickByCat("noodle-strap"), to: "/category/$slug", params: { slug: "noodle-strap" } },
+    { label: "Kurtis", img: pickByCat("kurtis", ["kurti"]), to: "/category/$slug", params: { slug: "kurtis" } },
+    { label: "Kurta Sets", img: pickByCat("kurta-sets", ["kurta set"]), to: "/category/$slug", params: { slug: "kurta-sets" } },
+    { label: "Suits", img: pickByCat("unstitched-suits", ["suit"]), to: "/category/$slug", params: { slug: "unstitched-suits" } },
+    { label: "Sarees", img: pickByCat("sarees", ["saree"]), to: "/category/$slug", params: { slug: "sarees" } },
+    { label: "Tops", img: pickByCat("tops-tunics", ["top", "tunic"]), to: "/category/$slug", params: { slug: "tops-tunics" } },
+    { label: "Bottoms", img: pickByCat("pants", ["pant", "palazzo", "sharara"]), to: "/category/$slug", params: { slug: "pants" } },
+    { label: "Inners", img: pickByCat("noodle-strap", ["noodle", "strap", "inner"]), to: "/category/$slug", params: { slug: "noodle-strap" } },
   ];
 
   return (
