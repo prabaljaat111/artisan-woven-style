@@ -426,6 +426,24 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               <p className="text-[10px] text-muted-foreground">First color is the primary. Press Enter or click Add.</p>
             </div>
           </F>
+          <SpecEditor
+            label="Specifications"
+            value={form.specifications}
+            onChange={(specifications) => setForm({ ...form, specifications })}
+            placeholderKey="Fabric"
+            placeholderValue="Soft Tissue Chanderi"
+          />
+          <SpecEditor
+            label="Attributes"
+            value={form.attributes}
+            onChange={(attributes) => setForm({ ...form, attributes })}
+            placeholderKey="Blouse Piece"
+            placeholderValue="Included"
+          />
+          <ListEditor label="Care Instructions" value={form.care_instructions} onChange={(care_instructions) => setForm({ ...form, care_instructions })} placeholder="Dry clean only" />
+          <ListEditor label="Shipping Information" value={form.shipping_info} onChange={(shipping_info) => setForm({ ...form, shipping_info })} placeholder="Dispatched within 24–48 hours" />
+          <ListEditor label="Return Policy" value={form.return_policy} onChange={(return_policy) => setForm({ ...form, return_policy })} placeholder="7-day easy returns on eligible items" />
+          <F label="Authenticity"><textarea value={form.authenticity} onChange={(e) => setForm({ ...form, authenticity: e.target.value })} rows={2} className={inputCls} /></F>
           <F label="Sizes (comma-separated)"><input value={form.sizes.join(",")} onChange={(e) => setForm({ ...form, sizes: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })} className={inputCls} /></F>
           {form.id && (
             <div>
