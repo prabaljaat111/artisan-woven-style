@@ -56,6 +56,60 @@ function inferFabric(category: string): string {
   return "Premium Cotton / Rayon";
 }
 
+// Category-aware specifications so a saree never shows "Sleeve Length / Neck Style"
+// and a kurti never shows saree-only attributes like "Blouse / Saree Length".
+function specsForCategory(category: string, color: string): Array<[string, string]> {
+  const c = (category || "").toLowerCase();
+  const common: Array<[string, string]> = [
+    ["Embroidery", "Hand Chikankari"],
+    ["Pattern", "Embroidered"],
+    ["Occasion", "Festive · Daily · Office"],
+    ["Color", color],
+    ["Craft Type", "Handcrafted in Lucknow"],
+    ["Country of Origin", "India"],
+  ];
+  if (c.includes("saree")) {
+    return [
+      ["Fabric", inferFabric(c)],
+      ["Saree Length", "5.5 m"],
+      ["Blouse Piece", "0.8 m (Unstitched)"],
+      ["Border", "Embroidered"],
+      ...common,
+    ];
+  }
+  if (c.includes("unstitched")) {
+    return [
+      ["Fabric", inferFabric(c)],
+      ["Suit Pieces", "Top · Bottom · Dupatta"],
+      ["Stitching", "Unstitched"],
+      ...common,
+    ];
+  }
+  if (c.includes("noodle")) {
+    return [
+      ["Fabric", inferFabric(c)],
+      ["Sleeve Length", "Sleeveless"],
+      ["Neck Style", "Square Neck"],
+      ...common,
+    ];
+  }
+  if (c.includes("pant") || c.includes("palazzo")) {
+    return [
+      ["Fabric", inferFabric(c)],
+      ["Waist", "Elasticated"],
+      ["Length", "Ankle Length"],
+      ...common,
+    ];
+  }
+  // Default: kurtis, kurta-sets, co-ord-sets, sharara, garara, tops-tunics
+  return [
+    ["Fabric", inferFabric(c)],
+    ["Sleeve Length", "3/4 Sleeve"],
+    ["Neck Style", "Round Neck"],
+    ...common,
+  ];
+}
+
 export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
@@ -488,17 +542,7 @@ function ProductPage() {
               <AccordionTrigger>Specifications</AccordionTrigger>
               <AccordionContent>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {[
-                    ["Fabric", inferFabric(p.category)],
-                    ["Embroidery", "Hand Chikankari"],
-                    ["Sleeve Length", "3/4 Sleeve"],
-                    ["Neck Style", "Round Neck"],
-                    ["Pattern", "Embroidered"],
-                    ["Occasion", "Festive · Daily · Office"],
-                    ["Color", color],
-                    ["Craft Type", "Handcrafted in Lucknow"],
-                    ["Country of Origin", "India"],
-                  ].map(([k, v]) => (
+                  {specsForCategory(p.category, color).map(([k, v]) => (
                     <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
                       <dt className="text-muted-foreground">{k}</dt>
                       <dd className="text-foreground font-medium text-right">{v}</dd>
