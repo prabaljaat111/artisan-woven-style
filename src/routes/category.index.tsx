@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { categories, byCategory } from "@/data/products";
+import { categories } from "@/data/products";
+import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 
 export const Route = createFileRoute("/category/")({
   head: () => ({
@@ -14,6 +15,13 @@ export const Route = createFileRoute("/category/")({
 });
 
 function CategoryIndex() {
+  const list = useStorefrontProducts();
+  const countFor = (slug: string) => {
+    if (slug === "budget") return list.filter((p) => p.price < 500).length;
+    if (slug === "mid-range") return list.filter((p) => p.price >= 500 && p.price < 1500).length;
+    if (slug === "premium") return list.filter((p) => p.price >= 1500).length;
+    return list.filter((p) => p.category === slug).length;
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 pb-24 md:pb-10">
       <header className="text-center mb-8">
@@ -24,7 +32,7 @@ function CategoryIndex() {
       </header>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         {categories.map((c) => {
-          const count = byCategory(c.slug).length;
+          const count = countFor(c.slug);
           return (
             <Link
               key={c.slug}
