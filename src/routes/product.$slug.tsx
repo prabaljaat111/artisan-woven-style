@@ -15,7 +15,7 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
-import { getProductVariantsBySlug } from "@/lib/admin.functions";
+import { getProductVariantsByProductId } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 // Pan-India delivery date estimator. Dispatch in 1 business day, then add
@@ -142,7 +142,7 @@ function ProductPage() {
   useEffect(() => {
     let cancelled = false;
     const fetchVariants = () => {
-      getProductVariantsBySlug({ data: { slug: p.slug } })
+      getProductVariantsByProductId({ data: { productId: p.id } })
         .then((rows: Array<{ size: string; stock: number }>) => {
           if (cancelled) return;
           if (!rows.length) { setVariantMap(null); return; }
@@ -155,12 +155,12 @@ function ProductPage() {
     fetchVariants();
     // Live-sync: refetch when any variant or this product changes in DB
     const channel = supabase
-      .channel(`pdp-${p.slug}`)
+      .channel(`pdp-${p.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, fetchVariants)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `slug=eq.${p.slug}` }, fetchVariants)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `id=eq.${p.id}` }, fetchVariants)
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, [p.slug]);
+  }, [p.id]);
   const sizeStock = (s: string): number => {
     // If inventory isn't tracked, every size is always purchasable.
     if (p.trackInventory === false) return 999;
