@@ -33,6 +33,12 @@ export interface Product {
   images: string[];
   sizes: string[];
   colors: string[];
+  specifications?: Record<string, string>;
+  attributes?: Record<string, string>;
+  careInstructions?: string[];
+  shippingInfo?: string[];
+  returnPolicy?: string[];
+  authenticity?: string | null;
   description: string;
   inStock: boolean;
   stock: number;

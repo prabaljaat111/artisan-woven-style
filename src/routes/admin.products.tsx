@@ -240,6 +240,12 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     colors: Array.isArray(initial.colors) && initial.colors.length > 0
       ? initial.colors
       : (initial.color ? [initial.color] : []),
+    specifications: initial.specifications && typeof initial.specifications === "object" ? initial.specifications : {},
+    attributes: initial.attributes && typeof initial.attributes === "object" ? initial.attributes : {},
+    care_instructions: Array.isArray(initial.care_instructions) ? initial.care_instructions : [],
+    shipping_info: Array.isArray(initial.shipping_info) ? initial.shipping_info : [],
+    return_policy: Array.isArray(initial.return_policy) ? initial.return_policy : [],
+    authenticity: initial.authenticity ?? "",
     is_new: !!initial.is_new,
     is_bestseller: !!initial.is_bestseller,
     is_published: initial.is_published ?? true,
@@ -294,7 +300,17 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
         : [];
       const primaryColor = colorsList[0] ?? (form.color || null);
       const result = await adminUpsertProduct({
-        data: { ...form, color: primaryColor, colors: colorsList },
+        data: {
+          ...form,
+          color: primaryColor,
+          colors: colorsList,
+          specifications: cleanRecord(form.specifications),
+          attributes: cleanRecord(form.attributes),
+          care_instructions: cleanList(form.care_instructions),
+          shipping_info: cleanList(form.shipping_info),
+          return_policy: cleanList(form.return_policy),
+          authenticity: String(form.authenticity ?? "").trim() || null,
+        },
       });
       // Save variants too if there are any.
       if (variants.length > 0 && (form.id || result?.id)) {
@@ -410,6 +426,24 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
               <p className="text-[10px] text-muted-foreground">First color is the primary. Press Enter or click Add.</p>
             </div>
           </F>
+          <SpecEditor
+            label="Specifications"
+            value={form.specifications}
+            onChange={(specifications) => setForm({ ...form, specifications })}
+            placeholderKey="Fabric"
+            placeholderValue="Soft Tissue Chanderi"
+          />
+          <SpecEditor
+            label="Attributes"
+            value={form.attributes}
+            onChange={(attributes) => setForm({ ...form, attributes })}
+            placeholderKey="Blouse Piece"
+            placeholderValue="Included"
+          />
+          <ListEditor label="Care Instructions" value={form.care_instructions} onChange={(care_instructions) => setForm({ ...form, care_instructions })} placeholder="Dry clean only" />
+          <ListEditor label="Shipping Information" value={form.shipping_info} onChange={(shipping_info) => setForm({ ...form, shipping_info })} placeholder="Dispatched within 24–48 hours" />
+          <ListEditor label="Return Policy" value={form.return_policy} onChange={(return_policy) => setForm({ ...form, return_policy })} placeholder="7-day easy returns on eligible items" />
+          <F label="Authenticity"><textarea value={form.authenticity} onChange={(e) => setForm({ ...form, authenticity: e.target.value })} rows={2} className={inputCls} /></F>
           <F label="Sizes (comma-separated)"><input value={form.sizes.join(",")} onChange={(e) => setForm({ ...form, sizes: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })} className={inputCls} /></F>
           {form.id && (
             <div>
@@ -472,6 +506,43 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
 
 const inputCls = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
 function F({ label, children }: any) { return <label className="block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>{children}</label>; }
+
+function SpecEditor({ label, value, onChange, placeholderKey, placeholderValue }: { label: string; value: Record<string, string>; onChange: (next: Record<string, string>) => void; placeholderKey: string; placeholderValue: string }) {
+  const entries = Object.entries(value ?? {});
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
+      <div className="space-y-2">
+        {entries.map(([key, val], idx) => (
+          <div key={`${key}-${idx}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <input value={key} onChange={(e) => { const next = { ...value }; delete next[key]; next[e.target.value] = val; onChange(next); }} placeholder={placeholderKey} className={inputCls} />
+            <input value={val} onChange={(e) => onChange({ ...value, [key]: e.target.value })} placeholder={placeholderValue} className={inputCls} />
+            <button type="button" onClick={() => { const next = { ...value }; delete next[key]; onChange(next); }} className="px-2 text-red-500"><X className="h-4 w-4" /></button>
+          </div>
+        ))}
+        <button type="button" onClick={() => onChange({ ...value, "": "" })} className="text-[11px] text-gold underline">+ Add {label.toLowerCase()} row</button>
+      </div>
+    </div>
+  );
+}
+
+function ListEditor({ label, value, onChange, placeholder }: { label: string; value: string[]; onChange: (next: string[]) => void; placeholder: string }) {
+  const items = Array.isArray(value) ? value : [];
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex gap-2">
+            <input value={item} onChange={(e) => { const next = [...items]; next[idx] = e.target.value; onChange(next); }} placeholder={placeholder} className={inputCls} />
+            <button type="button" onClick={() => onChange(items.filter((_, i) => i !== idx))} className="px-2 text-red-500"><X className="h-4 w-4" /></button>
+          </div>
+        ))}
+        <button type="button" onClick={() => onChange([...items, ""])} className="text-[11px] text-gold underline">+ Add line</button>
+      </div>
+    </div>
+  );
+}
 
 // ============== IMAGE MANAGER ==============
 const MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
@@ -658,6 +729,17 @@ function slugify(s: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 200);
+}
+function cleanList(v: any): string[] {
+  return Array.isArray(v) ? v.map((item) => String(item ?? "").trim()).filter(Boolean) : [];
+}
+function cleanRecord(v: any): Record<string, string> {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+  return Object.fromEntries(
+    Object.entries(v)
+      .map(([key, val]) => [String(key).trim(), String(val ?? "").trim()])
+      .filter(([key, val]) => key && val),
+  );
 }
 function pick(row: any, keys: string[]): any {
   for (const k of keys) {

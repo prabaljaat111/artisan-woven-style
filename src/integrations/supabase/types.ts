@@ -327,6 +327,9 @@ export type Database = {
       }
       products: {
         Row: {
+          attributes: Json
+          authenticity: string | null
+          care_instructions: string[]
           category_id: string | null
           color: string | null
           colors: string[]
@@ -342,14 +345,20 @@ export type Database = {
           original_price: number
           price: number
           rating: number
+          return_policy: string[]
           reviews: number
+          shipping_info: string[]
           sizes: string[]
           slug: string
+          specifications: Json
           stock: number
           track_inventory: boolean
           updated_at: string
         }
         Insert: {
+          attributes?: Json
+          authenticity?: string | null
+          care_instructions?: string[]
           category_id?: string | null
           color?: string | null
           colors?: string[]
@@ -365,14 +374,20 @@ export type Database = {
           original_price: number
           price: number
           rating?: number
+          return_policy?: string[]
           reviews?: number
+          shipping_info?: string[]
           sizes?: string[]
           slug: string
+          specifications?: Json
           stock?: number
           track_inventory?: boolean
           updated_at?: string
         }
         Update: {
+          attributes?: Json
+          authenticity?: string | null
+          care_instructions?: string[]
           category_id?: string | null
           color?: string | null
           colors?: string[]
@@ -388,9 +403,12 @@ export type Database = {
           original_price?: number
           price?: number
           rating?: number
+          return_policy?: string[]
           reviews?: number
+          shipping_info?: string[]
           sizes?: string[]
           slug?: string
+          specifications?: Json
           stock?: number
           track_inventory?: boolean
           updated_at?: string

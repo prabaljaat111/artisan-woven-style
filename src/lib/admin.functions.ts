@@ -100,6 +100,12 @@ const ProductInput = z.object({
   original_price: z.number().min(0).max(1_000_000),
   color: z.string().max(80).nullable().optional(),
   colors: z.array(z.string().min(1).max(80)).max(30).optional().default([]),
+  specifications: z.record(z.string(), z.string().max(500)).optional().default({}),
+  attributes: z.record(z.string(), z.string().max(500)).optional().default({}),
+  care_instructions: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  shipping_info: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  return_policy: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  authenticity: z.string().max(1000).nullable().optional(),
   is_new: z.boolean().default(false),
   is_bestseller: z.boolean().default(false),
   is_published: z.boolean().default(true),
@@ -116,11 +122,11 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { id, ...rest } = data;
     if (id) {
-      const { error } = await context.supabase.from("products").update(rest).eq("id", id);
+      const { error } = await context.supabase.from("products").update(rest as any).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     } else {
-      const { data: row, error } = await context.supabase.from("products").insert(rest).select("id").single();
+      const { data: row, error } = await context.supabase.from("products").insert(rest as any).select("id").single();
       if (error) throw new Error(error.message);
       return { id: row.id };
     }
@@ -172,6 +178,13 @@ const BulkRow = z.object({
   price: z.number().min(0).max(1_000_000),
   original_price: z.number().min(0).max(1_000_000),
   color: z.string().max(80).optional().nullable(),
+  colors: z.array(z.string().min(1).max(80)).max(30).optional().default([]),
+  specifications: z.record(z.string(), z.string().max(500)).optional().default({}),
+  attributes: z.record(z.string(), z.string().max(500)).optional().default({}),
+  care_instructions: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  shipping_info: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  return_policy: z.array(z.string().min(1).max(500)).max(30).optional().default([]),
+  authenticity: z.string().max(1000).optional().nullable(),
   is_new: z.boolean().optional().default(false),
   is_bestseller: z.boolean().optional().default(false),
   is_published: z.boolean().optional().default(true),
@@ -228,7 +241,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
       const batch = payload.slice(i, i + CHUNK);
       const { error, count } = await context.supabase
         .from("products")
-        .upsert(batch, { onConflict: "slug", count: "exact" });
+        .upsert(batch as any, { onConflict: "slug", count: "exact" });
       if (!error) {
         inserted += count ?? batch.length;
         continue;
@@ -237,7 +250,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
       for (const row of batch) {
         const { error: rowErr } = await context.supabase
           .from("products")
-          .upsert(row, { onConflict: "slug" });
+          .upsert(row as any, { onConflict: "slug" });
         if (rowErr) errors.push(`${row.slug}: ${rowErr.message}`);
         else inserted++;
       }
@@ -495,16 +508,16 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
 
 // Public read for storefront PDP. Uses publishable-key RLS so Hostinger does
 // not need a private service-role secret for product page stock display.
-export const getProductVariantsBySlug = createServerFn({ method: "GET" })
-  .inputValidator((i: { slug: string }) =>
-    z.object({ slug: z.string().min(1).max(200) }).parse(i),
+export const getProductVariantsByProductId = createServerFn({ method: "GET" })
+  .inputValidator((i: { productId: string }) =>
+    z.object({ productId: z.string().uuid() }).parse(i),
   )
   .handler(async ({ data }) => {
     const supabasePublic = createPublicServerClient();
     const { data: product } = await supabasePublic
       .from("products")
       .select("id")
-      .eq("slug", data.slug)
+      .eq("id", data.productId)
       .eq("is_published", true)
       .maybeSingle();
     if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;

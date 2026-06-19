@@ -4,6 +4,7 @@ import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, Chev
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { findProduct, type Product } from "@/data/products";
+import { buildProductDetailSections } from "@/lib/product-details";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { useCart } from "@/store/cart";
@@ -14,7 +15,7 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
-import { getProductVariantsBySlug } from "@/lib/admin.functions";
+import { getProductVariantsByProductId } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 // Pan-India delivery date estimator. Dispatch in 1 business day, then add
@@ -50,68 +51,6 @@ function colorToHex(name: string): string {
   }
   // Neutral beige fallback — never random purple for unknown names.
   return "#d9c9ad";
-}
-
-function inferFabric(category: string): string {
-  if (category.includes("saree")) return "Pure Georgette / Cotton";
-  if (category.includes("palazzo") || category.includes("pants")) return "Cotton";
-  if (category.includes("sharara") || category.includes("garara")) return "Georgette";
-  if (category.includes("unstitched")) return "Cotton (Unstitched)";
-  return "Premium Cotton / Rayon";
-}
-
-// Category-aware specifications so a saree never shows "Sleeve Length / Neck Style"
-// and a kurti never shows saree-only attributes like "Blouse / Saree Length".
-function specsForCategory(category: string, color: string): Array<[string, string]> {
-  const c = (category || "").toLowerCase();
-  const common: Array<[string, string]> = [
-    ["Embroidery", "Hand Chikankari"],
-    ["Pattern", "Embroidered"],
-    ["Occasion", "Festive · Daily · Office"],
-    ["Color", color],
-    ["Craft Type", "Handcrafted in Lucknow"],
-    ["Country of Origin", "India"],
-  ];
-  if (c.includes("saree")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Saree Length", "5.5 m"],
-      ["Blouse Piece", "0.8 m (Unstitched)"],
-      ["Border", "Embroidered"],
-      ...common,
-    ];
-  }
-  if (c.includes("unstitched")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Suit Pieces", "Top · Bottom · Dupatta"],
-      ["Stitching", "Unstitched"],
-      ...common,
-    ];
-  }
-  if (c.includes("noodle")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Sleeve Length", "Sleeveless"],
-      ["Neck Style", "Square Neck"],
-      ...common,
-    ];
-  }
-  if (c.includes("pant") || c.includes("palazzo")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Waist", "Elasticated"],
-      ["Length", "Ankle Length"],
-      ...common,
-    ];
-  }
-  // Default: kurtis, kurta-sets, co-ord-sets, sharara, garara, tops-tunics
-  return [
-    ["Fabric", inferFabric(c)],
-    ["Sleeve Length", "3/4 Sleeve"],
-    ["Neck Style", "Round Neck"],
-    ...common,
-  ];
 }
 
 export const Route = createFileRoute("/product/$slug")({
@@ -181,7 +120,8 @@ function ProductPage() {
   const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
   const sizes = useMemo(() => {
     const set = new Set<string>(p.sizes ?? []);
-    return ALL_SIZES.filter((s) => set.has(s) || (p.sizes ?? []).length === 0 ? true : set.has(s));
+    if (set.size === 0) return ALL_SIZES;
+    return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s: string) => !ALL_SIZES.includes(s))];
   }, [p.sizes]);
   const [size, setSize] = useState(sizes[1] ?? sizes[0]);
   const [color, setColor] = useState(p.colors[0]);
@@ -203,7 +143,11 @@ function ProductPage() {
   useEffect(() => {
     let cancelled = false;
     const fetchVariants = () => {
-      getProductVariantsBySlug({ data: { slug: p.slug } })
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) {
+        setVariantMap(null);
+        return;
+      }
+      getProductVariantsByProductId({ data: { productId: p.id } })
         .then((rows: Array<{ size: string; stock: number }>) => {
           if (cancelled) return;
           if (!rows.length) { setVariantMap(null); return; }
@@ -216,12 +160,12 @@ function ProductPage() {
     fetchVariants();
     // Live-sync: refetch when any variant or this product changes in DB
     const channel = supabase
-      .channel(`pdp-${p.slug}`)
+      .channel(`pdp-${p.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, fetchVariants)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `slug=eq.${p.slug}` }, fetchVariants)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `id=eq.${p.id}` }, fetchVariants)
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, [p.slug]);
+  }, [p.id]);
   const sizeStock = (s: string): number => {
     // If inventory isn't tracked, every size is always purchasable.
     if (p.trackInventory === false) return 999;
@@ -237,6 +181,10 @@ function ProductPage() {
     incrementProductView();
     addRecent(p.id);
     setImgIdx(0);
+    setSize(sizes[1] ?? sizes[0] ?? "");
+    setColor(p.colors[0] ?? "");
+    setQty(1);
+    setVariantMap(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
   const wished = mounted && ids.includes(p.id);
@@ -290,6 +238,7 @@ function ProductPage() {
     const matched = p.images.filter((src: string) => src.toLowerCase().includes(tag));
     return matched.length ? matched : p.images;
   }, [p.images, color]);
+  const details = useMemo(() => buildProductDetailSections(p, color), [p, color]);
   useEffect(() => { setImgIdx(0); }, [color]);
   function nextImg() { setImgIdx((i) => (i + 1) % gallery.length); }
   function prevImg() { setImgIdx((i) => (i - 1 + gallery.length) % gallery.length); }
@@ -546,45 +495,52 @@ function ProductPage() {
               <AccordionTrigger>Specifications</AccordionTrigger>
               <AccordionContent>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {specsForCategory(p.category, color).map(([k, v]) => (
+                  {details.specifications.map(([k, v]) => (
                     <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
                       <dt className="text-muted-foreground">{k}</dt>
                       <dd className="text-foreground font-medium text-right">{v}</dd>
                     </div>
                   ))}
                 </dl>
+                {details.attributes.length > 0 && (
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3 pt-3 border-t border-border/60">
+                    {details.attributes.map(([k, v]) => (
+                      <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
+                        <dt className="text-muted-foreground">{k}</dt>
+                        <dd className="text-foreground font-medium text-right">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="ship">
               <AccordionTrigger>Shipping Information</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· Delivered in 3–5 business days across India.</p>
-                <p>· Free shipping on orders above ₹999.</p>
-                <p>· Cash on Delivery available on most pincodes.</p>
-                <p>· Dispatched within 24–48 hours of order confirmation.</p>
-                <p>· International shipping available on request via WhatsApp.</p>
+                {(details.shippingInfo.length > 0 ? details.shippingInfo : ["Delivered in 3–5 business days across India.", "Free shipping on orders above ₹999.", "Cash on Delivery available on most pincodes.", "Dispatched within 24–48 hours of order confirmation.", "International shipping available on request via WhatsApp."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="returns">
               <AccordionTrigger>Return Policy</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· 7-day easy returns on unworn, unwashed items with original tags.</p>
-                <p>· Refund processed within 5–7 business days after pickup.</p>
-                <p>· Sale and customised pieces are non-returnable.</p>
+                {(details.returnPolicy.length > 0 ? details.returnPolicy : ["7-day easy returns on unworn, unwashed items with original tags.", "Refund processed within 5–7 business days after pickup.", "Sale and customised pieces are non-returnable."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="care">
               <AccordionTrigger>Care Instructions</AccordionTrigger>
               <AccordionContent className="text-sm text-foreground/80 space-y-1">
-                <p>· Gentle hand wash separately in cold water.</p>
-                <p>· Do not bleach. Dry in shade to preserve colour.</p>
-                <p>· Iron on reverse on medium heat.</p>
-                <p>· Store folded with a muslin cloth between pieces.</p>
+                {(details.careInstructions.length > 0 ? details.careInstructions : ["Gentle hand wash separately in cold water.", "Do not bleach. Dry in shade to preserve colour.", "Iron on reverse on medium heat.", "Store folded with a muslin cloth between pieces."]).map((item) => (
+                  <p key={item}>· {item}</p>
+                ))}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="auth">
               <AccordionTrigger>Authenticity</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages.</AccordionContent>
+              <AccordionContent className="text-sm text-muted-foreground">{details.authenticity ?? "Every piece is hand-embroidered by master artisans from Lucknow. Sourced directly with fair wages."}</AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
