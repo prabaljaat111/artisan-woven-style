@@ -507,6 +507,43 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
 const inputCls = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
 function F({ label, children }: any) { return <label className="block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>{children}</label>; }
 
+function SpecEditor({ label, value, onChange, placeholderKey, placeholderValue }: { label: string; value: Record<string, string>; onChange: (next: Record<string, string>) => void; placeholderKey: string; placeholderValue: string }) {
+  const entries = Object.entries(value ?? {});
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
+      <div className="space-y-2">
+        {entries.map(([key, val], idx) => (
+          <div key={`${key}-${idx}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <input value={key} onChange={(e) => { const next = { ...value }; delete next[key]; next[e.target.value] = val; onChange(next); }} placeholder={placeholderKey} className={inputCls} />
+            <input value={val} onChange={(e) => onChange({ ...value, [key]: e.target.value })} placeholder={placeholderValue} className={inputCls} />
+            <button type="button" onClick={() => { const next = { ...value }; delete next[key]; onChange(next); }} className="px-2 text-red-500"><X className="h-4 w-4" /></button>
+          </div>
+        ))}
+        <button type="button" onClick={() => onChange({ ...value, "": "" })} className="text-[11px] text-gold underline">+ Add {label.toLowerCase()} row</button>
+      </div>
+    </div>
+  );
+}
+
+function ListEditor({ label, value, onChange, placeholder }: { label: string; value: string[]; onChange: (next: string[]) => void; placeholder: string }) {
+  const items = Array.isArray(value) ? value : [];
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex gap-2">
+            <input value={item} onChange={(e) => { const next = [...items]; next[idx] = e.target.value; onChange(next); }} placeholder={placeholder} className={inputCls} />
+            <button type="button" onClick={() => onChange(items.filter((_, i) => i !== idx))} className="px-2 text-red-500"><X className="h-4 w-4" /></button>
+          </div>
+        ))}
+        <button type="button" onClick={() => onChange([...items, ""])} className="text-[11px] text-gold underline">+ Add line</button>
+      </div>
+    </div>
+  );
+}
+
 // ============== IMAGE MANAGER ==============
 const MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMG_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
