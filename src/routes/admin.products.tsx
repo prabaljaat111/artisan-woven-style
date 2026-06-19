@@ -675,6 +675,17 @@ function slugify(s: string): string {
     .replace(/^-|-$/g, "")
     .slice(0, 200);
 }
+function cleanList(v: any): string[] {
+  return Array.isArray(v) ? v.map((item) => String(item ?? "").trim()).filter(Boolean) : [];
+}
+function cleanRecord(v: any): Record<string, string> {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+  return Object.fromEntries(
+    Object.entries(v)
+      .map(([key, val]) => [String(key).trim(), String(val ?? "").trim()])
+      .filter(([key, val]) => key && val),
+  );
+}
 function pick(row: any, keys: string[]): any {
   for (const k of keys) {
     const v = row[k];
