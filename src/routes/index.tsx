@@ -32,11 +32,11 @@ export const Route = createFileRoute("/")({
 });
 
 const HERO_SLIDES = [
-  { img: hero1, kicker: "New Collection", title: "Timeless Ivory", caption: "Hand-embroidered Chikankari classics" },
-  { img: hero2, kicker: "Bridal Edit", title: "Maroon & Gold", caption: "Heirloom craftsmanship, modern silhouettes" },
-  { img: hero3, kicker: "Summer Edit", title: "Pastel Whispers", caption: "Featherlight cotton, mint freshness" },
-  { img: hero4, kicker: "Festive 2026", title: "Blush Anarkali", caption: "Flowing grace with mukaish detail" },
-  { img: hero5, kicker: "Limited Edition", title: "Golden Couture", caption: "Regal zardozi for the modern bride" },
+  { img: hero1, kicker: "New Collection", title: "Timeless Ivory", caption: "Hand-embroidered Chikankari classics", bg: "#efe6d3" },
+  { img: hero2, kicker: "Bridal Edit", title: "Maroon & Gold", caption: "Heirloom craftsmanship, modern silhouettes", bg: "#e8d2a6" },
+  { img: hero3, kicker: "Summer Edit", title: "Pastel Whispers", caption: "Featherlight cotton, mint freshness", bg: "#f3dccb" },
+  { img: hero4, kicker: "Festive 2026", title: "Blush Anarkali", caption: "Flowing grace with mukaish detail", bg: "#eaa7b1" },
+  { img: hero5, kicker: "Limited Edition", title: "Golden Couture", caption: "Regal zardozi for the modern bride", bg: "#d9b97a" },
 ];
 
 function HeroSlider() {
@@ -51,7 +51,8 @@ function HeroSlider() {
   const go = (dir: number) => setI((p) => (p + dir + HERO_SLIDES.length) % HERO_SLIDES.length);
   return (
     <section
-      className="relative w-full h-[72vh] md:h-[92vh] overflow-hidden bg-secondary/40"
+      className="relative w-full h-[72vh] md:h-[92vh] overflow-hidden transition-colors duration-700"
+      style={{ backgroundColor: slide.bg }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
