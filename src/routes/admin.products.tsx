@@ -237,6 +237,9 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     price: Number(initial.price ?? 0),
     original_price: Number(initial.original_price ?? 0),
     color: initial.color ?? "",
+    colors: Array.isArray(initial.colors) && initial.colors.length > 0
+      ? initial.colors
+      : (initial.color ? [initial.color] : []),
     is_new: !!initial.is_new,
     is_bestseller: !!initial.is_bestseller,
     is_published: initial.is_published ?? true,
@@ -248,6 +251,7 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   });
   const [saving, setSaving] = useState(false);
   const [newImg, setNewImg] = useState("");
+  const [newColor, setNewColor] = useState("");
   // Variant matrix (per-size stock). Only loaded when editing an existing product.
   const [variants, setVariants] = useState<Array<{ id?: string; size: string; color: string | null; sku: string | null; stock: number }>>([]);
   const [variantsDirty, setVariantsDirty] = useState(false);
@@ -285,7 +289,13 @@ function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
     if (form.original_price < form.price) return toast.error("MRP must be ≥ price");
     setSaving(true);
     try {
-      const result = await adminUpsertProduct({ data: { ...form, color: form.color || null } });
+      const colorsList: string[] = Array.isArray(form.colors)
+        ? Array.from(new Set(form.colors.map((c: string) => c.trim()).filter(Boolean)))
+        : [];
+      const primaryColor = colorsList[0] ?? (form.color || null);
+      const result = await adminUpsertProduct({
+        data: { ...form, color: primaryColor, colors: colorsList },
+      });
       // Save variants too if there are any.
       if (variants.length > 0 && (form.id || result?.id)) {
         await adminSaveVariants({
