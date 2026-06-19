@@ -176,6 +176,10 @@ function ProductPage() {
     incrementProductView();
     addRecent(p.id);
     setImgIdx(0);
+    setSize(sizes[1] ?? sizes[0] ?? "");
+    setColor(p.colors[0] ?? "");
+    setQty(1);
+    setVariantMap(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
   const wished = mounted && ids.includes(p.id);
