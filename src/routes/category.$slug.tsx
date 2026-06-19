@@ -79,11 +79,6 @@ function CategoryPage() {
             <p className="text-sm md:text-base text-foreground/80 mt-5 leading-relaxed">
               {banner.blurb}
             </p>
-            <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              <span>{items.length} {items.length === 1 ? "Piece" : "Pieces"}</span>
-              <span className="h-px w-8 bg-border" />
-              <span>Hand-Crafted in Lucknow</span>
-            </div>
           </div>
         </div>
       </section>
