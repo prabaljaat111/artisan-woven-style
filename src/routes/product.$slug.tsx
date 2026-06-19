@@ -4,6 +4,7 @@ import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, Chev
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { findProduct, type Product } from "@/data/products";
+import { buildProductDetailSections } from "@/lib/product-details";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { useCart } from "@/store/cart";
@@ -50,68 +51,6 @@ function colorToHex(name: string): string {
   }
   // Neutral beige fallback — never random purple for unknown names.
   return "#d9c9ad";
-}
-
-function inferFabric(category: string): string {
-  if (category.includes("saree")) return "Pure Georgette / Cotton";
-  if (category.includes("palazzo") || category.includes("pants")) return "Cotton";
-  if (category.includes("sharara") || category.includes("garara")) return "Georgette";
-  if (category.includes("unstitched")) return "Cotton (Unstitched)";
-  return "Premium Cotton / Rayon";
-}
-
-// Category-aware specifications so a saree never shows "Sleeve Length / Neck Style"
-// and a kurti never shows saree-only attributes like "Blouse / Saree Length".
-function specsForCategory(category: string, color: string): Array<[string, string]> {
-  const c = (category || "").toLowerCase();
-  const common: Array<[string, string]> = [
-    ["Embroidery", "Hand Chikankari"],
-    ["Pattern", "Embroidered"],
-    ["Occasion", "Festive · Daily · Office"],
-    ["Color", color],
-    ["Craft Type", "Handcrafted in Lucknow"],
-    ["Country of Origin", "India"],
-  ];
-  if (c.includes("saree")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Saree Length", "5.5 m"],
-      ["Blouse Piece", "0.8 m (Unstitched)"],
-      ["Border", "Embroidered"],
-      ...common,
-    ];
-  }
-  if (c.includes("unstitched")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Suit Pieces", "Top · Bottom · Dupatta"],
-      ["Stitching", "Unstitched"],
-      ...common,
-    ];
-  }
-  if (c.includes("noodle")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Sleeve Length", "Sleeveless"],
-      ["Neck Style", "Square Neck"],
-      ...common,
-    ];
-  }
-  if (c.includes("pant") || c.includes("palazzo")) {
-    return [
-      ["Fabric", inferFabric(c)],
-      ["Waist", "Elasticated"],
-      ["Length", "Ankle Length"],
-      ...common,
-    ];
-  }
-  // Default: kurtis, kurta-sets, co-ord-sets, sharara, garara, tops-tunics
-  return [
-    ["Fabric", inferFabric(c)],
-    ["Sleeve Length", "3/4 Sleeve"],
-    ["Neck Style", "Round Neck"],
-    ...common,
-  ];
 }
 
 export const Route = createFileRoute("/product/$slug")({
