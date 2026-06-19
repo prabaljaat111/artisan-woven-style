@@ -329,6 +329,7 @@ export type Database = {
         Row: {
           category_id: string | null
           color: string | null
+          colors: string[]
           created_at: string
           description: string
           id: string
@@ -351,6 +352,7 @@ export type Database = {
         Insert: {
           category_id?: string | null
           color?: string | null
+          colors?: string[]
           created_at?: string
           description?: string
           id?: string
@@ -373,6 +375,7 @@ export type Database = {
         Update: {
           category_id?: string | null
           color?: string | null
+          colors?: string[]
           created_at?: string
           description?: string
           id?: string
