@@ -354,6 +354,7 @@ export type Database = {
           stock: number
           track_inventory: boolean
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           attributes?: Json
@@ -383,6 +384,7 @@ export type Database = {
           stock?: number
           track_inventory?: boolean
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           attributes?: Json
@@ -412,6 +414,7 @@ export type Database = {
           stock?: number
           track_inventory?: boolean
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
