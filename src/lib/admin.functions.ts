@@ -141,6 +141,42 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Duplicate a product: copies every field except id/slug/created_at/updated_at,
+// marks the copy as unpublished draft, appends "-copy" (and increments) to slug/name.
+export const adminCloneProduct = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: src, error } = await context.supabase
+      .from("products").select("*").eq("id", data.id).single();
+    if (error || !src) throw new Error(error?.message ?? "Product not found");
+
+    // Find a free slug
+    let candidate = `${(src as any).slug}-copy`;
+    let n = 1;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { data: exists } = await context.supabase
+        .from("products").select("id").eq("slug", candidate).maybeSingle();
+      if (!exists) break;
+      n += 1;
+      candidate = `${(src as any).slug}-copy-${n}`;
+      if (n > 50) throw new Error("Could not generate unique slug");
+    }
+
+    const { id: _id, created_at: _c, updated_at: _u, ...rest } = src as any;
+    const payload = {
+      ...rest,
+      slug: candidate,
+      name: `${(src as any).name} (Copy${n > 1 ? ` ${n}` : ""})`,
+      is_published: false,
+    };
+    const { data: created, error: insErr } = await context.supabase
+      .from("products").insert(payload).select("id").single();
+    if (insErr) throw new Error(insErr.message);
+    return { id: created.id, slug: candidate };
+  });
+
 const BulkInput = z.object({
   ids: z.array(z.string().uuid()).min(1).max(500),
   action: z.enum(["publish", "unpublish", "delete", "bestseller_on", "bestseller_off", "new_on", "new_off"]),

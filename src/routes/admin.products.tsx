@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts } from "@/lib/admin.functions";
+import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts, adminCloneProduct } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
@@ -179,6 +179,28 @@ function ProductsPage() {
                   <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
                   <td className="p-2 text-right whitespace-nowrap">
                     <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                    <button
+                      type="button"
+                      title="Clone this product"
+                      onClick={async () => {
+                        try {
+                          const r = await adminCloneProduct({ data: { id: p.id } });
+                          toast.success("Cloned as draft");
+                          load();
+                          // open the new copy for editing right away
+                          setTimeout(async () => {
+                            const fresh = await adminListProducts();
+                            const copy = fresh.find((x: any) => x.id === r.id);
+                            if (copy) setEditing(copy);
+                          }, 200);
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Clone failed");
+                        }
+                      }}
+                      className="text-xs p-1.5 hover:bg-secondary rounded"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
                     <button type="button" onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                   </td>
                 </tr>
