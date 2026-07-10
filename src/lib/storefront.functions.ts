@@ -25,7 +25,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
   const supabasePublic = createPublicServerClient();
   const { data, error } = await supabasePublic
     .from("products")
-    .select("id, slug, name, description, specifications, attributes, care_instructions, shipping_info, return_policy, authenticity, price, original_price, color, colors, is_new, is_bestseller, stock, sizes, images, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
+    .select("id, slug, name, description, specifications, attributes, care_instructions, shipping_info, return_policy, authenticity, price, original_price, color, colors, is_new, is_bestseller, stock, sizes, images, video_url, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -37,6 +37,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
     price: Number(r.price),
     originalPrice: Number(r.original_price),
     images: (r.images?.length ? r.images : [""]) as string[],
+    videoUrl: r.video_url ?? null,
     sizes: (r.sizes?.length ? r.sizes : ["XS", "S", "M", "L", "XL", "XXL"]) as string[],
     colors: (Array.isArray(r.colors) && r.colors.length > 0)
       ? r.colors

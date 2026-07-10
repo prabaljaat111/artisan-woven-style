@@ -33,6 +33,7 @@ export interface Product {
   images: string[];
   sizes: string[];
   colors: string[];
+  videoUrl?: string | null;
   specifications?: Record<string, string>;
   attributes?: Record<string, string>;
   careInstructions?: string[];
