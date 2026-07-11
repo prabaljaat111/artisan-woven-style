@@ -494,24 +494,26 @@ function ProductPage() {
             <AccordionItem value="specs">
               <AccordionTrigger>Specifications</AccordionTrigger>
               <AccordionContent>
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0 text-sm">
                   {details.specifications.map(([k, v]) => (
-                    <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
-                      <dt className="text-muted-foreground">{k}</dt>
-                      <dd className="text-foreground font-medium text-right">{v}</dd>
+                    <div
+                      key={k}
+                      className="grid grid-cols-[7rem_minmax(0,1fr)] items-baseline gap-4 border-b border-border/60 py-3"
+                    >
+                      <dt className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground font-medium">{k}</dt>
+                      <dd className="text-foreground font-medium leading-snug break-words">{v}</dd>
+                    </div>
+                  ))}
+                  {details.attributes.map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="grid grid-cols-[7rem_minmax(0,1fr)] items-baseline gap-4 border-b border-border/60 py-3"
+                    >
+                      <dt className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground font-medium">{k}</dt>
+                      <dd className="text-foreground font-medium leading-snug break-words">{v}</dd>
                     </div>
                   ))}
                 </dl>
-                {details.attributes.length > 0 && (
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3 pt-3 border-t border-border/60">
-                    {details.attributes.map(([k, v]) => (
-                      <div key={k} className="flex justify-between border-b border-border/60 py-1.5">
-                        <dt className="text-muted-foreground">{k}</dt>
-                        <dd className="text-foreground font-medium text-right">{v}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="ship">
