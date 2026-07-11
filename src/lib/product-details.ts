@@ -75,7 +75,6 @@ export function buildProductDetailSections(product: Product, selectedColor?: str
     .filter(([label]) => allowed.has(labelKey(label)));
   const productFacts: Array<[string, string]> = [
     selectedColor ? ["Color", selectedColor] : null,
-    product.sizes?.length ? ["Sizes", product.sizes.join(" · ")] : null,
   ].filter(Boolean) as Array<[string, string]>;
 
   return {
