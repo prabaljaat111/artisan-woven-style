@@ -113,6 +113,7 @@ export const Route = createFileRoute("/product/$slug")({
 
 function ProductPage() {
   const loaded = Route.useLoaderData();
+  if (!loaded) throw notFound();
   const all = useStorefrontProducts();
   // Prefer live-synced product so realtime edits reflect in the PDP body.
   const p = all.find((x) => x.slug === loaded.slug) ?? loaded;

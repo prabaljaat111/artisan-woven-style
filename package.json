@@ -16,6 +16,8 @@
     "preview": "vite preview",
     "start": "node hostinger-server.mjs",
     "start:hostinger": "node hostinger-server.mjs",
+    "check:hostinger": "node hostinger-server.mjs --check",
+    "test:hostinger": "node --test scripts/hostinger-runtime.test.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
