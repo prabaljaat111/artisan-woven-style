@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -6,7 +7,7 @@ import { adminGetShiprocketSettings, adminUpdateShiprocketSettings } from "@/lib
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/shipping")({ component: Page });
+export const Route = createFileRoute("/admin/settings/shipping")({ head: () => ({ meta: adminPageMeta("Shipping Settings") }), component: Page });
 
 interface SrSettings {
   pickup_location: string;

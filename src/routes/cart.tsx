@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
 
 export const Route = createFileRoute("/cart")({
-  head: () => ({ meta: [{ title: "Your Cart — Indian Handicraft Standards" }, { name: "description", content: "Review the pieces in your cart and proceed to checkout." }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: [{ property: "og:title", content: "Your Cart \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Review the pieces in your cart and proceed to checkout." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Your Cart — Indian Handicraft Standards" }, { name: "description", content: "Review the pieces in your cart and proceed to checkout." }, { name: "robots", content: "noindex,nofollow" }] }),
   component: CartPage,
 });
 

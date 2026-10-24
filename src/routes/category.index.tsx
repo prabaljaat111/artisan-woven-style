@@ -4,12 +4,12 @@ import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 
 export const Route = createFileRoute("/category/")({
   head: () => ({
-    meta: [
+    meta: [{ property: "og:title", content: "Shop by Category \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Browse all Chikankari categories \u2014 kurtis, kurta sets, sarees, sharara, palazzo, and more." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Shop by Category — Indian Handicraft Standards" },
       { name: "description", content: "Browse all Chikankari categories — kurtis, kurta sets, sarees, sharara, palazzo, and more." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/category" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/category" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/category" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/category" }],
   }),
   component: CategoryIndex,
 });

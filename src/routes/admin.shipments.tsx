@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,7 +19,7 @@ import {
 
 export const Route = createFileRoute("/admin/shipments")({
   component: ShipmentsPage,
-  head: () => ({ meta: [{ title: "Shipments · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Shipments") }),
 });
 
 interface ShipmentRow {

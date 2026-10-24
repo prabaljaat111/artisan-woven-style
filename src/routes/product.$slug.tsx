@@ -57,7 +57,7 @@ export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
     const p = loaderData as Product | undefined;
-    if (!p) return { meta: [{ title: "Product — Indian Handicraft Standards" }] };
+    if (!p) return { meta: [{ name: "twitter:card", content: "summary" }, { title: "Product — Indian Handicraft Standards" }] };
     const desc = `${p.name} — authentic Lucknowi Chikankari. ₹${p.price}.`;
     const img = p.images?.[0];
     const jsonLd = {
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/product/$slug")({
         availability: "https://schema.org/InStock",
       },
     };
-    const url = `https://indianhandicraft.revnlabel.in/product/${p.slug}`;
+    const url = `https://indianhandicraftstandards.com/product/${p.slug}`;
     return {
       meta: [
         { title: `${p.name} — Indian Handicraft Standards` },
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/product/$slug")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "product" },
         { property: "og:url", content: url },
-        ...(img ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
+        ...(img && /^https:\/\//.test(img) ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],

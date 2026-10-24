@@ -37,14 +37,14 @@ function parseSearch(raw: Record<string, unknown>) {
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
   head: () => ({
-    meta: [
+    meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Shop All — Indian Handicraft Standards" },
       { name: "description", content: "Browse our full collection of authentic Lucknowi Chikankari apparel." },
       { property: "og:title", content: "Shop All — Indian Handicraft Standards" },
       { property: "og:description", content: "Browse our full Chikankari collection." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/shop" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/shop" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/shop" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/shop" }],
   }),
 });
 

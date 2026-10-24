@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, PageHeader, Section, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/leads")({ component: Page });
+export const Route = createFileRoute("/admin/settings/leads")({ head: () => ({ meta: adminPageMeta("Leads Settings") }), component: Page });
 
 type V = {
   sources_csv: string;

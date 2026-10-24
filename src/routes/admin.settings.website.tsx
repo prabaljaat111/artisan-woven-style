@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Save, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Field, PageHeader, Section } from "@/components/admin/SettingsField";

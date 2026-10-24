@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, PageHeader, Section, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/customer")({ component: Page });
+export const Route = createFileRoute("/admin/settings/customer")({ head: () => ({ meta: adminPageMeta("Customer Settings") }), component: Page });
 
 type V = {
   allow_signup: boolean;

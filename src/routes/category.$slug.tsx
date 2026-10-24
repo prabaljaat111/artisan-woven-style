@@ -37,9 +37,9 @@ export const Route = createFileRoute("/category/$slug")({
   head: ({ params, loaderData }) => {
     const cat = loaderData as { name: string; slug: string } | undefined;
     const name = cat?.name ?? params.slug;
-    const url = `https://indianhandicraft.revnlabel.in/category/${params.slug}`;
+    const url = `https://indianhandicraftstandards.com/category/${params.slug}`;
     return {
-      meta: [
+      meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
         { title: `${name} — Indian Handicraft Standards` },
         { name: "description", content: `Shop authentic Lucknowi Chikankari ${name.toLowerCase()}.` },
         { property: "og:title", content: `${name} — Indian Handicraft Standards` },

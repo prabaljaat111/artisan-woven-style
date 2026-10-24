@@ -4,14 +4,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export const Route = createFileRoute("/faq")({
   component: FAQPage,
   head: () => ({
-    meta: [
+    meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "FAQs — Indian Handicraft Standards" },
       { name: "description", content: "Answers about Chikankari fabric, sizing, shipping, returns and authenticity." },
       { property: "og:title", content: "Frequently Asked Questions" },
       { property: "og:description", content: "Everything you need to know before ordering." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/faq" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/faq" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/faq" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/faq" }],
     scripts: [{
       type: "application/ld+json",
       children: JSON.stringify({

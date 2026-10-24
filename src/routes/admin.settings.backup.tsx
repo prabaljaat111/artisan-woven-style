@@ -1,7 +1,8 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { ComingSoon, PageHeader, Section } from "@/components/admin/SettingsField";
 
-export const Route = createFileRoute("/admin/settings/backup")({ component: () => (
+export const Route = createFileRoute("/admin/settings/backup")({ head: () => ({ meta: adminPageMeta("Backup Settings") }), component: () => (
   <div className="max-w-3xl space-y-6">
     <PageHeader title="Backup & System" description="Backups, restore, and system health monitoring." />
     <Section title="Backups">

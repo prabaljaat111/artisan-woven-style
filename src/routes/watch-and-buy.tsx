@@ -8,12 +8,12 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/watch-and-buy")({
   head: () => ({
-    meta: [
+    meta: [{ property: "og:title", content: "Watch & Buy \u2014 Shoppable Chikankari Reels | Indian Handicraft Standards" }, { property: "og:description", content: "Tap through styled looks of hand-embroidered Chikankari and shop straight from the reel." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Watch & Buy — Shoppable Chikankari Reels | Indian Handicraft Standards" },
       { name: "description", content: "Tap through styled looks of hand-embroidered Chikankari and shop straight from the reel." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/watch-and-buy" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/watch-and-buy" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/watch-and-buy" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/watch-and-buy" }],
   }),
   component: WatchAndBuy,
 });

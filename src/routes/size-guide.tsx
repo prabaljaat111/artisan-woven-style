@@ -4,14 +4,14 @@ import { Ruler, Info } from "lucide-react";
 export const Route = createFileRoute("/size-guide")({
   component: SizeGuidePage,
   head: () => ({
-    meta: [
+    meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Size Guide — Indian Handicraft Standards" },
       { name: "description", content: "Complete size chart for Chikankari kurtis, kurta sets, palazzos, sharara, garara and bottoms. Top wear XS–3XL, plus size 4XL–7XL, and bottom wear measurements in inches." },
       { property: "og:title", content: "Size Guide — Indian Handicraft Standards" },
       { property: "og:description", content: "How to measure yourself and choose the perfect Chikankari fit." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/size-guide" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/size-guide" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/size-guide" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/size-guide" }],
   }),
 });
 

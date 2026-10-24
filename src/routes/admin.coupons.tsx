@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,7 +9,7 @@ import { format } from "date-fns";
 
 export const Route = createFileRoute("/admin/coupons")({
   component: CouponsPage,
-  head: () => ({ meta: [{ title: "Coupons · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Coupons") }),
 });
 
 function CouponsPage() {

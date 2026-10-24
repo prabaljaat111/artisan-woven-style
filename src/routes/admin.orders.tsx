@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,7 +10,7 @@ import { RefreshCw, X, Truck, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/orders")({
   component: OrdersPage,
-  head: () => ({ meta: [{ title: "Orders · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Orders") }),
 });
 
 const STATUSES = ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"] as const;

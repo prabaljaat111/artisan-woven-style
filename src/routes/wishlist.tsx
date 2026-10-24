@@ -5,7 +5,7 @@ import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/wishlist")({
-  head: () => ({ meta: [{ title: "Your Wishlist — Indian Handicraft Standards" }, { name: "description", content: "Pieces you've saved for later." }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: [{ property: "og:title", content: "Your Wishlist \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Pieces you've saved for later." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Your Wishlist — Indian Handicraft Standards" }, { name: "description", content: "Pieces you've saved for later." }, { name: "robots", content: "noindex,nofollow" }] }),
   component: WishlistPage,
 });
 

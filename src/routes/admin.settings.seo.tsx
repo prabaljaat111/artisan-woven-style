@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/seo")({ component: Page });
+export const Route = createFileRoute("/admin/settings/seo")({ head: () => ({ meta: adminPageMeta("Seo Settings") }), component: Page });
 
 type V = {
   title_suffix: string;

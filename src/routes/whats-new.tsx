@@ -4,12 +4,12 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/whats-new")({
   head: () => ({
-    meta: [
+    meta: [{ property: "og:title", content: "What's New \u2014 Fresh Chikankari Arrivals | Indian Handicraft Standards" }, { property: "og:description", content: "The newest hand-embroidered Lucknowi Chikankari arrivals \u2014 fresh kurtis, sarees, and festive sets." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "What's New — Fresh Chikankari Arrivals | Indian Handicraft Standards" },
       { name: "description", content: "The newest hand-embroidered Lucknowi Chikankari arrivals — fresh kurtis, sarees, and festive sets." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/whats-new" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/whats-new" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/whats-new" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/whats-new" }],
   }),
   component: WhatsNewPage,
 });
