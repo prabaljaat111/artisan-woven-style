@@ -112,7 +112,7 @@ export const Route = createFileRoute("/product/$slug")({
 });
 
 function ProductPage() {
-  const loaded = Route.useLoaderData();
+  const loaded = Route.useLoaderData() as Product | undefined;
   if (!loaded) throw notFound();
   const all = useStorefrontProducts();
   // Prefer live-synced product so realtime edits reflect in the PDP body.

@@ -1,15 +1,27 @@
-# Hostinger Node.js deployment
+# Hostinger React / Node.js deployment
 
-Use this when deploying the GitHub repo to Hostinger while continuing to edit in Lovable.
+Use this when deploying the GitHub repo to Hostinger while continuing to edit in Lovable. This React app uses server rendering and server functions, so it requires **Hostinger Node.js application hosting**. Static React hosting or uploading only `dist/client` to `public_html` cannot run checkout, product loading, or admin server actions.
 
 ## Hostinger settings
 
-- **Node version:** `22.x` or newer
+- **Node version:** `22.12+` (Node 22 LTS)
 - **Install command:** `npm install`
 - **Build command:** `npm run build:hostinger`
 - **Start command:** `npm run start:hostinger`
 - **Startup file / Entry file:** `hostinger-server.mjs`
 - **Output directory:** `dist`
+
+Install development dependencies during the build: Vite and the hosting configuration package are build tools. Do not use `npm install --omit=dev` before building. After building, `npm run check:hostinger` validates the entry file and required server configuration without starting a second server. Run `npm run test:hostinger` to test startup safeguards.
+
+Hostinger assigns the listening port through `PORT`. The launcher preserves that port and binds to `0.0.0.0`; do not hardcode a port in the hosting panel. It resolves `dist/server/index.mjs` relative to the launcher, so startup also works when the hosting panel uses a different working directory.
+
+## Performance and caching
+
+- Hostinger builds precompress static files with gzip and Brotli.
+- Hashed files under `/assets/` receive a one-year immutable cache policy; changed builds generate new URLs.
+- No blanket caching is applied to HTML, admin pages, checkout, or server-function responses.
+- Enable HTTPS for the domain and use the Node app as the domain target, not a separate static folder.
+- Keep both `dist/server` and `dist/client` from the same build; do not mix output from different deployments.
 
 ## Vercel settings (alternative)
 
@@ -31,7 +43,13 @@ Add these before building:
 - `HOSTINGER=1` (only for Hostinger builds)
 - `NITRO_PRESET=node-server` (only for Hostinger builds)
 
-Admin-only backend actions also need `SUPABASE_SERVICE_ROLE_KEY`. If that secret is not available on your external host, storefront product listing will still work, but admin write operations should be managed from Lovable.
+`VITE_*` values must be present **before building**, because they are embedded in the browser bundle. The non-`VITE_*` variables must also be available when the Node app starts. Use the project's public configuration values; do not put private integration credentials in `VITE_*` variables or GitHub.
+
+### External hosting limitations
+
+Some existing server actions use a privileged Lovable Cloud key. That key is **not available for export from Lovable Cloud**. Consequently, this hosting setup does not make those actions work on Hostinger: checkout/order creation, order tracking, and other actions using the privileged client may fail there even when the storefront loads. Keep those workflows on the Lovable-hosted app until a separate supported backend migration is completed. Do not fabricate a service key or put one in frontend code.
+
+Other integrations may also require their server-only credentials on the external host. This change does not migrate credentials, data, or change the live hosting/domain settings.
 
 ## Why 403 happens (Hostinger)
 

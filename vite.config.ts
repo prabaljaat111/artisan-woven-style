@@ -20,6 +20,12 @@ export default defineConfig({
     ? {
         preset: "node-server",
         output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
+        compressPublicAssets: { gzip: true, brotli: true },
+        routeRules: {
+          "/assets/**": {
+            headers: { "cache-control": "public, max-age=31536000, immutable" },
+          },
+        },
       }
     : vercelBuild
     ? {
