@@ -1,17 +1,17 @@
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { configureHostingerEnvironment, resolveHostingerServerEntry, validateHostingerStartup } from "./scripts/hostinger-runtime.mjs";
 
-process.env.HOSTINGER ??= "1";
-process.env.NITRO_PRESET ??= "node-server";
-process.env.HOST ??= "0.0.0.0";
+configureHostingerEnvironment(process.env);
+const serverEntry = resolveHostingerServerEntry(import.meta.url);
 
-const serverEntry = resolve("dist/server/index.mjs");
-
-if (!existsSync(serverEntry)) {
-  console.error(
-    "Hostinger start failed: dist/server/index.mjs is missing. Run `npm run build:hostinger` before starting the app.",
-  );
-  process.exit(1);
+try {
+  validateHostingerStartup(process.env, serverEntry);
+  if (process.argv.includes("--check")) {
+    console.info("Hostinger startup checks passed.");
+  } else {
+    await import(pathToFileURL(serverEntry).href);
+  }
+} catch (error) {
+  console.error("Hostinger startup failed:", error instanceof Error ? error.message : "Unknown startup error");
+  process.exitCode = 1;
 }
-
-await import(serverEntry);

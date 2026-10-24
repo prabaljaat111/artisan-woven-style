@@ -57,7 +57,14 @@ export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
     const p = loaderData as Product | undefined;
-    if (!p) return { meta: [{ title: "Product — Indian Handicraft Standards" }] };
+    if (!p) return { meta: [
+      { title: "Product — Indian Handicraft Standards" },
+      { name: "description", content: "Explore authentic Chikankari at Indian Handicraft Standards." },
+      { property: "og:title", content: "Product — Indian Handicraft Standards" },
+      { property: "og:description", content: "Explore authentic Chikankari at Indian Handicraft Standards." },
+      { property: "og:type", content: "product" },
+      { name: "twitter:card", content: "summary" },
+    ] };
     const desc = `${p.name} — authentic Lucknowi Chikankari. ₹${p.price}.`;
     const img = p.images?.[0];
     const jsonLd = {
@@ -75,7 +82,7 @@ export const Route = createFileRoute("/product/$slug")({
         availability: "https://schema.org/InStock",
       },
     };
-    const url = `https://indianhandicraft.revnlabel.in/product/${p.slug}`;
+    const url = `https://indianhandicraftstandards.com/product/${p.slug}`;
     return {
       meta: [
         { title: `${p.name} — Indian Handicraft Standards` },
@@ -83,8 +90,9 @@ export const Route = createFileRoute("/product/$slug")({
         { property: "og:title", content: p.name },
         { property: "og:description", content: desc },
         { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
         { property: "og:url", content: url },
-        ...(img ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
+        ...(img && /^https:\/\//.test(img) ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
@@ -112,7 +120,8 @@ export const Route = createFileRoute("/product/$slug")({
 });
 
 function ProductPage() {
-  const loaded = Route.useLoaderData();
+  const loaded = Route.useLoaderData() as Product | undefined;
+  if (!loaded) throw notFound();
   const all = useStorefrontProducts();
   // Prefer live-synced product so realtime edits reflect in the PDP body.
   const p = all.find((x) => x.slug === loaded.slug) ?? loaded;

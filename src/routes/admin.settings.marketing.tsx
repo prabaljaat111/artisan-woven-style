@@ -1,8 +1,9 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { Ticket } from "lucide-react";
 
-export const Route = createFileRoute("/admin/settings/marketing")({ component: Page });
+export const Route = createFileRoute("/admin/settings/marketing")({ head: () => ({ meta: adminPageMeta("Marketing Settings") }), component: Page });
 
 function Page() {
   return (

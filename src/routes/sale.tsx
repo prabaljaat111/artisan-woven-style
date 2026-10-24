@@ -4,12 +4,12 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 
 export const Route = createFileRoute("/sale")({
   head: () => ({
-    meta: [
+    meta: [{ property: "og:title", content: "Sale \u2014 Up to 50% Off Chikankari | Indian Handicraft Standards" }, { property: "og:description", content: "Authentic Lucknowi Chikankari on sale. Hand-embroidered kurtis, sarees and sets at discounted prices." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Sale — Up to 50% Off Chikankari | Indian Handicraft Standards" },
       { name: "description", content: "Authentic Lucknowi Chikankari on sale. Hand-embroidered kurtis, sarees and sets at discounted prices." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/sale" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/sale" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/sale" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/sale" }],
   }),
   component: SalePage,
 });

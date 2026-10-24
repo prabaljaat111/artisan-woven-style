@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,7 @@ interface Lead {
 
 export const Route = createFileRoute("/admin/leads")({
   component: LeadsPage,
-  head: () => ({ meta: [{ title: "Leads · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Leads") }),
 });
 
 function LeadsPage() {

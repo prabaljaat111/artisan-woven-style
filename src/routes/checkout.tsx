@@ -6,7 +6,7 @@ import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.funct
 import { checkServiceability } from "@/lib/shiprocket.functions";
 
 export const Route = createFileRoute("/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — Indian Handicraft Standards" }, { name: "description", content: "Securely complete your purchase." }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: [{ property: "og:title", content: "Checkout \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Securely complete your purchase." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Checkout — Indian Handicraft Standards" }, { name: "description", content: "Securely complete your purchase." }, { name: "robots", content: "noindex,nofollow" }] }),
   component: CheckoutPage,
 });
 

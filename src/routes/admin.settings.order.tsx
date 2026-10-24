@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/order")({ component: Page });
+export const Route = createFileRoute("/admin/settings/order")({ head: () => ({ meta: adminPageMeta("Order Settings") }), component: Page });
 
 type V = {
   cancellation_window_hrs: number;

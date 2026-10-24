@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,7 +8,7 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/categories")({
   component: CategoriesPage,
-  head: () => ({ meta: [{ title: "Categories · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Categories") }),
 });
 
 function CategoriesPage() {

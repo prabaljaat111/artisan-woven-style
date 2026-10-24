@@ -3,7 +3,7 @@ import { PolicyShell } from "@/components/PolicyShell";
 
 export const Route = createFileRoute("/returns")({
   component: ReturnsPage,
-  head: () => ({ meta: [{ title: "Returns & Exchange — Indian Handicraft Standards" }, { name: "description", content: "7-day return policy and exchange process." }], links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/returns" }] }),
+  head: () => ({ meta: [{ property: "og:title", content: "Returns & Exchange \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "7-day return policy and exchange process." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Returns & Exchange — Indian Handicraft Standards" }, { name: "description", content: "7-day return policy and exchange process." }], links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/returns" }] }),
 });
 
 function ReturnsPage() {

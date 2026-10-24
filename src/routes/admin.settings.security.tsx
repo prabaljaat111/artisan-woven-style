@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -5,7 +6,7 @@ import { Section, PageHeader, ComingSoon } from "@/components/admin/SettingsFiel
 import { listAdmins, setUserRole } from "@/lib/settings.functions";
 import { Shield, UserMinus, UserPlus } from "lucide-react";
 
-export const Route = createFileRoute("/admin/settings/security")({ component: Page });
+export const Route = createFileRoute("/admin/settings/security")({ head: () => ({ meta: adminPageMeta("Security Settings") }), component: Page });
 
 type Row = { user_id: string; role: string; created_at: string; name: string | null; phone: string | null };
 

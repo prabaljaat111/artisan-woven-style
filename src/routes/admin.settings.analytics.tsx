@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/analytics")({ component: Page });
+export const Route = createFileRoute("/admin/settings/analytics")({ head: () => ({ meta: adminPageMeta("Analytics Settings") }), component: Page });
 
 type V = { ga4_id: string; gtm_id: string; meta_pixel_id: string; gsc_verification: string };
 const DEFAULTS: V = { ga4_id: "", gtm_id: "", meta_pixel_id: "", gsc_verification: "" };

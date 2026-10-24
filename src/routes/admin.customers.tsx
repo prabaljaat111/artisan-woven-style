@@ -1,3 +1,4 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,7 +7,7 @@ import { format } from "date-fns";
 
 export const Route = createFileRoute("/admin/customers")({
   component: CustomersPage,
-  head: () => ({ meta: [{ title: "Customers · Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: adminPageMeta("Customers") }),
 });
 
 function CustomersPage() {

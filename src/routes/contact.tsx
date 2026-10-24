@@ -7,14 +7,14 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
   head: () => ({
-    meta: [
+    meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
       { title: "Contact Us — Indian Handicraft Standards" },
       { name: "description", content: "Get in touch with our Lucknow atelier. WhatsApp, phone, email and concierge support." },
       { property: "og:title", content: "Contact — Indian Handicraft Standards" },
       { property: "og:description", content: "Reach our team for orders, sizing and custom requests." },
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/contact" },
+      { property: "og:url", content: "https://indianhandicraftstandards.com/contact" },
     ],
-    links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/contact" }],
+    links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/contact" }],
   }),
 });
 

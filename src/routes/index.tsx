@@ -17,8 +17,8 @@ import hero5 from "@/assets/hero/hero-5.webp";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
-    meta: [
-      { property: "og:url", content: "https://indianhandicraft.revnlabel.in/" },
+    meta: [{ title: "Indian Handicraft Standards \u2014 Authentic Lucknowi Chikankari" }, { name: "description", content: "Shop hand-embroidered Lucknowi Chikankari kurtis, sarees and kurta sets from Indian Handicraft Standards." }, { property: "og:title", content: "Indian Handicraft Standards \u2014 Authentic Lucknowi Chikankari" }, { property: "og:description", content: "Shop hand-embroidered Lucknowi Chikankari kurtis, sarees and kurta sets from Indian Handicraft Standards." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
+      { property: "og:url", content: "https://indianhandicraftstandards.com/" },
     ],
     links: [
       { rel: "preload", as: "image", href: hero1, fetchPriority: "high" } as never,
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
       { rel: "prefetch", as: "image", href: hero3 } as never,
       { rel: "prefetch", as: "image", href: hero4 } as never,
       { rel: "prefetch", as: "image", href: hero5 } as never,
-      { rel: "canonical", href: "https://indianhandicraft.revnlabel.in/" },
+      { rel: "canonical", href: "https://indianhandicraftstandards.com/" },
     ],
   }),
 });

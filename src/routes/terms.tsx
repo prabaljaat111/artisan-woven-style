@@ -3,7 +3,7 @@ import { PolicyShell } from "@/components/PolicyShell";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
-  head: () => ({ meta: [{ title: "Terms of Service — Indian Handicraft Standards" }, { name: "description", content: "Terms governing the use of this site and purchases." }], links: [{ rel: "canonical", href: "https://indianhandicraft.revnlabel.in/terms" }] }),
+  head: () => ({ meta: [{ property: "og:title", content: "Terms of Service \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Terms governing the use of this site and purchases." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Terms of Service — Indian Handicraft Standards" }, { name: "description", content: "Terms governing the use of this site and purchases." }], links: [{ rel: "canonical", href: "https://indianhandicraftstandards.com/terms" }] }),
 });
 
 function TermsPage() {

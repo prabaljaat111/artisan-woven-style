@@ -37,9 +37,9 @@ export const Route = createFileRoute("/category/$slug")({
   head: ({ params, loaderData }) => {
     const cat = loaderData as { name: string; slug: string } | undefined;
     const name = cat?.name ?? params.slug;
-    const url = `https://indianhandicraft.revnlabel.in/category/${params.slug}`;
+    const url = `https://indianhandicraftstandards.com/category/${params.slug}`;
     return {
-      meta: [
+      meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
         { title: `${name} — Indian Handicraft Standards` },
         { name: "description", content: `Shop authentic Lucknowi Chikankari ${name.toLowerCase()}.` },
         { property: "og:title", content: `${name} — Indian Handicraft Standards` },
@@ -64,8 +64,9 @@ export const Route = createFileRoute("/category/$slug")({
 
 function CategoryPage() {
   const { slug } = Route.useParams();
-  const cat = Route.useLoaderData();
+  const cat = Route.useLoaderData() as (typeof categories)[number] | undefined;
   const items = useProductsByCategory(slug);
+  if (!cat) throw notFound();
   const banner = CATEGORY_BANNERS[slug] ?? { image: kurtiWhite, tagline: "Collection", blurb: "Each piece is hand-embroidered in Lucknow using traditional Chikankari techniques — a heritage craft over 400 years old." };
   return (
     <div>

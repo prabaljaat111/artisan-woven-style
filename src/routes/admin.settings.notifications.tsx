@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, Section, PageHeader } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/notifications")({ component: Page });
+export const Route = createFileRoute("/admin/settings/notifications")({ head: () => ({ meta: adminPageMeta("Notifications Settings") }), component: Page });
 
 type V = {
   recipients: string;

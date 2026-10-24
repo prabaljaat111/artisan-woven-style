@@ -9,8 +9,8 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/login")({
   component: LoginPage,
   head: () => ({
-    meta: [
-      { title: "Admin sign in" },
+    meta: [{ name: "description", content: "Sign in to Indian Handicraft Standards administration." }, { property: "og:title", content: "Admin Sign In \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Sign in to Indian Handicraft Standards administration." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, 
+      { title: "Admin Sign In \u2014 Indian Handicraft Standards" },
       { name: "robots", content: "noindex,nofollow,noarchive" },
       { name: "referrer", content: "no-referrer" },
     ],

@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save, CheckCircle2 } from "lucide-react";
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/payment")({ component: Page });
+export const Route = createFileRoute("/admin/settings/payment")({ head: () => ({ meta: adminPageMeta("Payment Settings") }), component: Page });
 
 type V = { cod_enabled: boolean; cod_min: number; cod_max: number; cod_fee: number; razorpay_enabled: boolean; upi_enabled: boolean };
 const DEFAULTS: V = { cod_enabled: true, cod_min: 0, cod_max: 50000, cod_fee: 0, razorpay_enabled: true, upi_enabled: true };

@@ -1,9 +1,10 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/product")({ component: Page });
+export const Route = createFileRoute("/admin/settings/product")({ head: () => ({ meta: adminPageMeta("Product Settings") }), component: Page });
 
 type V = {
   default_status: "draft" | "active";

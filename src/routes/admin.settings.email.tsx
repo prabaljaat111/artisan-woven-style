@@ -1,10 +1,11 @@
+import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { useState } from "react";
 import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 
-export const Route = createFileRoute("/admin/settings/email")({ component: Page });
+export const Route = createFileRoute("/admin/settings/email")({ head: () => ({ meta: adminPageMeta("Email Settings") }), component: Page });
 
 type Tpl = { subject: string; body: string; enabled: boolean };
 type V = {
