@@ -57,7 +57,14 @@ export const Route = createFileRoute("/product/$slug")({
   component: ProductPage,
   head: ({ loaderData }) => {
     const p = loaderData as Product | undefined;
-    if (!p) return { meta: [{ name: "twitter:card", content: "summary" }, { title: "Product — Indian Handicraft Standards" }] };
+    if (!p) return { meta: [
+      { title: "Product — Indian Handicraft Standards" },
+      { name: "description", content: "Explore authentic Chikankari at Indian Handicraft Standards." },
+      { property: "og:title", content: "Product — Indian Handicraft Standards" },
+      { property: "og:description", content: "Explore authentic Chikankari at Indian Handicraft Standards." },
+      { property: "og:type", content: "product" },
+      { name: "twitter:card", content: "summary" },
+    ] };
     const desc = `${p.name} — authentic Lucknowi Chikankari. ₹${p.price}.`;
     const img = p.images?.[0];
     const jsonLd = {
@@ -83,6 +90,7 @@ export const Route = createFileRoute("/product/$slug")({
         { property: "og:title", content: p.name },
         { property: "og:description", content: desc },
         { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
         { property: "og:url", content: url },
         ...(img && /^https:\/\//.test(img) ? [{ property: "og:image", content: img }, { name: "twitter:image", content: img }] : []),
       ],
