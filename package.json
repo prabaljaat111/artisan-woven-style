@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:hostinger": "HOSTINGER=1 NITRO_PRESET=node-server vite build",
+    "build:hostinger": "node scripts/hostinger-build.mjs",
+    "prepare:hostinger": "node scripts/hostinger-build.mjs --check",
     "build:vercel": "NITRO_PRESET=vercel vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
