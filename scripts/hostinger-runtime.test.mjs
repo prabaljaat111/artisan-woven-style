@@ -3,7 +3,42 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { configureHostingerEnvironment, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
+import { configureHostingerEnvironment, loadHostingerPublicConfiguration, validateHostingerBuild, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
+
+const publicConfig = { SUPABASE_URL: "https://example.test", SUPABASE_PUBLISHABLE_KEY: "public-test-key" };
+
+test("loads browser and server public configuration without loading private keys", () => {
+  const env = {};
+  loadHostingerPublicConfiguration(env, { ...publicConfig, SUPABASE_SERVICE_ROLE_KEY: "must-not-load" });
+  assert.deepEqual(env, { ...publicConfig, VITE_SUPABASE_URL: publicConfig.SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY: publicConfig.SUPABASE_PUBLISHABLE_KEY });
+  assert.equal(env.SUPABASE_SERVICE_ROLE_KEY, undefined);
+});
+
+test("preserves external hosting public configuration overrides", () => {
+  const env = { SUPABASE_URL: "https://other.test", SUPABASE_PUBLISHABLE_KEY: "other-public-key" };
+  loadHostingerPublicConfiguration(env, publicConfig);
+  assert.equal(env.SUPABASE_URL, "https://other.test");
+  assert.equal(env.VITE_SUPABASE_PUBLISHABLE_KEY, "other-public-key");
+});
+
+test("checks the minimum supported Node version before building", () => {
+  const env = {};
+  loadHostingerPublicConfiguration(env, publicConfig);
+  assert.throws(() => validateHostingerBuild(env, "22.11.0"), /22.12/);
+  assert.doesNotThrow(() => validateHostingerBuild(env, "22.12.0"));
+  assert.doesNotThrow(() => validateHostingerBuild(env, "24.0.0"));
+});
+
+test("rejects missing browser configuration before building", () => {
+  assert.throws(() => validateHostingerBuild(publicConfig, "22.12.0"), /VITE_SUPABASE_URL/);
+});
+
+test("rejects different server and browser backend configurations", () => {
+  const env = {};
+  loadHostingerPublicConfiguration(env, publicConfig);
+  env.VITE_SUPABASE_URL = "https://wrong.test";
+  assert.throws(() => validateHostingerBuild(env, "22.12.0"), /configuration mismatch/);
+});
 
 test("uses Hostinger's assigned port and binds to all interfaces", () => {
   const env = { PORT: "4567" };
