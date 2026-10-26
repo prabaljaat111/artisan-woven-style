@@ -1,5 +1,4 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { loadHostingerPublicConfiguration, syncHostingerStaticOutput, validateHostingerBuild } from "./hostinger-runtime.mjs";
 

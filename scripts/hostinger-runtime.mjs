@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Only these public values are loaded; never load private credentials from files.
