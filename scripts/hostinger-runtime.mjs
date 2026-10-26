@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Only these public values are loaded; never load private credentials from files.
@@ -45,4 +46,17 @@ export function validateHostingerStartup(env, serverEntry) {
 
 export function resolveHostingerServerEntry(launcherUrl) {
   return fileURLToPath(new URL("./dist/server/index.mjs", launcherUrl));
+}
+
+// Mirror the built static assets into a top-level "build" directory so Hostinger
+// configurations that expect an output directory named "build" also succeed.
+export function syncHostingerStaticOutput(rootDir) {
+  const source = join(rootDir, "dist", "client");
+  if (!existsSync(source)) {
+    throw new Error("dist/client is missing after the Hostinger build; cannot prepare the build output directory.");
+  }
+  const target = join(rootDir, "build");
+  rmSync(target, { recursive: true, force: true });
+  cpSync(source, target, { recursive: true });
+  return target;
 }

@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { configureHostingerEnvironment, loadHostingerPublicConfiguration, validateHostingerBuild, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
+import { configureHostingerEnvironment, loadHostingerPublicConfiguration, syncHostingerStaticOutput, validateHostingerBuild, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
 
 const publicConfig = { SUPABASE_URL: "https://example.test", SUPABASE_PUBLISHABLE_KEY: "public-test-key" };
 
@@ -61,6 +61,30 @@ test("resolves built entry relative to the launcher, not working directory", () 
 
 test("rejects missing build output with an actionable error", () => {
   assert.throws(() => validateHostingerStartup({}, "/nonexistent/ihs/server.mjs"), /Run npm run build:hostinger/);
+});
+
+test("mirrors dist/client into a build output directory for static-style deployments", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ihs-hostinger-build-"));
+  mkdirSync(join(dir, "dist", "client", "assets"), { recursive: true });
+  writeFileSync(join(dir, "dist", "client", "index.html"), "<html></html>");
+  writeFileSync(join(dir, "dist", "client", "assets", "app.js"), "console.log(1);");
+  try {
+    const target = syncHostingerStaticOutput(dir);
+    assert.equal(target, join(dir, "build"));
+    assert.equal(readFileSync(join(dir, "build", "index.html"), "utf8"), "<html></html>");
+    assert.equal(readFileSync(join(dir, "build", "assets", "app.js"), "utf8"), "console.log(1);");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("fails clearly when the build output directory has no static files to mirror", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ihs-hostinger-build-"));
+  try {
+    assert.throws(() => syncHostingerStaticOutput(dir), /dist\/client is missing/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("requires public server configuration but not an unavailable admin key", () => {

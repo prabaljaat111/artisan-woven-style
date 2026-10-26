@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { loadHostingerPublicConfiguration, validateHostingerBuild } from "./hostinger-runtime.mjs";
+import { loadHostingerPublicConfiguration, syncHostingerStaticOutput, validateHostingerBuild } from "./hostinger-runtime.mjs";
 
 try {
   loadHostingerPublicConfiguration(process.env);
@@ -16,6 +16,11 @@ try {
       stdio: "inherit",
     });
     if (result.error) throw result.error;
+    if (result.status === 0) {
+      // Some Hostinger setups serve a static "build" output directory instead of
+      // running the Node app. Mirror dist/client into build/ so both layouts work.
+      syncHostingerStaticOutput(root);
+    }
     process.exitCode = result.status ?? 1;
   }
 } catch (error) {
