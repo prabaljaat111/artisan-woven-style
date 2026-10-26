@@ -63,6 +63,30 @@ test("rejects missing build output with an actionable error", () => {
   assert.throws(() => validateHostingerStartup({}, "/nonexistent/ihs/server.mjs"), /Run npm run build:hostinger/);
 });
 
+test("mirrors dist/client into a build output directory for static-style deployments", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ihs-hostinger-build-"));
+  mkdirSync(join(dir, "dist", "client", "assets"), { recursive: true });
+  writeFileSync(join(dir, "dist", "client", "index.html"), "<html></html>");
+  writeFileSync(join(dir, "dist", "client", "assets", "app.js"), "console.log(1);");
+  try {
+    const target = syncHostingerStaticOutput(dir);
+    assert.equal(target, join(dir, "build"));
+    assert.equal(readFileSync(join(dir, "build", "index.html"), "utf8"), "<html></html>");
+    assert.equal(readFileSync(join(dir, "build", "assets", "app.js"), "utf8"), "console.log(1);");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("fails clearly when the build output directory has no static files to mirror", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ihs-hostinger-build-"));
+  try {
+    assert.throws(() => syncHostingerStaticOutput(dir), /dist\/client is missing/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("requires public server configuration but not an unavailable admin key", () => {
   const dir = mkdtempSync(join(tmpdir(), "ihs-hostinger-"));
   const entry = join(dir, "index.mjs");
