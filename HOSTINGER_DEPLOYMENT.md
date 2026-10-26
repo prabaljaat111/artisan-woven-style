@@ -11,6 +11,8 @@ Use this when deploying the GitHub repo to Hostinger while continuing to edit in
 - **Startup file / Entry file:** `hostinger-server.mjs`
 - **Output directory:** `dist`
 
+Always use `npm run build:hostinger` as the build command — never the plain `npm run build`. The plain build emits Nitro's default `.output` directory, which Hostinger cannot serve and causes the "output directory build not found" failure. The Hostinger build emits `dist/server` + `dist/client` and also mirrors the static files into a top-level `build/` directory, so panels configured with an output directory of `build` also find files. If your panel asks for an output directory, set it to `build` (static files) or leave `dist` for the Node app.
+
 Install development dependencies during the build: Vite and the hosting configuration package are build tools. Do not use `npm install --omit=dev` before building. After building, `npm run check:hostinger` validates the entry file and required server configuration without starting a second server. Run `npm run test:hostinger` to test startup safeguards.
 
 Run `npm run prepare:hostinger` to check the Node version and public browser/server configuration before building. The build launcher automatically applies the Hostinger preset and resolves the project independently of the current working directory. This prerequisite check is not a deployment or checkout compatibility test.
