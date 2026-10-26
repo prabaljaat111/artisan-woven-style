@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { configureHostingerEnvironment, loadHostingerPublicConfiguration, validateHostingerBuild, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
+import { configureHostingerEnvironment, loadHostingerPublicConfiguration, syncHostingerStaticOutput, validateHostingerBuild, validateHostingerStartup, resolveHostingerServerEntry } from "./hostinger-runtime.mjs";
 
 const publicConfig = { SUPABASE_URL: "https://example.test", SUPABASE_PUBLISHABLE_KEY: "public-test-key" };
 
