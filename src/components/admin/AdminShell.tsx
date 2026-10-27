@@ -8,6 +8,7 @@ import { useAuth, type TeamRole } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 
 type NavItem = {
   label: string;
@@ -37,7 +38,7 @@ const NAV: NavItem[][] = [
         { label: "Brands", to: "/admin/brands", roles: ALL },
         { label: "Bulk Import/Export", to: "/admin/products/bulk", roles: ALL },
         { label: "Drafts & Pending", to: "/admin/products/drafts", roles: ALL },
-        { label: "Product Approvals", to: "/admin/approvals", roles: ALL },
+        { label: "Product Approvals", to: "/admin/approvals", roles: MGR },
       ],
     },
     { label: "Categories", icon: FolderTree, to: "/admin/categories" },
@@ -138,10 +139,7 @@ export function AdminShell() {
           <button aria-label="Open menu" className="lg:hidden h-9 w-9 grid place-items-center rounded-lg border border-border bg-card" onClick={() => setDrawer(true)}><Menu className="h-4 w-4" /></button>
           <GlobalSearch />
           <div className="ml-auto flex items-center gap-2 md:gap-4">
-            <Link to="/admin/inventory" aria-label="Notifications" className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-card">
-              <Bell className="h-5 w-5" />
-              {counts.alerts > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-status-red text-card text-[10px] grid place-items-center">{counts.alerts}</span>}
-            </Link>
+            <NotificationBell userId={user.id} lowStockCount={counts.alerts} />
             <a href="mailto:support@indianhandicraftstandards.com" className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><HelpCircle className="h-4 w-4" /> Help</a>
             <UserMenu email={user.email ?? ""} role={role ?? "staff"} onLogout={logout} />
           </div>
