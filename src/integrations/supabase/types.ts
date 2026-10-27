@@ -32,12 +32,94 @@ export type Database = {
         }
         Relationships: []
       }
+      attribute_values: {
+        Row: {
+          attribute_id: string
+          color_hex: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          attribute_id: string
+          color_hex?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          attribute_id?: string
+          color_hex?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attribute_values_attribute_id_fkey"
+            columns: ["attribute_id"]
+            isOneToOne: false
+            referencedRelation: "attributes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attributes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           name: string
+          parent_id: string | null
           slug: string
           sort_order: number
         }
@@ -45,7 +127,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name: string
+          parent_id?: string | null
           slug: string
           sort_order?: number
         }
@@ -53,11 +137,21 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string
+          parent_id?: string | null
           slug?: string
           sort_order?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coupons: {
         Row: {
@@ -289,9 +383,13 @@ export type Database = {
           color: string | null
           created_at: string
           id: string
+          image_url: string | null
+          price: number | null
           product_id: string
+          sale_price: number | null
           size: string
           sku: string | null
+          status: string
           stock: number
           updated_at: string
         }
@@ -299,9 +397,13 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
+          price?: number | null
           product_id: string
+          sale_price?: number | null
           size: string
           sku?: string | null
+          status?: string
           stock?: number
           updated_at?: string
         }
@@ -309,9 +411,13 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
+          price?: number | null
           product_id?: string
+          sale_price?: number | null
           size?: string
           sku?: string | null
+          status?: string
           stock?: number
           updated_at?: string
         }
@@ -329,12 +435,15 @@ export type Database = {
         Row: {
           attributes: Json
           authenticity: string | null
+          brand_id: string | null
           care_instructions: string[]
           category_id: string | null
           color: string | null
           colors: string[]
           created_at: string
           description: string
+          dimensions: string | null
+          featured: boolean
           id: string
           images: string[]
           is_bestseller: boolean
@@ -344,27 +453,38 @@ export type Database = {
           name: string
           original_price: number
           price: number
+          product_type: string
           rating: number
+          rejection_reason: string | null
+          reorder_level: number
           return_policy: string[]
           reviews: number
           shipping_info: string[]
+          short_description: string | null
           sizes: string[]
+          sku: string | null
           slug: string
           specifications: Json
+          status: string
           stock: number
+          submitted_by: string | null
           track_inventory: boolean
           updated_at: string
           video_url: string | null
+          weight: number | null
         }
         Insert: {
           attributes?: Json
           authenticity?: string | null
+          brand_id?: string | null
           care_instructions?: string[]
           category_id?: string | null
           color?: string | null
           colors?: string[]
           created_at?: string
           description?: string
+          dimensions?: string | null
+          featured?: boolean
           id?: string
           images?: string[]
           is_bestseller?: boolean
@@ -374,27 +494,38 @@ export type Database = {
           name: string
           original_price: number
           price: number
+          product_type?: string
           rating?: number
+          rejection_reason?: string | null
+          reorder_level?: number
           return_policy?: string[]
           reviews?: number
           shipping_info?: string[]
+          short_description?: string | null
           sizes?: string[]
+          sku?: string | null
           slug: string
           specifications?: Json
+          status?: string
           stock?: number
+          submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
           video_url?: string | null
+          weight?: number | null
         }
         Update: {
           attributes?: Json
           authenticity?: string | null
+          brand_id?: string | null
           care_instructions?: string[]
           category_id?: string | null
           color?: string | null
           colors?: string[]
           created_at?: string
           description?: string
+          dimensions?: string | null
+          featured?: boolean
           id?: string
           images?: string[]
           is_bestseller?: boolean
@@ -404,19 +535,34 @@ export type Database = {
           name?: string
           original_price?: number
           price?: number
+          product_type?: string
           rating?: number
+          rejection_reason?: string | null
+          reorder_level?: number
           return_policy?: string[]
           reviews?: number
           shipping_info?: string[]
+          short_description?: string | null
           sizes?: string[]
+          sku?: string | null
           slug?: string
           specifications?: Json
+          status?: string
           stock?: number
+          submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
           video_url?: string | null
+          weight?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
@@ -609,6 +755,60 @@ export type Database = {
           },
         ]
       }
+      stock_logs: {
+        Row: {
+          adjustment_type: string
+          created_at: string
+          id: string
+          new_stock: number
+          previous_stock: number
+          product_id: string
+          quantity: number
+          reason: string | null
+          user_id: string | null
+          variation_id: string | null
+        }
+        Insert: {
+          adjustment_type: string
+          created_at?: string
+          id?: string
+          new_stock?: number
+          previous_stock?: number
+          product_id: string
+          quantity: number
+          reason?: string | null
+          user_id?: string | null
+          variation_id?: string | null
+        }
+        Update: {
+          adjustment_type?: string
+          created_at?: string
+          id?: string
+          new_stock?: number
+          previous_stock?: number
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          user_id?: string | null
+          variation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_logs_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -635,6 +835,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_approve: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -642,9 +843,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_team_member: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "staff" | "customer"
+      app_role: "admin" | "staff" | "customer" | "manager"
       order_status:
         | "pending"
         | "paid"
@@ -780,7 +982,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "staff", "customer"],
+      app_role: ["admin", "staff", "customer", "manager"],
       order_status: [
         "pending",
         "paid",

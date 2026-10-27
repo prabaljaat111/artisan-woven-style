@@ -22,6 +22,11 @@ function DashboardPage() {
     getDashboardStats().then((s) => setStats(s)).finally(() => setLoading(false));
   }, [authLoading, isAdmin]);
 
+  if (!authLoading && !isAdmin) return (
+    <div><h1 className="font-display text-3xl text-admin-nav">Welcome back</h1>
+      <p className="text-sm text-muted-foreground mt-1">Use Products, Inventory and Approvals from the menu.</p>
+      <div className="flex gap-3 mt-5"><Link to="/admin/products" className="h-10 px-4 rounded-lg bg-admin-nav text-admin-nav-foreground text-sm grid place-items-center">Add product</Link><Link to="/admin/inventory" className="h-10 px-4 rounded-lg border border-border bg-card text-sm grid place-items-center">Update stock</Link></div></div>
+  );
   if (loading) return <div className="text-sm text-muted-foreground">Loading dashboard…</div>;
   if (!stats) return <div className="text-sm text-muted-foreground">Unable to load stats.</div>;
 
@@ -30,7 +35,7 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl text-primary">Dashboard</h1>
+        <h1 className="font-display text-3xl text-admin-nav">Store Overview</h1>
         <p className="text-xs text-muted-foreground">Last 30 days overview.</p>
       </div>
 
