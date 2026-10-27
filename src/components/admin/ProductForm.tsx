@@ -132,7 +132,12 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     return `IHS-${code}`;
   }, [form.sku, form.category_id, cats]);
 
-  async function save(mode: "draft" | "review" | "publish") {
+  const [autoSavedAt, setAutoSavedAt] = useState<Date | null>(null);
+  const savingRef = useRef(false);
+  async function save(mode: "draft" | "review" | "publish", silent = false) {
+    try { return await doSave(mode, silent); } finally { savingRef.current = false; }
+  }
+  async function doSave(mode: "draft" | "review" | "publish", silent: boolean) {
     const parsed = schema.safeParse(form);
     const e: Record<string, string> = {};
     if (!parsed.success) parsed.error.issues.forEach((i) => { const k = String(i.path[0]); if (!e[k]) e[k] = i.message; });
@@ -156,11 +161,13 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
       }
     }
     if (Object.keys(e).length) {
+      if (silent) return; // auto-save waits until required fields are valid
       setErrors(e);
       setTab(FIELD_TAB[Object.keys(e)[0]] ?? "General");
       toast.error("Please fix the highlighted fields");
       return;
     }
+    savingRef.current = true;
     setSaving(mode);
     const cat = cats.find((c) => c.id === form.category_id);
     const sku = form.sku.trim() || `IHS-${(cat?.slug ?? "GEN").slice(0, 3).toUpperCase()}-${Date.now().toString(36).slice(-5).toUpperCase()}`;
@@ -227,9 +234,20 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     setSaving(null);
     dirtyRef.current = false; setDirty(false);
     const finalStatus = res.data.status;
-    toast.success(finalStatus === "active" ? "Published" : finalStatus === "pending_review" ? "Submitted for review" : "Draft saved");
-    if (!productId) navigate({ to: "/admin/products/$id", params: { id } });
+    if (silent) setAutoSavedAt(new Date());
+    else toast.success(finalStatus === "active" ? "Published" : finalStatus === "pending_review" ? "Submitted for review" : "Draft saved");
+    if (!productId) navigate({ to: "/admin/products/$id", params: { id }, replace: silent });
   }
+
+  // Auto-save drafts every 30s while there are unsaved changes (only for new products or ones still in Draft).
+  const autoEnabled = !productId || form.status === "draft";
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    if (!autoEnabled) return;
+    const t = setInterval(() => { if (dirtyRef.current && !savingRef.current) saveRef.current("draft", true); }, 30000);
+    return () => clearInterval(t);
+  }, [autoEnabled]);
 
   return (
     <div className="pb-28">
@@ -424,6 +442,7 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
 
       <div className="fixed bottom-0 right-0 left-0 lg:left-64 z-20 bg-card/95 backdrop-blur border-t border-border px-4 md:px-6 py-3 flex flex-wrap items-center justify-end gap-2">
         {!canPublish && <span className="text-xs text-muted-foreground mr-auto">A manager will review your product before it goes live.</span>}
+        {autoEnabled && <span className="text-xs text-muted-foreground self-center mr-auto">{autoSavedAt ? `Auto-saved at ${autoSavedAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : "Drafts auto-save every 30 seconds"}</span>}
         <button type="button" disabled={!!saving} className={btnGhost} onClick={() => save("draft")}>{saving === "draft" && <Loader2 className="h-4 w-4 animate-spin" />}Save Draft</button>
         <button type="button" disabled={!!saving} className={canPublish ? btnGhost : btnPrimary} onClick={() => save("review")}>{saving === "review" && <Loader2 className="h-4 w-4 animate-spin" />}Submit for Review</button>
         {canPublish && <button type="button" disabled={!!saving} className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-status-green text-card text-sm font-medium hover:opacity-90 disabled:opacity-50" onClick={() => save("publish")}>{saving === "publish" && <Loader2 className="h-4 w-4 animate-spin" />}Publish</button>}
