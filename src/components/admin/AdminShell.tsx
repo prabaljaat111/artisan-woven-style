@@ -36,6 +36,7 @@ const NAV: NavItem[][] = [
         { label: "Attributes (Size, Color)", to: "/admin/attributes", roles: ALL },
         { label: "Brands", to: "/admin/brands", roles: ALL },
         { label: "Bulk Import/Export", to: "/admin/products/bulk", roles: ALL },
+        { label: "Drafts & Pending", to: "/admin/products/drafts", roles: ALL },
         { label: "Product Approvals", to: "/admin/approvals", roles: ALL },
       ],
     },
