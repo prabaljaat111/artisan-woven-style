@@ -19,7 +19,7 @@ export type ProductFormState = {
   weight: string; length_cm: string; width_cm: string; height_cm: string; shipping_class: string;
   upsell_ids: string[]; cross_sell_ids: string[]; product_attributes: AttrSel[];
   seo_title: string; meta_description: string; slug: string; purchase_note: string; menu_order: string; reviews_enabled: boolean;
-  status: string;
+  status: string; default_size: string; default_color: string;
 };
 
 const EMPTY: ProductFormState = {
@@ -29,6 +29,7 @@ const EMPTY: ProductFormState = {
   weight: "", length_cm: "", width_cm: "", height_cm: "", shipping_class: "",
   upsell_ids: [], cross_sell_ids: [], product_attributes: [],
   seo_title: "", meta_description: "", slug: "", purchase_note: "", menu_order: "0", reviews_enabled: true, status: "draft",
+  default_size: "", default_color: "",
 };
 
 const TABS = ["General", "Inventory", "Shipping", "Linked Products", "Attributes", "Advanced"] as const;
@@ -72,6 +73,7 @@ export function fromRow(p: any): ProductFormState {
     product_attributes: Array.isArray(p.product_attributes) ? p.product_attributes : [],
     seo_title: p.seo_title ?? "", meta_description: p.meta_description ?? "", slug: p.slug ?? "", purchase_note: p.purchase_note ?? "",
     menu_order: String(p.menu_order ?? 0), reviews_enabled: p.reviews_enabled ?? true, status: p.status ?? "draft",
+    default_size: p.default_size ?? "", default_color: p.default_color ?? "",
   };
 }
 
@@ -129,8 +131,6 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     const code = (c?.slug.split("-")[0] ?? "GEN").toUpperCase().replace(/S$/, "");
     return `IHS-${code}`;
   }, [form.sku, form.category_id, cats]);
-  {
-  }
 
   async function save(mode: "draft" | "review" | "publish") {
     const parsed = schema.safeParse(form);
