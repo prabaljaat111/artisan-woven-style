@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+// @ts-ignore bun test runner module
+import { describe, it, expect } from "bun:test";
 import { canTransition, mapRazorpayStatus, waNumber } from "./order-workflow";
 
 describe("order workflow", () => {
