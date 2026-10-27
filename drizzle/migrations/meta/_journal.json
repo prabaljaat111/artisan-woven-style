@@ -8,6 +8,13 @@
       "when": 1793124983613,
       "tag": "0000_admin_catalog_extension",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793125386774,
+      "tag": "0001_dashboard_overview_rpc",
+      "breakpoints": true
     }
   ]
 }
