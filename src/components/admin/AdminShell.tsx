@@ -188,7 +188,7 @@ function GlobalSearch() {
   const [q, setQ] = useState("");
   const [res, setRes] = useState<{ type: string; label: string; sub: string; to: string }[]>([]);
   const [open, setOpen] = useState(false);
-  const t = useRef<ReturnType<typeof setTimeout>>();
+  const t = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     clearTimeout(t.current);
