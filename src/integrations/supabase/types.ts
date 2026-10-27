@@ -441,6 +441,7 @@ export type Database = {
           color: string | null
           colors: string[]
           created_at: string
+          deleted_at: string | null
           description: string
           dimensions: string | null
           featured: boolean
@@ -467,6 +468,7 @@ export type Database = {
           specifications: Json
           status: string
           stock: number
+          stock_state: string | null
           submitted_by: string | null
           track_inventory: boolean
           updated_at: string
@@ -482,6 +484,7 @@ export type Database = {
           color?: string | null
           colors?: string[]
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dimensions?: string | null
           featured?: boolean
@@ -508,6 +511,7 @@ export type Database = {
           specifications?: Json
           status?: string
           stock?: number
+          stock_state?: string | null
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
@@ -523,6 +527,7 @@ export type Database = {
           color?: string | null
           colors?: string[]
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dimensions?: string | null
           featured?: boolean
@@ -549,6 +554,7 @@ export type Database = {
           specifications?: Json
           status?: string
           stock?: number
+          stock_state?: string | null
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string

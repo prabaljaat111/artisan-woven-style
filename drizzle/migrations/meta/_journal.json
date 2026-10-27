@@ -15,6 +15,13 @@
       "when": 1793125386774,
       "tag": "0001_dashboard_overview_rpc",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793125528740,
+      "tag": "0002_products_soft_delete_stock_state",
+      "breakpoints": true
     }
   ]
 }
