@@ -449,6 +449,8 @@ export type Database = {
           colors: string[]
           created_at: string
           cross_sell_ids: string[]
+          default_color: string | null
+          default_size: string | null
           deleted_at: string | null
           description: string
           dimensions: string | null
@@ -509,6 +511,8 @@ export type Database = {
           colors?: string[]
           created_at?: string
           cross_sell_ids?: string[]
+          default_color?: string | null
+          default_size?: string | null
           deleted_at?: string | null
           description?: string
           dimensions?: string | null
@@ -569,6 +573,8 @@ export type Database = {
           colors?: string[]
           created_at?: string
           cross_sell_ids?: string[]
+          default_color?: string | null
+          default_size?: string | null
           deleted_at?: string | null
           description?: string
           dimensions?: string | null
