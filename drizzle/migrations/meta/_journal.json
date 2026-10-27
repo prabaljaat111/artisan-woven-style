@@ -43,6 +43,13 @@
       "when": 1793126155096,
       "tag": "0005_product_default_variation",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793126425231,
+      "tag": "0006_adjust_stock_rpc",
+      "breakpoints": true
     }
   ]
 }

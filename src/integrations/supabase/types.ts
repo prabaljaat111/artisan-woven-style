@@ -797,6 +797,7 @@ export type Database = {
           level: string
           product_id: string
           stock_at_alert: number
+          variation_id: string | null
         }
         Insert: {
           acknowledged?: boolean
@@ -805,6 +806,7 @@ export type Database = {
           level: string
           product_id: string
           stock_at_alert?: number
+          variation_id?: string | null
         }
         Update: {
           acknowledged?: boolean
@@ -813,6 +815,7 @@ export type Database = {
           level?: string
           product_id?: string
           stock_at_alert?: number
+          variation_id?: string | null
         }
         Relationships: [
           {
@@ -820,6 +823,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_alerts_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
             referencedColumns: ["id"]
           },
         ]
@@ -830,6 +840,7 @@ export type Database = {
           created_at: string
           id: string
           new_stock: number
+          notes: string | null
           previous_stock: number
           product_id: string
           quantity: number
@@ -842,6 +853,7 @@ export type Database = {
           created_at?: string
           id?: string
           new_stock?: number
+          notes?: string | null
           previous_stock?: number
           product_id: string
           quantity: number
@@ -854,6 +866,7 @@ export type Database = {
           created_at?: string
           id?: string
           new_stock?: number
+          notes?: string | null
           previous_stock?: number
           product_id?: string
           quantity?: number
@@ -904,6 +917,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_stock: {
+        Args: {
+          _notes?: string
+          _product_id: string
+          _quantity: number
+          _reason: string
+          _type: string
+          _variation_id: string
+        }
+        Returns: Json
+      }
       can_approve: { Args: { _user_id: string }; Returns: boolean }
       dashboard_overview: {
         Args: { _from: string; _to: string }
