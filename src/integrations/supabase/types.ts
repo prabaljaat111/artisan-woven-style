@@ -836,6 +836,18 @@ export type Database = {
     }
     Functions: {
       can_approve: { Args: { _user_id: string }; Returns: boolean }
+      dashboard_overview: {
+        Args: { _from: string; _to: string }
+        Returns: Json
+      }
+      dashboard_sales_trend: {
+        Args: { _days: number }
+        Returns: {
+          day: string
+          orders: number
+          sales: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
