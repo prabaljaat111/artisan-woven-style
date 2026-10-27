@@ -172,7 +172,7 @@ function InventoryPage() {
 function StockInput({ row, onSave }: { row: Row; onSave: (n: number) => Promise<void> }) {
   const [val, setVal] = useState(String(row.stock));
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => setVal(String(row.stock)), [row.stock]);
   function change(v: string) {
     const clean = v.replace(/\D/g, "").slice(0, 6);
