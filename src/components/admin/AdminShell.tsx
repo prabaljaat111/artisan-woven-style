@@ -31,7 +31,7 @@ const NAV: NavItem[][] = [
       label: "Products", icon: Package, to: "/admin/products", roles: ALL,
       children: [
         { label: "All Products", to: "/admin/products", roles: ALL },
-        { label: "Add New Product", to: "/admin/products", roles: ALL },
+        { label: "Add New Product", to: "/admin/products?new=1", roles: ALL },
         { label: "Categories", to: "/admin/categories" },
         { label: "Attributes (Size, Color)", to: "/admin/attributes", roles: ALL },
         { label: "Brands", to: "/admin/brands", roles: ALL },
