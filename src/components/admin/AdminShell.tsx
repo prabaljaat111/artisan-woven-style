@@ -42,7 +42,13 @@ const NAV: NavItem[][] = [
       ],
     },
     { label: "Categories", icon: FolderTree, to: "/admin/categories" },
-    { label: "Inventory", icon: Boxes, to: "/admin/inventory", roles: ALL },
+    {
+      label: "Inventory", icon: Boxes, to: "/admin/inventory", roles: ALL,
+      children: [
+        { label: "Stock Levels", to: "/admin/inventory", roles: ALL },
+        { label: "Low Stock", to: "/admin/low-stock", roles: ALL },
+      ],
+    },
     { label: "Orders", icon: ShoppingBag, to: "/admin/orders", badge: "orders" },
     { label: "Returns & Refunds", icon: RotateCcw, ...ph("returns"), roles: MGR },
     { label: "Customers", icon: Users, to: "/admin/customers" },

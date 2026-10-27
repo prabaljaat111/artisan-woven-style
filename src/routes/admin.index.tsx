@@ -290,7 +290,7 @@ function DashboardPage() {
           <h2 className="font-display text-xl mb-3">Alerts & Notifications</h2>
           {!o ? <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}</div> : (
             <div className="space-y-2.5">
-              <Alert icon={AlertCircle} tone="red" title={`${o.low_stock} products low in stock`} sub="Some products are running low. Please update stock." to="/admin/inventory" cta="View Products" />
+              <Alert icon={AlertCircle} tone="red" title={`${o.low_stock} products low in stock`} sub="Some products are running low. Please update stock." to="/admin/low-stock" cta="View Products" />
               <Alert icon={Truck} tone="orange" title={`${o.awaiting_dispatch} orders awaiting dispatch`} sub="These orders are paid and ready to be shipped." to="/admin/shipments" cta="View Orders" />
               <Alert icon={RotateCcw} tone="blue" title={`${o.returns} return request${o.returns === 1 ? "" : "s"}`} sub="Refunded or returned orders in this period." to="/admin/orders" cta="View Requests" />
               <Alert icon={MessageCircle} tone="green" title={`${o.new_messages} new customer messages`} sub="New enquiries from website and WhatsApp." to="/admin/leads" cta="View Messages" />
