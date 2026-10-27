@@ -168,7 +168,7 @@ function DashboardPage() {
             <Kpi icon={IndianRupee} tint="bg-status-green/10 text-status-green" label="Total Sales" value={inr(Math.round(o.current.sales))} change={pct(o.current.sales, o.previous.sales)} />
             <Kpi icon={ShoppingCart} tint="bg-status-orange/10 text-status-orange" label="Total Orders" value={o.current.orders.toLocaleString("en-IN")} change={pct(o.current.orders, o.previous.orders)} />
             <Kpi icon={BarChart3} tint="bg-status-blue/10 text-status-blue" label="Average Order Value" value={inr(Math.round(aov))} change={pct(aov, prevAov)} />
-            <Link to="/admin/inventory" className="block">
+            <Link to="/admin/low-stock" className="block">
               <Kpi icon={Package} tint="bg-status-red/10 text-status-red" label="Low Stock Products" value={String(o.low_stock)} note="need attention" />
             </Link>
           </>
