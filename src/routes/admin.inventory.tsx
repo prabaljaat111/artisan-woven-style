@@ -9,7 +9,8 @@ import { adminPageMeta } from "@/lib/page-meta";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, PageHeader, Chip, inputCls, btnPrimary, btnGhost } from "@/components/admin/ui";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AdjustStockModal, adjustStock } from "@/components/admin/AdjustStockModal";
+import { StockHistory } from "@/components/admin/StockHistory";
 
 export const Route = createFileRoute("/admin/inventory")({
   component: InventoryPage,
@@ -29,6 +30,8 @@ function InventoryPage() {
   const [status, setStatus] = useState<"all" | State>("all");
   const [page, setPage] = useState(1);
   const [adj, setAdj] = useState<Row | null>(null);
+  const [adjOpen, setAdjOpen] = useState(false);
+  const [tab, setTab] = useState<"stock" | "history">("stock");
 
   const { data, isLoading } = useQuery({
     queryKey: ["inventory-v2"],
@@ -51,11 +54,7 @@ function InventoryPage() {
       return { rows, cats: cats ?? [] };
     },
   });
-  const logs = useQuery({
-    queryKey: ["stock_logs"],
-    queryFn: async () => (await supabase.from("stock_logs").select("id, adjustment_type, quantity, previous_stock, new_stock, reason, created_at, products(name)").order("created_at", { ascending: false }).limit(10)).data ?? [],
-  });
-  const refresh = () => { qc.invalidateQueries({ queryKey: ["inventory-v2"] }); qc.invalidateQueries({ queryKey: ["stock_logs"] }); };
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["inventory-v2"] }); qc.invalidateQueries({ queryKey: ["stock-history"] }); };
 
   const all = data?.rows ?? [];
   const summary = useMemo(() => ({ total: all.length, in: all.filter((r) => stateOf(r) === "in").length, low: all.filter((r) => stateOf(r) === "low").length, out: all.filter((r) => stateOf(r) === "out").length }), [all]);
@@ -68,15 +67,10 @@ function InventoryPage() {
   const shown = filtered.slice((page - 1) * PAGE, page * PAGE);
   const catName = (id: string | null) => data?.cats.find((c) => c.id === id)?.name ?? "";
 
-  async function setStock(r: Row, next: number, type: string, reason: string | null) {
-    const { error } = r.variantId
-      ? await supabase.from("product_variants").update({ stock: next }).eq("id", r.variantId)
-      : await supabase.from("products").update({ stock: next }).eq("id", r.productId);
-    if (error) throw error;
-    await supabase.from("stock_logs").insert({ product_id: r.productId, variation_id: r.variantId, adjustment_type: type, quantity: Math.abs(next - r.stock), previous_stock: r.stock, new_stock: next, reason, user_id: user?.id ?? null });
-    // optimistic local update
+  async function setStock(r: Row, next: number) {
+    await adjustStock({ productId: r.productId, variationId: r.variantId, type: "set", quantity: next, reason: "Correction", notes: "Inline edit on Inventory page" });
     qc.setQueryData(["inventory-v2"], (old: any) => old && { ...old, rows: old.rows.map((x: Row) => (x.key === r.key ? { ...x, stock: next } : x)) });
-    qc.invalidateQueries({ queryKey: ["stock_logs"] });
+    qc.invalidateQueries({ queryKey: ["stock-history"] });
   }
 
   function exportCsv() {
@@ -96,7 +90,11 @@ function InventoryPage() {
 
   return (
     <div>
-      <PageHeader title="Inventory & Stock" subtitle="Every product and variation with live stock levels." actions={<button className={btnPrimary} onClick={exportCsv} disabled={!filtered.length}><Download className="h-4 w-4" /> Export Inventory</button>} />
+      <PageHeader title="Inventory & Stock" subtitle="Every product and variation with live stock levels." actions={<><button className={btnGhost} onClick={() => { setAdj(null); setAdjOpen(true); }}><SlidersHorizontal className="h-4 w-4" /> Adjust Stock</button>{tab === "stock" && <button className={btnPrimary} onClick={exportCsv} disabled={!filtered.length}><Download className="h-4 w-4" /> Export Inventory</button>}</>} />
+      <div className="flex gap-1 border-b border-border mb-5">
+        {([["stock", "Stock Levels"], ["history", "Stock History"]] as const).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`px-4 py-2.5 text-sm border-b-2 -mb-px ${tab === k ? "border-admin-nav font-semibold" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{l}</button>)}
+      </div>
+      {tab === "history" ? <StockHistory products={data?.rows ?? []} /> : <>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {cards.map((c) => (
@@ -128,9 +126,9 @@ function InventoryPage() {
                     <div className="min-w-0"><div className="font-medium truncate max-w-[260px]">{r.name}</div><div className="text-xs text-muted-foreground">{catName(r.categoryId)}</div></div></div></td>
                   <td className="p-3 text-muted-foreground">{r.sku || "—"}</td>
                   <td className="p-3">{r.size || r.color ? [r.size, r.color].filter(Boolean).join(" / ") : <span className="text-muted-foreground">—</span>}</td>
-                  <td className="p-3"><StockInput row={r} onSave={(n) => setStock(r, n, "set", "Inline edit")} /></td>
+                  <td className="p-3"><StockInput row={r} onSave={(n) => setStock(r, n)} /></td>
                   <td className="p-3">{r.inactive ? <Chip tone="blue">Inactive</Chip> : st === "out" ? <Chip tone="red">Out of Stock</Chip> : st === "low" ? <Chip tone="orange">Low Stock</Chip> : <Chip tone="green">In Stock</Chip>}</td>
-                  <td className="p-3 text-right"><button aria-label={`Adjust stock for ${r.name}`} title="Stock adjustment" className="p-2 rounded-md hover:bg-secondary" onClick={() => setAdj(r)}><SlidersHorizontal className="h-4 w-4" /></button></td>
+                  <td className="p-3 text-right"><button aria-label={`Adjust stock for ${r.name}`} title="Stock adjustment" className="p-2 rounded-md hover:bg-secondary" onClick={() => { setAdj(r); setAdjOpen(true); }}><SlidersHorizontal className="h-4 w-4" /></button></td>
                 </tr>
               );
             })}
@@ -151,20 +149,8 @@ function InventoryPage() {
         )}
       </Card>
 
-      <Card className="p-5 mt-5">
-        <h3 className="font-display text-lg mb-3">Recent stock changes</h3>
-        <div className="space-y-2 text-sm">
-          {(logs.data ?? []).length === 0 && <div className="text-muted-foreground">No adjustments yet.</div>}
-          {(logs.data ?? []).map((l: any) => (
-            <div key={l.id} className="flex justify-between gap-2 border-b border-border/50 pb-2">
-              <div><div className="font-medium">{l.products?.name}</div><div className="text-xs text-muted-foreground">{l.reason ?? l.adjustment_type} · {format(new Date(l.created_at), "d MMM, HH:mm")}</div></div>
-              <div className={`tabular-nums ${l.new_stock >= l.previous_stock ? "text-status-green" : "text-status-red"}`}>{l.previous_stock} → {l.new_stock}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <AdjustModal row={adj} onClose={() => setAdj(null)} onSave={async (next, type, reason) => { try { await setStock(adj!, next, type, reason); toast.success("Stock updated"); setAdj(null); refresh(); } catch (e: any) { toast.error(e.message); } }} />
+      </>}
+      <AdjustStockModal open={adjOpen} prefill={adj ? { productId: adj.productId, variationId: adj.variantId } : null} onClose={() => { setAdjOpen(false); setAdj(null); }} onDone={() => { setAdjOpen(false); setAdj(null); refresh(); }} />
     </div>
   );
 }
@@ -195,40 +181,3 @@ function StockInput({ row, onSave }: { row: Row; onSave: (n: number) => Promise<
   );
 }
 
-const REASONS = ["Restock / new purchase", "Customer return", "Damaged", "Lost / theft", "Stock count correction", "Other"];
-function AdjustModal({ row, onClose, onSave }: { row: Row | null; onClose: () => void; onSave: (next: number, type: string, reason: string | null) => Promise<void> }) {
-  const [mode, setMode] = useState<"increase" | "decrease" | "set">("increase");
-  const [qty, setQty] = useState("");
-  const [reason, setReason] = useState(REASONS[0]);
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { setMode("increase"); setQty(""); setReason(REASONS[0]); setNote(""); }, [row?.key]);
-  if (!row) return null;
-  const n = Number(qty) || 0;
-  const next = mode === "set" ? n : mode === "increase" ? row.stock + n : Math.max(0, row.stock - n);
-  const invalid = qty === "" || (mode !== "set" && n === 0) || (mode === "decrease" && n > row.stock);
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="admin-ui">
-        <DialogHeader>
-          <DialogTitle className="font-display text-2xl">Stock Adjustment</DialogTitle>
-          <DialogDescription>{row.name}{row.size || row.color ? ` · ${[row.size, row.color].filter(Boolean).join(" / ")}` : ""}{row.sku ? ` · ${row.sku}` : ""}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            {(["increase", "decrease", "set"] as const).map((m) => <button key={m} type="button" onClick={() => setMode(m)} className={`h-9 rounded-lg text-sm border ${mode === m ? "bg-admin-nav text-admin-nav-foreground border-admin-nav" : "border-border bg-card"}`}>{m === "increase" ? "Add" : m === "decrease" ? "Remove" : "Set to"}</button>)}
-          </div>
-          <label className="block"><span className="block text-sm font-medium mb-1.5">Quantity</span><input autoFocus inputMode="numeric" className={`${inputCls} w-full`} value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, "").slice(0, 6))} />
-            {mode === "decrease" && n > row.stock && <p className="text-xs text-status-red mt-1">Can't remove more than the current stock ({row.stock})</p>}</label>
-          <label className="block"><span className="block text-sm font-medium mb-1.5">Reason</span><select className={`${inputCls} w-full`} value={reason} onChange={(e) => setReason(e.target.value)}>{REASONS.map((r) => <option key={r}>{r}</option>)}</select></label>
-          <label className="block"><span className="block text-sm font-medium mb-1.5">Note (optional)</span><input className={`${inputCls} w-full`} maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} /></label>
-          <div className="rounded-lg bg-secondary/50 p-3 text-sm flex justify-between"><span>Current: <b>{row.stock}</b></span><span>New stock: <b className={next <= row.reorder ? "text-status-red" : "text-status-green"}>{next}</b></span></div>
-        </div>
-        <DialogFooter className="gap-2">
-          <button className={btnGhost} onClick={onClose}>Cancel</button>
-          <button className={btnPrimary} disabled={invalid || busy} onClick={async () => { setBusy(true); await onSave(next, mode, note.trim() ? `${reason} — ${note.trim()}` : reason); setBusy(false); }}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}Save adjustment</button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
