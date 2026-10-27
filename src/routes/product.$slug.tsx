@@ -495,7 +495,7 @@ function ProductPage() {
           </div>
 
           {/* Description */}
-          <div className="mt-8"><h2 className="font-display text-lg text-primary mb-2">Description</h2><p className="text-sm text-foreground/85 leading-relaxed">{p.description}</p></div>
+          <div className="mt-8"><h2 className="font-display text-lg text-primary mb-2">Description</h2><RichDescription html={p.description ?? ""} /></div>
           <p className="text-[11px] text-muted-foreground italic mt-2">Handmade in Lucknow — slight variation in colour and embroidery placement is the signature of true Chikankari.</p>
 
           {/* Expandable product info */}
@@ -579,4 +579,13 @@ function ProductPage() {
       </div>
     </div>
   );
+}
+function RichDescription({ html }: { html: string }) {
+  const [safe, setSafe] = useState<string | null>(null);
+  useEffect(() => {
+    if (!/<[a-z]/i.test(html)) return;
+    import("@/components/admin/RichText").then((m) => setSafe(m.sanitizeHtml(html)));
+  }, [html]);
+  if (safe !== null) return <div className="text-sm text-foreground/85 leading-relaxed space-y-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5" dangerouslySetInnerHTML={{ __html: safe }} />;
+  return <p className="text-sm text-foreground/85 leading-relaxed">{html.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim()}</p>;
 }

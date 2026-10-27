@@ -1,5 +1,5 @@
 import { adminPageMeta } from "@/lib/page-meta";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate as useNav } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts, adminCloneProduct } from "@/lib/admin.functions";
@@ -44,6 +44,7 @@ function ProductsPage() {
   const { isTeam, loading: authLoading } = useAuth();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const go = useNav();
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<any[]>([]);
@@ -63,7 +64,7 @@ function ProductsPage() {
   const [moveOpen, setMoveOpen] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => { setDebouncedQ(q.trim()); setPage(1); }, 250); return () => clearTimeout(t); }, [q]);
-  useEffect(() => { if (search.new) { setEditing({}); navigate({ search: {}, replace: true }); } }, [search.new, navigate]);
+  useEffect(() => { if (search.new) go({ to: "/admin/products/new", replace: true }); }, [search.new, go]);
 
   async function load() {
     setLoading(true);
@@ -139,7 +140,7 @@ function ProductsPage() {
     if (insErr || !created) return toast.error(insErr?.message ?? "Copy failed");
     const { data: variants } = await supabase.from("product_variants").select("size, color, stock, price, sale_price, image_url, status").eq("product_id", p.id);
     if (variants?.length) await supabase.from("product_variants").insert(variants.map((v) => ({ ...v, product_id: created.id, sku: null })));
-    toast.success("Duplicated as draft"); load(); setEditing(created);
+    toast.success("Duplicated as draft"); load(); go({ to: "/admin/products/$id", params: { id: created.id } });
   }
 
   const SortTh = ({ k, children, className = "" }: { k: SortKey; children: React.ReactNode; className?: string }) => (
@@ -159,7 +160,7 @@ function ProductsPage() {
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => setImportOpen(true)} className={btnGhost}><Upload className="h-4 w-4" /> Import</button>
-          <button type="button" onClick={() => setEditing({})} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-status-green text-card text-sm font-medium hover:opacity-90"><Plus className="h-4 w-4" /> Add New Product</button>
+          <button type="button" onClick={() => go({ to: "/admin/products/new" })} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-status-green text-card text-sm font-medium hover:opacity-90"><Plus className="h-4 w-4" /> Add New Product</button>
         </div>
       </div>
 
@@ -227,7 +228,7 @@ function ProductsPage() {
                 <tr key={p.id} className="border-t border-border/60 hover:bg-secondary/20">
                   <td className="p-3"><input type="checkbox" aria-label={`Select ${p.name}`} checked={!!selected[p.id]} onChange={(e) => setSelected((s) => { const n = { ...s }; if (e.target.checked) n[p.id] = p; else delete n[p.id]; return n; })} /></td>
                   <td className="p-3"><div className="h-14 w-11 rounded-md bg-secondary overflow-hidden">{p.images?.[0] && <img src={p.images[0]} alt="" loading="lazy" className="h-full w-full object-cover" />}</div></td>
-                  <td className="p-3"><button type="button" onClick={() => setEditing(p)} className="font-medium text-left hover:underline">{p.name}</button></td>
+                  <td className="p-3"><button type="button" onClick={() => go({ to: "/admin/products/$id", params: { id: p.id } })} className="font-medium text-left hover:underline">{p.name}</button></td>
                   <td className="p-3 text-muted-foreground">{p.sku ?? "—"}</td>
                   <td className="p-3">{p.category?.name ?? "—"}</td>
                   <td className="p-3 whitespace-nowrap">
@@ -237,7 +238,7 @@ function ProductsPage() {
                   <td className={`p-3 font-semibold tabular-nums ${stockCls}`}>{p.stock}</td>
                   <td className="p-3"><Chip tone={st.tone}>{st.label}</Chip></td>
                   <td className="p-3 text-right whitespace-nowrap">
-                    <button type="button" title="Edit" aria-label="Edit" onClick={() => setEditing(p)} className="p-2 rounded-md hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
+                    <button type="button" title="Edit" aria-label="Edit" onClick={() => go({ to: "/admin/products/$id", params: { id: p.id } })} className="p-2 rounded-md hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
                     <button type="button" title="Duplicate" aria-label="Duplicate" onClick={() => duplicate(p)} className="p-2 rounded-md hover:bg-secondary"><Copy className="h-4 w-4" /></button>
                     <button type="button" title="Delete" aria-label="Delete" onClick={() => setDeleteIds({ ids: [p.id], label: p.name })} className="p-2 rounded-md hover:bg-secondary text-status-red"><Trash2 className="h-4 w-4" /></button>
                   </td>

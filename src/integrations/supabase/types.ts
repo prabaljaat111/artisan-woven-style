@@ -433,6 +433,7 @@ export type Database = {
       }
       products: {
         Row: {
+          allow_backorders: boolean
           attributes: Json
           authenticity: string | null
           brand_id: string | null
@@ -441,25 +442,38 @@ export type Database = {
           color: string | null
           colors: string[]
           created_at: string
+          cross_sell_ids: string[]
           deleted_at: string | null
           description: string
           dimensions: string | null
           featured: boolean
+          height_cm: number | null
           id: string
           images: string[]
           is_bestseller: boolean
           is_new: boolean
           is_published: boolean
+          length_cm: number | null
           low_stock_threshold: number
+          menu_order: number
+          meta_description: string | null
           name: string
+          on_sale: boolean
           original_price: number
           price: number
+          product_attributes: Json
           product_type: string
+          purchase_note: string | null
           rating: number
           rejection_reason: string | null
           reorder_level: number
           return_policy: string[]
           reviews: number
+          reviews_enabled: boolean
+          sale_ends_at: string | null
+          sale_starts_at: string | null
+          seo_title: string | null
+          shipping_class: string | null
           shipping_info: string[]
           short_description: string | null
           sizes: string[]
@@ -469,13 +483,17 @@ export type Database = {
           status: string
           stock: number
           stock_state: string | null
+          stock_status: string
           submitted_by: string | null
           track_inventory: boolean
           updated_at: string
+          upsell_ids: string[]
           video_url: string | null
           weight: number | null
+          width_cm: number | null
         }
         Insert: {
+          allow_backorders?: boolean
           attributes?: Json
           authenticity?: string | null
           brand_id?: string | null
@@ -484,25 +502,38 @@ export type Database = {
           color?: string | null
           colors?: string[]
           created_at?: string
+          cross_sell_ids?: string[]
           deleted_at?: string | null
           description?: string
           dimensions?: string | null
           featured?: boolean
+          height_cm?: number | null
           id?: string
           images?: string[]
           is_bestseller?: boolean
           is_new?: boolean
           is_published?: boolean
+          length_cm?: number | null
           low_stock_threshold?: number
+          menu_order?: number
+          meta_description?: string | null
           name: string
+          on_sale?: boolean
           original_price: number
           price: number
+          product_attributes?: Json
           product_type?: string
+          purchase_note?: string | null
           rating?: number
           rejection_reason?: string | null
           reorder_level?: number
           return_policy?: string[]
           reviews?: number
+          reviews_enabled?: boolean
+          sale_ends_at?: string | null
+          sale_starts_at?: string | null
+          seo_title?: string | null
+          shipping_class?: string | null
           shipping_info?: string[]
           short_description?: string | null
           sizes?: string[]
@@ -512,13 +543,17 @@ export type Database = {
           status?: string
           stock?: number
           stock_state?: string | null
+          stock_status?: string
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
+          upsell_ids?: string[]
           video_url?: string | null
           weight?: number | null
+          width_cm?: number | null
         }
         Update: {
+          allow_backorders?: boolean
           attributes?: Json
           authenticity?: string | null
           brand_id?: string | null
@@ -527,25 +562,38 @@ export type Database = {
           color?: string | null
           colors?: string[]
           created_at?: string
+          cross_sell_ids?: string[]
           deleted_at?: string | null
           description?: string
           dimensions?: string | null
           featured?: boolean
+          height_cm?: number | null
           id?: string
           images?: string[]
           is_bestseller?: boolean
           is_new?: boolean
           is_published?: boolean
+          length_cm?: number | null
           low_stock_threshold?: number
+          menu_order?: number
+          meta_description?: string | null
           name?: string
+          on_sale?: boolean
           original_price?: number
           price?: number
+          product_attributes?: Json
           product_type?: string
+          purchase_note?: string | null
           rating?: number
           rejection_reason?: string | null
           reorder_level?: number
           return_policy?: string[]
           reviews?: number
+          reviews_enabled?: boolean
+          sale_ends_at?: string | null
+          sale_starts_at?: string | null
+          seo_title?: string | null
+          shipping_class?: string | null
           shipping_info?: string[]
           short_description?: string | null
           sizes?: string[]
@@ -555,11 +603,14 @@ export type Database = {
           status?: string
           stock?: number
           stock_state?: string | null
+          stock_status?: string
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
+          upsell_ids?: string[]
           video_url?: string | null
           weight?: number | null
+          width_cm?: number | null
         }
         Relationships: [
           {
