@@ -8,7 +8,6 @@ import { useAuth, type TeamRole } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BrandLogo } from "@/components/BrandLogo";
 
 type NavItem = {
   label: string;
@@ -254,4 +253,3 @@ function UserMenu({ email, role, onLogout }: { email: string; role: string; onLo
   );
 }
 
-void BrandLogo;
