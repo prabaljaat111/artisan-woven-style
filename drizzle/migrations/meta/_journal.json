@@ -57,6 +57,13 @@
       "when": 1793126582644,
       "tag": "0007_import_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793126956069,
+      "tag": "0008_product_approvals",
+      "breakpoints": true
     }
   ]
 }
