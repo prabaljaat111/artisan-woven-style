@@ -1,106 +1,234 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { Search, SlidersHorizontal, Download, Package, CheckCircle2, AlertTriangle, XCircle, Loader2, Check, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { adminPageMeta } from "@/lib/page-meta";
 import { useAuth } from "@/hooks/use-auth";
-import { Card, PageHeader, stockChip, inputCls, btnPrimary } from "@/components/admin/ui";
-import { format } from "date-fns";
+import { Card, PageHeader, Chip, inputCls, btnPrimary, btnGhost } from "@/components/admin/ui";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/inventory")({
   component: InventoryPage,
-  head: () => ({ meta: adminPageMeta("Inventory") }),
+  head: () => ({ meta: adminPageMeta("Inventory & Stock") }),
 });
+
+type Row = { key: string; productId: string; variantId: string | null; name: string; image: string | null; sku: string | null; size: string | null; color: string | null; stock: number; reorder: number; categoryId: string | null; inactive: boolean };
+type State = "in" | "low" | "out";
+const stateOf = (r: Row): State => (r.stock <= 0 ? "out" : r.stock <= r.reorder ? "low" : "in");
+const PAGE = 20;
 
 function InventoryPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<"all" | "low" | "out">("all");
-  const [adj, setAdj] = useState<{ id: string; name: string; stock: number } | null>(null);
-  const [qty, setQty] = useState(0);
-  const [reason, setReason] = useState("");
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
+  const [status, setStatus] = useState<"all" | State>("all");
+  const [page, setPage] = useState(1);
+  const [adj, setAdj] = useState<Row | null>(null);
 
-  const products = useQuery({
-    queryKey: ["inventory"],
+  const { data, isLoading } = useQuery({
+    queryKey: ["inventory-v2"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("id, name, sku, stock, reorder_level, low_stock_threshold, images, status").order("stock");
+      const [{ data: prods, error }, { data: vars }, { data: cats }] = await Promise.all([
+        supabase.from("products").select("id, name, sku, stock, reorder_level, images, category_id, product_type").is("deleted_at", null).order("name"),
+        supabase.from("product_variants").select("id, product_id, sku, size, color, stock, image_url, status").order("created_at"),
+        supabase.from("categories").select("id, name").order("sort_order"),
+      ]);
       if (error) throw error;
-      return data;
+      const byProduct = new Map<string, any[]>();
+      (vars ?? []).forEach((v) => { const a = byProduct.get(v.product_id) ?? []; a.push(v); byProduct.set(v.product_id, a); });
+      const rows: Row[] = [];
+      for (const p of prods ?? []) {
+        const vs = byProduct.get(p.id);
+        const base = { productId: p.id, name: p.name, categoryId: p.category_id, reorder: p.reorder_level ?? 5 };
+        if (vs?.length) vs.forEach((v) => rows.push({ ...base, key: v.id, variantId: v.id, image: v.image_url || p.images?.[0] || null, sku: v.sku, size: v.size, color: v.color, stock: v.stock ?? 0, inactive: v.status === "inactive" }));
+        else rows.push({ ...base, key: p.id, variantId: null, image: p.images?.[0] ?? null, sku: p.sku, size: null, color: null, stock: p.stock ?? 0, inactive: false });
+      }
+      return { rows, cats: cats ?? [] };
     },
   });
   const logs = useQuery({
     queryKey: ["stock_logs"],
-    queryFn: async () => (await supabase.from("stock_logs").select("id, adjustment_type, quantity, previous_stock, new_stock, reason, created_at, products(name)").order("created_at", { ascending: false }).limit(15)).data ?? [],
+    queryFn: async () => (await supabase.from("stock_logs").select("id, adjustment_type, quantity, previous_stock, new_stock, reason, created_at, products(name)").order("created_at", { ascending: false }).limit(10)).data ?? [],
   });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["inventory-v2"] }); qc.invalidateQueries({ queryKey: ["stock_logs"] }); };
 
-  const adjust = useMutation({
-    mutationFn: async () => {
-      if (!adj || !user) return;
-      const next = Math.max(0, adj.stock + qty);
-      const { error } = await supabase.from("products").update({ stock: next }).eq("id", adj.id);
-      if (error) throw error;
-      await supabase.from("stock_logs").insert({ product_id: adj.id, adjustment_type: qty >= 0 ? "increase" : "decrease", quantity: Math.abs(qty), previous_stock: adj.stock, new_stock: next, reason: reason || null, user_id: user.id });
-    },
-    onSuccess: () => { toast.success("Stock updated"); setAdj(null); setQty(0); setReason(""); qc.invalidateQueries({ queryKey: ["inventory"] }); qc.invalidateQueries({ queryKey: ["stock_logs"] }); },
-    onError: (e: any) => toast.error(e.message),
-  });
+  const all = data?.rows ?? [];
+  const summary = useMemo(() => ({ total: all.length, in: all.filter((r) => stateOf(r) === "in").length, low: all.filter((r) => stateOf(r) === "low").length, out: all.filter((r) => stateOf(r) === "out").length }), [all]);
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return all.filter((r) => (!s || r.name.toLowerCase().includes(s) || (r.sku ?? "").toLowerCase().includes(s)) && (!cat || r.categoryId === cat) && (status === "all" || stateOf(r) === status));
+  }, [all, q, cat, status]);
+  useEffect(() => setPage(1), [q, cat, status]);
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  const shown = filtered.slice((page - 1) * PAGE, page * PAGE);
+  const catName = (id: string | null) => data?.cats.find((c) => c.id === id)?.name ?? "";
 
-  const rows = (products.data ?? []).filter((p: any) => {
-    const lvl = p.reorder_level ?? p.low_stock_threshold ?? 5;
-    return filter === "all" ? true : filter === "out" ? p.stock <= 0 : p.stock > 0 && p.stock <= lvl;
-  });
+  async function setStock(r: Row, next: number, type: string, reason: string | null) {
+    const { error } = r.variantId
+      ? await supabase.from("product_variants").update({ stock: next }).eq("id", r.variantId)
+      : await supabase.from("products").update({ stock: next }).eq("id", r.productId);
+    if (error) throw error;
+    await supabase.from("stock_logs").insert({ product_id: r.productId, variation_id: r.variantId, adjustment_type: type, quantity: Math.abs(next - r.stock), previous_stock: r.stock, new_stock: next, reason, user_id: user?.id ?? null });
+    // optimistic local update
+    qc.setQueryData(["inventory-v2"], (old: any) => old && { ...old, rows: old.rows.map((x: Row) => (x.key === r.key ? { ...x, stock: next } : x)) });
+    qc.invalidateQueries({ queryKey: ["stock_logs"] });
+  }
+
+  function exportCsv() {
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Product", "SKU", "Size", "Color", "Category", "Stock", "Reorder Level", "Status"].join(",")];
+    filtered.forEach((r) => lines.push([r.name, r.sku, r.size, r.color, catName(r.categoryId), r.stock, r.reorder, { in: "In Stock", low: "Low Stock", out: "Out of Stock" }[stateOf(r)]].map(esc).join(",")));
+    const url = URL.createObjectURL(new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: `inventory-${format(new Date(), "yyyy-MM-dd")}.csv` }); a.click(); URL.revokeObjectURL(url);
+  }
+
+  const cards = [
+    { label: "Total SKUs", value: summary.total, icon: Package, tone: "text-foreground", f: "all" as const },
+    { label: "In Stock", value: summary.in, icon: CheckCircle2, tone: "text-status-green", f: "in" as const },
+    { label: "Low Stock", value: summary.low, icon: AlertTriangle, tone: "text-status-orange", f: "low" as const },
+    { label: "Out of Stock", value: summary.out, icon: XCircle, tone: "text-status-red", f: "out" as const },
+  ];
 
   return (
     <div>
-      <PageHeader title="Inventory" subtitle="Track stock levels and adjust quantities with a full history." />
-      <div className="flex gap-2 mb-4">
-        {(["all", "low", "out"] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} className={`h-9 px-4 rounded-full text-sm ${filter === f ? "bg-admin-nav text-admin-nav-foreground" : "bg-card border border-border"}`}>{f === "all" ? "All" : f === "low" ? "Low Stock" : "Out of Stock"}</button>
+      <PageHeader title="Inventory & Stock" subtitle="Every product and variation with live stock levels." actions={<button className={btnPrimary} onClick={exportCsv} disabled={!filtered.length}><Download className="h-4 w-4" /> Export Inventory</button>} />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {cards.map((c) => (
+          <button key={c.label} onClick={() => setStatus(c.f)} className={`text-left rounded-xl bg-card border p-4 shadow-sm transition ${status === c.f ? "border-admin-nav ring-1 ring-admin-nav" : "border-border hover:border-admin-nav/40"}`}>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">{c.label}<c.icon className={`h-4 w-4 ${c.tone}`} /></div>
+            <div className={`mt-2 text-2xl font-semibold tabular-nums ${c.tone}`}>{isLoading ? <Skeleton className="h-7 w-12" /> : c.value.toLocaleString("en-IN")}</div>
+          </button>
         ))}
       </div>
-      <div className="grid xl:grid-cols-3 gap-4">
-        <Card className="xl:col-span-2 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground bg-secondary/40"><tr><th className="p-3">Product</th><th className="p-3">SKU</th><th className="p-3">Stock</th><th className="p-3">Status</th><th className="p-3" /></tr></thead>
-            <tbody>
-              {rows.map((p: any) => (
-                <tr key={p.id} className="border-t border-border/60">
-                  <td className="p-3 font-medium">{p.name}</td>
-                  <td className="p-3 text-muted-foreground">{p.sku ?? "—"}</td>
-                  <td className="p-3 tabular-nums">{p.stock}</td>
-                  <td className="p-3">{stockChip(p.stock, p.reorder_level ?? 5)}</td>
-                  <td className="p-3 text-right"><button className="text-sm text-admin-nav underline" onClick={() => setAdj({ id: p.id, name: p.name, stock: p.stock })}>Adjust</button></td>
+
+      <Card className="p-3 mb-4 flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]"><Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" /><input className={`${inputCls} w-full pl-9`} placeholder="Search product name or SKU" value={q} onChange={(e) => setQ(e.target.value)} maxLength={80} /></div>
+        <select className={inputCls} value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category"><option value="">All categories</option>{data?.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+        <select className={inputCls} value={status} onChange={(e) => setStatus(e.target.value as any)} aria-label="Stock status"><option value="all">All stock</option><option value="in">In Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option></select>
+      </Card>
+
+      <Card className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[760px]">
+          <thead className="text-left text-xs text-muted-foreground bg-secondary/40"><tr><th className="p-3">Product</th><th className="p-3">SKU</th><th className="p-3">Size / Color</th><th className="p-3">Current Stock</th><th className="p-3">Status</th><th className="p-3 text-right">Actions</th></tr></thead>
+          <tbody>
+            {isLoading && [0, 1, 2, 3, 4].map((i) => <tr key={i}><td colSpan={6} className="p-3"><Skeleton className="h-10" /></td></tr>)}
+            {!isLoading && shown.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No items match these filters.</td></tr>}
+            {shown.map((r) => {
+              const st = stateOf(r);
+              return (
+                <tr key={r.key} className="border-t border-border/60 hover:bg-secondary/20">
+                  <td className="p-3"><div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-md bg-secondary overflow-hidden grid place-items-center shrink-0">{r.image ? <img src={r.image} alt="" className="h-full w-full object-cover" loading="lazy" /> : <ImageIcon className="h-4 w-4 text-muted-foreground" />}</div>
+                    <div className="min-w-0"><div className="font-medium truncate max-w-[260px]">{r.name}</div><div className="text-xs text-muted-foreground">{catName(r.categoryId)}</div></div></div></td>
+                  <td className="p-3 text-muted-foreground">{r.sku || "—"}</td>
+                  <td className="p-3">{r.size || r.color ? [r.size, r.color].filter(Boolean).join(" / ") : <span className="text-muted-foreground">—</span>}</td>
+                  <td className="p-3"><StockInput row={r} onSave={(n) => setStock(r, n, "set", "Inline edit")} /></td>
+                  <td className="p-3">{r.inactive ? <Chip tone="blue">Inactive</Chip> : st === "out" ? <Chip tone="red">Out of Stock</Chip> : st === "low" ? <Chip tone="orange">Low Stock</Chip> : <Chip tone="green">In Stock</Chip>}</td>
+                  <td className="p-3 text-right"><button aria-label={`Adjust stock for ${r.name}`} title="Stock adjustment" className="p-2 rounded-md hover:bg-secondary" onClick={() => setAdj(r)}><SlidersHorizontal className="h-4 w-4" /></button></td>
                 </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {filtered.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 border-t border-border text-sm">
+            <span className="text-muted-foreground">Showing {(page - 1) * PAGE + 1} to {Math.min(page * PAGE, filtered.length)} of {filtered.length} items</span>
+            <div className="flex gap-1">
+              <button className={btnGhost} disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
+              {Array.from({ length: pages }, (_, i) => i + 1).filter((n) => n === 1 || n === pages || Math.abs(n - page) <= 1).map((n, i, arr) => (
+                <span key={n} className="flex gap-1">{i > 0 && n - arr[i - 1] > 1 && <span className="px-1 self-center">…</span>}
+                  <button className={`h-9 min-w-9 px-2 rounded-lg text-sm ${n === page ? "bg-admin-nav text-admin-nav-foreground" : "border border-border bg-card"}`} onClick={() => setPage(n)}>{n}</button></span>
               ))}
-              {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No products.</td></tr>}
-            </tbody>
-          </table>
-        </Card>
-        <div className="space-y-4">
-          {adj && (
-            <Card className="p-5 space-y-3">
-              <h3 className="font-display text-lg">Adjust: {adj.name}</h3>
-              <div className="text-sm text-muted-foreground">Current stock: {adj.stock}</div>
-              <input type="number" className={`${inputCls} w-full`} value={qty} onChange={(e) => setQty(Number(e.target.value))} placeholder="+10 or -2" />
-              <input className={`${inputCls} w-full`} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (restock, damaged…)" />
-              <div className="flex gap-2"><button className={btnPrimary} disabled={!qty || adjust.isPending} onClick={() => adjust.mutate()}>Save → {Math.max(0, adj.stock + qty)}</button><button className="text-sm" onClick={() => setAdj(null)}>Cancel</button></div>
-            </Card>
-          )}
-          <Card className="p-5">
-            <h3 className="font-display text-lg mb-3">Stock history</h3>
-            <div className="space-y-2 text-sm">
-              {(logs.data ?? []).length === 0 && <div className="text-muted-foreground">No adjustments yet.</div>}
-              {(logs.data ?? []).map((l: any) => (
-                <div key={l.id} className="flex justify-between gap-2 border-b border-border/50 pb-2">
-                  <div><div className="font-medium">{l.products?.name}</div><div className="text-xs text-muted-foreground">{l.reason ?? l.adjustment_type} · {format(new Date(l.created_at), "d MMM, HH:mm")}</div></div>
-                  <div className={`tabular-nums ${l.adjustment_type === "increase" ? "text-status-green" : "text-status-red"}`}>{l.previous_stock} → {l.new_stock}</div>
-                </div>
-              ))}
+              <button className={btnGhost} disabled={page === pages} onClick={() => setPage(page + 1)}>Next</button>
             </div>
-          </Card>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-5 mt-5">
+        <h3 className="font-display text-lg mb-3">Recent stock changes</h3>
+        <div className="space-y-2 text-sm">
+          {(logs.data ?? []).length === 0 && <div className="text-muted-foreground">No adjustments yet.</div>}
+          {(logs.data ?? []).map((l: any) => (
+            <div key={l.id} className="flex justify-between gap-2 border-b border-border/50 pb-2">
+              <div><div className="font-medium">{l.products?.name}</div><div className="text-xs text-muted-foreground">{l.reason ?? l.adjustment_type} · {format(new Date(l.created_at), "d MMM, HH:mm")}</div></div>
+              <div className={`tabular-nums ${l.new_stock >= l.previous_stock ? "text-status-green" : "text-status-red"}`}>{l.previous_stock} → {l.new_stock}</div>
+            </div>
+          ))}
         </div>
-      </div>
+      </Card>
+
+      <AdjustModal row={adj} onClose={() => setAdj(null)} onSave={async (next, type, reason) => { try { await setStock(adj!, next, type, reason); toast.success("Stock updated"); setAdj(null); refresh(); } catch (e: any) { toast.error(e.message); } }} />
     </div>
+  );
+}
+
+function StockInput({ row, onSave }: { row: Row; onSave: (n: number) => Promise<void> }) {
+  const [val, setVal] = useState(String(row.stock));
+  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => setVal(String(row.stock)), [row.stock]);
+  function change(v: string) {
+    const clean = v.replace(/\D/g, "").slice(0, 6);
+    setVal(clean);
+    clearTimeout(timer.current);
+    if (clean === "" || Number(clean) === row.stock) return;
+    timer.current = setTimeout(async () => {
+      setState("saving");
+      try { await onSave(Number(clean)); setState("saved"); setTimeout(() => setState("idle"), 1200); }
+      catch (e: any) { toast.error(e.message); setVal(String(row.stock)); setState("idle"); }
+    }, 800);
+  }
+  const low = row.stock <= row.reorder;
+  return (
+    <div className="flex items-center gap-2">
+      <input aria-label="Stock quantity" inputMode="numeric" className={`${inputCls} h-8 w-20 tabular-nums ${low ? "text-status-red font-semibold" : ""}`} value={val} onChange={(e) => change(e.target.value)} onBlur={() => val === "" && setVal(String(row.stock))} />
+      {state === "saving" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+      {state === "saved" && <Check className="h-4 w-4 text-status-green" />}
+    </div>
+  );
+}
+
+const REASONS = ["Restock / new purchase", "Customer return", "Damaged", "Lost / theft", "Stock count correction", "Other"];
+function AdjustModal({ row, onClose, onSave }: { row: Row | null; onClose: () => void; onSave: (next: number, type: string, reason: string | null) => Promise<void> }) {
+  const [mode, setMode] = useState<"increase" | "decrease" | "set">("increase");
+  const [qty, setQty] = useState("");
+  const [reason, setReason] = useState(REASONS[0]);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setMode("increase"); setQty(""); setReason(REASONS[0]); setNote(""); }, [row?.key]);
+  if (!row) return null;
+  const n = Number(qty) || 0;
+  const next = mode === "set" ? n : mode === "increase" ? row.stock + n : Math.max(0, row.stock - n);
+  const invalid = qty === "" || (mode !== "set" && n === 0) || (mode === "decrease" && n > row.stock);
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="admin-ui">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Stock Adjustment</DialogTitle>
+          <DialogDescription>{row.name}{row.size || row.color ? ` · ${[row.size, row.color].filter(Boolean).join(" / ")}` : ""}{row.sku ? ` · ${row.sku}` : ""}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            {(["increase", "decrease", "set"] as const).map((m) => <button key={m} type="button" onClick={() => setMode(m)} className={`h-9 rounded-lg text-sm border ${mode === m ? "bg-admin-nav text-admin-nav-foreground border-admin-nav" : "border-border bg-card"}`}>{m === "increase" ? "Add" : m === "decrease" ? "Remove" : "Set to"}</button>)}
+          </div>
+          <label className="block"><span className="block text-sm font-medium mb-1.5">Quantity</span><input autoFocus inputMode="numeric" className={`${inputCls} w-full`} value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, "").slice(0, 6))} />
+            {mode === "decrease" && n > row.stock && <p className="text-xs text-status-red mt-1">Can't remove more than the current stock ({row.stock})</p>}</label>
+          <label className="block"><span className="block text-sm font-medium mb-1.5">Reason</span><select className={`${inputCls} w-full`} value={reason} onChange={(e) => setReason(e.target.value)}>{REASONS.map((r) => <option key={r}>{r}</option>)}</select></label>
+          <label className="block"><span className="block text-sm font-medium mb-1.5">Note (optional)</span><input className={`${inputCls} w-full`} maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+          <div className="rounded-lg bg-secondary/50 p-3 text-sm flex justify-between"><span>Current: <b>{row.stock}</b></span><span>New stock: <b className={next <= row.reorder ? "text-status-red" : "text-status-green"}>{next}</b></span></div>
+        </div>
+        <DialogFooter className="gap-2">
+          <button className={btnGhost} onClick={onClose}>Cancel</button>
+          <button className={btnPrimary} disabled={invalid || busy} onClick={async () => { setBusy(true); await onSave(next, mode, note.trim() ? `${reason} — ${note.trim()}` : reason); setBusy(false); }}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}Save adjustment</button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
