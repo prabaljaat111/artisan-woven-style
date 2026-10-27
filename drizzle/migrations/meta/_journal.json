@@ -50,6 +50,13 @@
       "when": 1793126425231,
       "tag": "0006_adjust_stock_rpc",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793126582644,
+      "tag": "0007_import_jobs",
+      "breakpoints": true
     }
   ]
 }

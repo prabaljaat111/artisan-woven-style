@@ -195,6 +195,51 @@ export type Database = {
         }
         Relationships: []
       }
+      import_jobs: {
+        Row: {
+          created_at: string
+          created_count: number
+          errors: Json
+          failed_count: number
+          file_name: string
+          finished_at: string | null
+          id: string
+          status: string
+          total: number
+          updated_count: number
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_count?: number
+          errors?: Json
+          failed_count?: number
+          file_name: string
+          finished_at?: string | null
+          id?: string
+          status?: string
+          total?: number
+          updated_count?: number
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_count?: number
+          errors?: Json
+          failed_count?: number
+          file_name?: string
+          finished_at?: string | null
+          id?: string
+          status?: string
+          total?: number
+          updated_count?: number
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           budget: string | null
