@@ -30,15 +30,21 @@ import { Route as WatchAndBuyRouteImport } from './routes/watch-and-buy'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminSplatRouteImport } from './routes/admin.$'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
+import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
+import { Route as AdminBrandsRouteImport } from './routes/admin.brands'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
+import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as CategoryIndexRouteImport } from './routes/category.index'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
@@ -168,6 +174,26 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSplatRoute = AdminSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAttributesRoute = AdminAttributesRouteImport.update({
+  id: '/attributes',
+  path: '/attributes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBrandsRoute = AdminBrandsRouteImport.update({
+  id: '/brands',
+  path: '/brands',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -181,6 +207,11 @@ const AdminCouponsRoute = AdminCouponsRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
@@ -211,6 +242,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const AdminShipmentsRoute = AdminShipmentsRouteImport.update({
   id: '/shipments',
   path: '/shipments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStaffRoute = AdminStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => AdminRoute,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -351,15 +387,21 @@ export interface FileRoutesByFullPath {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/$': typeof AdminSplatRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/shipments': typeof AdminShipmentsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -405,14 +447,20 @@ export interface FileRoutesByTo {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/$': typeof AdminSplatRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -460,15 +508,21 @@ export interface FileRoutesById {
   '/watch-and-buy': typeof WatchAndBuyRoute
   '/whats-new': typeof WhatsNewRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/$': typeof AdminSplatRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/shipments': typeof AdminShipmentsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -517,15 +571,21 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/$'
+    | '/admin/approvals'
+    | '/admin/attributes'
+    | '/admin/brands'
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/inventory'
     | '/admin/leads'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/shipments'
+    | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -571,14 +631,20 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/$'
+    | '/admin/approvals'
+    | '/admin/attributes'
+    | '/admin/brands'
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/inventory'
     | '/admin/leads'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
     | '/admin/shipments'
+    | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -625,15 +691,21 @@ export interface FileRouteTypes {
     | '/watch-and-buy'
     | '/whats-new'
     | '/wishlist'
+    | '/admin/$'
+    | '/admin/approvals'
+    | '/admin/attributes'
+    | '/admin/brands'
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/inventory'
     | '/admin/leads'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/shipments'
+    | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
     | '/product/$slug'
@@ -836,6 +908,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/$': {
+      id: '/admin/$'
+      path: '/$'
+      fullPath: '/admin/$'
+      preLoaderRoute: typeof AdminSplatRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/attributes': {
+      id: '/admin/attributes'
+      path: '/attributes'
+      fullPath: '/admin/attributes'
+      preLoaderRoute: typeof AdminAttributesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/brands': {
+      id: '/admin/brands'
+      path: '/brands'
+      fullPath: '/admin/brands'
+      preLoaderRoute: typeof AdminBrandsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -855,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/leads': {
@@ -897,6 +1004,13 @@ declare module '@tanstack/react-router' {
       path: '/shipments'
       fullPath: '/admin/shipments'
       preLoaderRoute: typeof AdminShipmentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/staff': {
+      id: '/admin/staff'
+      path: '/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AdminStaffRouteImport
       parentRoute: typeof AdminRoute
     }
     '/api/chat': {
@@ -1112,28 +1226,40 @@ const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminSplatRoute: typeof AdminSplatRoute
+  AdminApprovalsRoute: typeof AdminApprovalsRoute
+  AdminAttributesRoute: typeof AdminAttributesRoute
+  AdminBrandsRoute: typeof AdminBrandsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminShipmentsRoute: typeof AdminShipmentsRoute
+  AdminStaffRoute: typeof AdminStaffRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminSplatRoute: AdminSplatRoute,
+  AdminApprovalsRoute: AdminApprovalsRoute,
+  AdminAttributesRoute: AdminAttributesRoute,
+  AdminBrandsRoute: AdminBrandsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCouponsRoute: AdminCouponsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
   AdminLeadsRoute: AdminLeadsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminShipmentsRoute: AdminShipmentsRoute,
+  AdminStaffRoute: AdminStaffRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
