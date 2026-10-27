@@ -297,6 +297,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string | null
@@ -429,6 +462,47 @@ export type Database = {
         }
         Relationships: []
       }
+      product_approval_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: string
+          product_id: string
+          reason: string | null
+          submitted_by: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          reason?: string | null
+          submitted_by?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          reason?: string | null
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_approval_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           color: string | null
@@ -485,6 +559,7 @@ export type Database = {
       products: {
         Row: {
           allow_backorders: boolean
+          approved_snapshot: Json | null
           attributes: Json
           authenticity: string | null
           brand_id: string | null
@@ -537,6 +612,7 @@ export type Database = {
           stock: number
           stock_state: string | null
           stock_status: string
+          submitted_at: string | null
           submitted_by: string | null
           track_inventory: boolean
           updated_at: string
@@ -547,6 +623,7 @@ export type Database = {
         }
         Insert: {
           allow_backorders?: boolean
+          approved_snapshot?: Json | null
           attributes?: Json
           authenticity?: string | null
           brand_id?: string | null
@@ -599,6 +676,7 @@ export type Database = {
           stock?: number
           stock_state?: string | null
           stock_status?: string
+          submitted_at?: string | null
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
@@ -609,6 +687,7 @@ export type Database = {
         }
         Update: {
           allow_backorders?: boolean
+          approved_snapshot?: Json | null
           attributes?: Json
           authenticity?: string | null
           brand_id?: string | null
@@ -661,6 +740,7 @@ export type Database = {
           stock?: number
           stock_state?: string | null
           stock_status?: string
+          submitted_at?: string | null
           submitted_by?: string | null
           track_inventory?: boolean
           updated_at?: string
@@ -986,6 +1066,10 @@ export type Database = {
           sales: number
         }[]
       }
+      decide_product: {
+        Args: { _approve: boolean; _product_id: string; _reason?: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -994,6 +1078,14 @@ export type Database = {
         Returns: boolean
       }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      team_member_names: {
+        Args: { _ids: string[] }
+        Returns: {
+          id: string
+          name: string
+          role: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "staff" | "customer" | "manager"
