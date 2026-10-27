@@ -51,7 +51,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("orders")
-      .update({ payment_reference: rzpOrder.id })
+      .update({ payment_reference: rzpOrder.id, razorpay_order_id: rzpOrder.id })
       .eq("id", order.id);
 
     return {

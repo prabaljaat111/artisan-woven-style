@@ -78,6 +78,20 @@
       "when": 1793127188719,
       "tag": "0010_dashboard_low_stock_count",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793127263977,
+      "tag": "0011_order_status_processing_returned",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793127302046,
+      "tag": "0012_orders_module",
+      "breakpoints": true
     }
   ]
 }

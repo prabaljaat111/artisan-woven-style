@@ -330,6 +330,44 @@ export type Database = {
         }
         Relationships: []
       }
+      order_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          order_id: string
+          status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message: string
+          order_id: string
+          status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          order_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           color: string | null
@@ -390,6 +428,7 @@ export type Database = {
       orders: {
         Row: {
           coupon_code: string | null
+          courier_name: string | null
           created_at: string
           customer_email: string
           customer_name: string
@@ -402,9 +441,11 @@ export type Database = {
           payment_method: string | null
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id: string | null
           shipping: number
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
+          stock_reduced: boolean
           subtotal: number
           total: number
           tracking_number: string | null
@@ -414,6 +455,7 @@ export type Database = {
         }
         Insert: {
           coupon_code?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
@@ -426,9 +468,11 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
           shipping?: number
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
+          stock_reduced?: boolean
           subtotal: number
           total: number
           tracking_number?: string | null
@@ -438,6 +482,7 @@ export type Database = {
         }
         Update: {
           coupon_code?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
@@ -450,9 +495,11 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
           shipping?: number
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
+          stock_reduced?: boolean
           subtotal?: number
           total?: number
           tracking_number?: string | null
@@ -1114,6 +1161,8 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
+        | "processing"
+        | "returned"
       payment_status: "unpaid" | "paid" | "failed" | "refunded"
     }
     CompositeTypes: {
@@ -1250,6 +1299,8 @@ export const Constants = {
         "delivered",
         "cancelled",
         "refunded",
+        "processing",
+        "returned",
       ],
       payment_status: ["unpaid", "paid", "failed", "refunded"],
     },
