@@ -17,7 +17,7 @@ type NavItem = {
   exact?: boolean;
   roles?: TeamRole[]; // omitted = admin only
   badge?: "orders";
-  children?: Omit<NavItem, "icon" | "children">[];
+  children?: (Omit<NavItem, "icon" | "children"> & { search?: Record<string, unknown> })[];
 };
 
 const ALL: TeamRole[] = ["admin", "manager", "staff"];
@@ -31,7 +31,7 @@ const NAV: NavItem[][] = [
       label: "Products", icon: Package, to: "/admin/products", roles: ALL,
       children: [
         { label: "All Products", to: "/admin/products", roles: ALL },
-        { label: "Add New Product", to: "/admin/products?new=1", roles: ALL },
+        { label: "Add New Product", to: "/admin/products", search: { new: 1 }, roles: ALL },
         { label: "Categories", to: "/admin/categories" },
         { label: "Attributes (Size, Color)", to: "/admin/attributes", roles: ALL },
         { label: "Brands", to: "/admin/brands", roles: ALL },
@@ -169,7 +169,7 @@ function NavRow({ item, role, pathname, ordersBadge }: { item: NavItem; role: Te
         {open && (
           <div className="ml-7 mt-0.5 border-l border-admin-nav-foreground/15 pl-2 space-y-0.5">
             {kids.map((c) => (
-              <Link key={c.label} to={c.to as any} className={`block px-3 py-1.5 rounded-md text-[13px] ${pathname === c.to && c.label !== "Add New Product" && c.label !== "Bulk Import/Export" ? "text-admin-pill font-medium" : "text-admin-nav-foreground/70 hover:text-admin-nav-foreground"}`}>{c.label}</Link>
+              <Link key={c.label} to={c.to as any} search={c.search as any} className={`block px-3 py-1.5 rounded-md text-[13px] ${pathname === c.to && c.label !== "Add New Product" && c.label !== "Bulk Import/Export" ? "text-admin-pill font-medium" : "text-admin-nav-foreground/70 hover:text-admin-nav-foreground"}`}>{c.label}</Link>
             ))}
           </div>
         )}

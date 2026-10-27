@@ -96,7 +96,7 @@ function ProductsPage() {
 
   async function bulkUpdate(patch: Record<string, any>, msg: string) {
     setBulkBusy(true);
-    const { error } = await supabase.from("products").update(patch).in("id", selectedIds);
+    const { error } = await supabase.from("products").update(patch as any).in("id", selectedIds);
     setBulkBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`${msg} ${selectedIds.length} product(s)`); setSelected({}); load();
