@@ -118,8 +118,10 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          meta_description: string | null
           name: string
           parent_id: string | null
+          seo_title: string | null
           slug: string
           sort_order: number
         }
@@ -128,8 +130,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string | null
           name: string
           parent_id?: string | null
+          seo_title?: string | null
           slug: string
           sort_order?: number
         }
@@ -138,8 +142,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string | null
           name?: string
           parent_id?: string | null
+          seo_title?: string | null
           slug?: string
           sort_order?: number
         }
