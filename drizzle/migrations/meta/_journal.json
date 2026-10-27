@@ -64,6 +64,20 @@
       "when": 1793126956069,
       "tag": "0008_product_approvals",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793127121308,
+      "tag": "0009_low_stock_alerts",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793127188719,
+      "tag": "0010_dashboard_low_stock_count",
+      "breakpoints": true
     }
   ]
 }

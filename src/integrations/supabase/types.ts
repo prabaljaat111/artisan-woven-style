@@ -511,6 +511,7 @@ export type Database = {
           image_url: string | null
           price: number | null
           product_id: string
+          reorder_level: number | null
           sale_price: number | null
           size: string
           sku: string | null
@@ -525,6 +526,7 @@ export type Database = {
           image_url?: string | null
           price?: number | null
           product_id: string
+          reorder_level?: number | null
           sale_price?: number | null
           size: string
           sku?: string | null
@@ -539,6 +541,7 @@ export type Database = {
           image_url?: string | null
           price?: number | null
           product_id?: string
+          reorder_level?: number | null
           sale_price?: number | null
           size?: string
           sku?: string | null
@@ -1078,6 +1081,21 @@ export type Database = {
         Returns: boolean
       }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      low_stock_items: {
+        Args: never
+        Returns: {
+          category: string
+          color: string
+          image: string
+          name: string
+          product_id: string
+          reorder_level: number
+          size: string
+          sku: string
+          stock: number
+          variation_id: string
+        }[]
+      }
       team_member_names: {
         Args: { _ids: string[] }
         Returns: {

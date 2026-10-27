@@ -39,6 +39,7 @@ import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
+import { Route as AdminLowStockRouteImport } from './routes/admin.low-stock'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -221,6 +222,11 @@ const AdminInventoryRoute = AdminInventoryRouteImport.update({
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLowStockRoute = AdminLowStockRouteImport.update({
+  id: '/low-stock',
+  path: '/low-stock',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/low-stock': typeof AdminLowStockRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -484,6 +491,7 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/low-stock': typeof AdminLowStockRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -549,6 +557,7 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
+  '/admin/low-stock': typeof AdminLowStockRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -616,6 +625,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/leads'
+    | '/admin/low-stock'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/leads'
+    | '/admin/low-stock'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -744,6 +755,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/leads'
+    | '/admin/low-stock'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -1017,6 +1029,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/admin/leads'
       preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/low-stock': {
+      id: '/admin/low-stock'
+      path: '/low-stock'
+      fullPath: '/admin/low-stock'
+      preLoaderRoute: typeof AdminLowStockRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/orders': {
@@ -1311,6 +1330,7 @@ interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLeadsRoute: typeof AdminLeadsRoute
+  AdminLowStockRoute: typeof AdminLowStockRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
@@ -1334,6 +1354,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLeadsRoute: AdminLeadsRoute,
+  AdminLowStockRoute: AdminLowStockRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminReviewsRoute: AdminReviewsRoute,

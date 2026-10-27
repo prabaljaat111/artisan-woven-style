@@ -168,7 +168,7 @@ function DashboardPage() {
             <Kpi icon={IndianRupee} tint="bg-status-green/10 text-status-green" label="Total Sales" value={inr(Math.round(o.current.sales))} change={pct(o.current.sales, o.previous.sales)} />
             <Kpi icon={ShoppingCart} tint="bg-status-orange/10 text-status-orange" label="Total Orders" value={o.current.orders.toLocaleString("en-IN")} change={pct(o.current.orders, o.previous.orders)} />
             <Kpi icon={BarChart3} tint="bg-status-blue/10 text-status-blue" label="Average Order Value" value={inr(Math.round(aov))} change={pct(aov, prevAov)} />
-            <Link to="/admin/inventory" className="block">
+            <Link to="/admin/low-stock" className="block">
               <Kpi icon={Package} tint="bg-status-red/10 text-status-red" label="Low Stock Products" value={String(o.low_stock)} note="need attention" />
             </Link>
           </>
@@ -290,7 +290,7 @@ function DashboardPage() {
           <h2 className="font-display text-xl mb-3">Alerts & Notifications</h2>
           {!o ? <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}</div> : (
             <div className="space-y-2.5">
-              <Alert icon={AlertCircle} tone="red" title={`${o.low_stock} products low in stock`} sub="Some products are running low. Please update stock." to="/admin/inventory" cta="View Products" />
+              <Alert icon={AlertCircle} tone="red" title={`${o.low_stock} products low in stock`} sub="Some products are running low. Please update stock." to="/admin/low-stock" cta="View Products" />
               <Alert icon={Truck} tone="orange" title={`${o.awaiting_dispatch} orders awaiting dispatch`} sub="These orders are paid and ready to be shipped." to="/admin/shipments" cta="View Orders" />
               <Alert icon={RotateCcw} tone="blue" title={`${o.returns} return request${o.returns === 1 ? "" : "s"}`} sub="Refunded or returned orders in this period." to="/admin/orders" cta="View Requests" />
               <Alert icon={MessageCircle} tone="green" title={`${o.new_messages} new customer messages`} sub="New enquiries from website and WhatsApp." to="/admin/leads" cta="View Messages" />
