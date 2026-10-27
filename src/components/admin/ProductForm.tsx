@@ -9,7 +9,7 @@ import { Card, Chip, inr, inputCls, btnGhost, btnPrimary, statusTone } from "@/c
 import { RichText, htmlToText } from "@/components/admin/RichText";
 
 type AttrSel = { attribute_id: string; value_ids: string[]; used_for_variations: boolean };
-type Variation = { size: string; color: string | null; sku: string; price: string; sale_price: string; stock: string; image_url: string };
+import { VariationsSection, type Variation } from "@/components/admin/VariationsSection";
 
 export type ProductFormState = {
   name: string; short_description: string; description: string; category_id: string; brand_id: string;
@@ -123,23 +123,38 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     return { sizes: pick("size"), colors: pick("color") };
   }, [attrs, form.product_attributes]);
 
-  function generateVariations() {
-    const { sizes, colors } = variationAttrs;
-    if (!sizes.length && !colors.length) return toast.error("Tick “Used for variations” on Size or Color and pick values first");
-    const combos: { size: string; color: string | null }[] = [];
-    (sizes.length ? sizes : ["One Size"]).forEach((s) => (colors.length ? colors : [null]).forEach((c) => combos.push({ size: s, color: c })));
-    const base = form.sku || "IHS";
-    setVariations((prev) => combos.map((c) => prev.find((p) => p.size === c.size && p.color === c.color) ?? {
-      ...c, sku: `${base}-${c.size}${c.color ? "-" + c.color.slice(0, 3).toUpperCase() : ""}`.replace(/\s+/g, ""), price: "", sale_price: "", stock: "0", image_url: "",
-    }));
-    dirtyRef.current = true; setDirty(true);
+  const baseSku = useMemo(() => {
+    if (form.sku.trim()) return form.sku.trim().toUpperCase();
+    const c = cats.find((x) => x.id === form.category_id);
+    const code = (c?.slug.split("-")[0] ?? "GEN").toUpperCase().replace(/S$/, "");
+    return `IHS-${code}`;
+  }, [form.sku, form.category_id, cats]);
+  {
   }
 
   async function save(mode: "draft" | "review" | "publish") {
     const parsed = schema.safeParse(form);
     const e: Record<string, string> = {};
     if (!parsed.success) parsed.error.issues.forEach((i) => { const k = String(i.path[0]); if (!e[k]) e[k] = i.message; });
-    if (form.product_type === "variable" && variations.length === 0) e.variations = "Generate at least one variation";
+    if (form.product_type === "variable") {
+      if (variations.length === 0) e.variations = "Generate at least one variation";
+      else {
+        const combos = new Set<string>(), skus = new Set<string>();
+        for (const v of variations) {
+          const ck = `${v.size.trim().toLowerCase()}|${(v.color ?? "").trim().toLowerCase()}`;
+          if (!v.size.trim()) { e.variations = "Every variation needs a size"; break; }
+          if (combos.has(ck)) { e.variations = `Duplicate variation: ${v.size}${v.color ? " / " + v.color : ""}`; break; }
+          combos.add(ck);
+          if (v.sku) { if (skus.has(v.sku)) { e.variations = `Duplicate SKU: ${v.sku}`; break; } skus.add(v.sku); }
+          if (v.sale_price && v.price && Number(v.sale_price) >= Number(v.price)) { e.variations = `Sale price must be below price (${v.sku || v.size})`; break; }
+        }
+        if (!e.variations && skus.size) {
+          const { data: clash } = await supabase.from("product_variants").select("sku, product_id").in("sku", [...skus]);
+          const other = (clash ?? []).find((c) => c.product_id !== productId);
+          if (other) e.variations = `SKU ${other.sku} is already used by another product`;
+        }
+      }
+    }
     if (Object.keys(e).length) {
       setErrors(e);
       setTab(FIELD_TAB[Object.keys(e)[0]] ?? "General");
@@ -177,6 +192,8 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
       upsell_ids: form.upsell_ids, cross_sell_ids: form.cross_sell_ids, product_attributes: form.product_attributes,
       seo_title: form.seo_title || null, meta_description: form.meta_description || null, purchase_note: form.purchase_note || null,
       menu_order: Number(form.menu_order) || 0, reviews_enabled: form.reviews_enabled,
+      default_size: form.product_type === "variable" ? form.default_size || null : null,
+      default_color: form.product_type === "variable" ? form.default_color || null : null,
       status, is_published: mode === "publish",
       ...(sizes.length ? { sizes } : {}), ...(colors.length ? { colors, color: colors[0] } : {}),
       ...(mode === "publish" ? { rejection_reason: null } : {}),
@@ -198,7 +215,7 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     if (form.product_type === "variable") {
       await supabase.from("product_variants").delete().eq("product_id", id);
       const rows = variations.map((v) => ({
-        product_id: id, size: v.size, color: v.color, sku: v.sku || null,
+        product_id: id, size: v.size.trim(), color: v.color?.trim() || null, sku: v.sku || null, status: v.status,
         price: num(v.price), sale_price: num(v.sale_price), stock: Number(v.stock) || 0, image_url: v.image_url || null,
       }));
       if (rows.length) {
@@ -370,36 +387,14 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
                   );
                 })}
                 {form.product_type === "variable" ? (
-                  <div className="rounded-lg border border-border p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <h3 className="font-display text-lg">Variations</h3>
-                      <button type="button" className={btnGhost} onClick={generateVariations}>Generate from attributes</button>
-                    </div>
-                    {err("variations")}
-                    {variations.length > 0 && (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm min-w-[620px]">
-                          <thead className="text-xs text-muted-foreground text-left"><tr><th className="p-2">Variation</th><th className="p-2">SKU</th><th className="p-2">Price ₹</th><th className="p-2">Sale ₹</th><th className="p-2">Stock</th><th /></tr></thead>
-                          <tbody>
-                            {variations.map((v, i) => {
-                              const upd = (k: keyof Variation, val: string) => { setVariations((vs) => vs.map((x, j) => (j === i ? { ...x, [k]: val } : x))); dirtyRef.current = true; setDirty(true); };
-                              return (
-                                <tr key={`${v.size}-${v.color}`} className="border-t border-border/60">
-                                  <td className="p-2 font-medium whitespace-nowrap">{v.size}{v.color ? ` · ${v.color}` : ""}</td>
-                                  <td className="p-2"><input className={`${inputCls} h-8 w-36`} value={v.sku} onChange={(e) => upd("sku", e.target.value)} /></td>
-                                  <td className="p-2"><input className={`${inputCls} h-8 w-24`} inputMode="decimal" value={v.price} placeholder={form.regular_price} onChange={(e) => upd("price", e.target.value.replace(/[^\d.]/g, ""))} /></td>
-                                  <td className="p-2"><input className={`${inputCls} h-8 w-24`} inputMode="decimal" value={v.sale_price} placeholder={form.sale_price} onChange={(e) => upd("sale_price", e.target.value.replace(/[^\d.]/g, ""))} /></td>
-                                  <td className="p-2"><input className={`${inputCls} h-8 w-20`} inputMode="numeric" value={v.stock} onChange={(e) => upd("stock", e.target.value.replace(/\D/g, ""))} /></td>
-                                  <td className="p-2"><button type="button" aria-label="Remove variation" onClick={() => { setVariations((vs) => vs.filter((_, j) => j !== i)); dirtyRef.current = true; setDirty(true); }} className="p-1.5 rounded hover:bg-secondary text-status-red"><Trash2 className="h-4 w-4" /></button></td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    {variations.length === 0 && <p className="text-sm text-muted-foreground">Tick “Used for variations” on Size and/or Color, choose values, then generate.</p>}
-                  </div>
+                  <VariationsSection
+                    variations={variations} onChange={(v) => { setVariations(v); dirtyRef.current = true; setDirty(true); if (errors.variations) setErrors((e) => { const n = { ...e }; delete n.variations; return n; }); }}
+                    sizes={variationAttrs.sizes} colors={variationAttrs.colors} baseSku={baseSku} reorder={Number(form.reorder_level) || 0}
+                    regularPrice={form.regular_price} salePrice={form.sale_price}
+                    defaultSize={form.default_size} defaultColor={form.default_color}
+                    onDefaults={(s, c) => setForm((f) => { dirtyRef.current = true; setDirty(true); return { ...f, default_size: s, default_color: c }; })}
+                    error={errors.variations}
+                  />
                 ) : <p className="text-xs text-muted-foreground">Switch Product Type to “Variable” on the General tab to set price and stock per size/colour.</p>}
               </>
             )}
