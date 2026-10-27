@@ -208,7 +208,7 @@ function GlobalSearch() {
       ]);
       setRes([
         ...(p.data ?? []).map((x) => ({ type: "Product", label: x.name, sub: x.sku ?? x.slug, to: "/admin/products" })),
-        ...(o.data ?? []).map((x) => ({ type: "Order", label: x.order_number, sub: x.customer_name, to: "/admin/orders" })),
+        ...(o.data ?? []).map((x) => ({ type: "Order", label: x.order_number, sub: x.customer_name, to: "/admin/orders/$id", params: { id: x.id } })),
         ...(c.data ?? []).map((x) => ({ type: "Customer", label: x.full_name ?? "—", sub: x.phone ?? "", to: "/admin/customers" })),
       ]);
       setOpen(true);

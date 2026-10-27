@@ -1,233 +1,91 @@
 import { adminPageMeta } from "@/lib/page-meta";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { adminListOrders, adminGetOrder, adminUpdateOrder } from "@/lib/admin.functions";
-import { adminCreateShipment } from "@/lib/shiprocket.functions";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useState } from "react";
 import { format } from "date-fns";
-import { toast } from "sonner";
-import { RefreshCw, X, Truck, Loader2 } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
+import { ordersList } from "@/lib/orders-admin.functions";
+import { ORDER_STATUSES, STATUS_LABEL, STATUS_TONE, type OrderStatus } from "@/lib/order-workflow";
+import { Card, PageHeader, Chip, inr, inputCls, btnGhost } from "@/components/admin/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/admin/orders")({
   component: OrdersPage,
   head: () => ({ meta: adminPageMeta("Orders") }),
 });
 
-const STATUSES = ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"] as const;
+const PAY_TONE: Record<string, "green" | "orange" | "red" | "gray"> = { paid: "green", unpaid: "orange", failed: "red", refunded: "gray" };
 
 function OrdersPage() {
-  const { isAdmin, loading: authLoading } = useAuth();
-  const [rows, setRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<any>(null);
-  const [pushingId, setPushingId] = useState<string | null>(null);
-
-  async function load() {
-    setLoading(true);
-    try { setRows(await adminListOrders()); } finally { setLoading(false); }
-  }
-  useEffect(() => { if (!authLoading && isAdmin) load(); }, [authLoading, isAdmin]);
-
-  useEffect(() => {
-    if (!activeId) { setDetail(null); return; }
-    adminGetOrder({ data: { id: activeId } }).then(setDetail).catch(() => toast.error("Failed to load order"));
-  }, [activeId]);
-
-  const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
-
-  async function update(patch: any) {
-    if (!activeId) return;
-    try {
-      await adminUpdateOrder({ data: { id: activeId, ...patch } });
-      toast.success("Updated");
-      load(); adminGetOrder({ data: { id: activeId } }).then(setDetail);
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
-  }
-
-  async function pushToShiprocket(orderId: string, e?: React.MouseEvent) {
-    e?.stopPropagation();
-    setPushingId(orderId);
-    const t = toast.loading("Pushing to courier…");
-    try {
-      const res = await adminCreateShipment({ data: { order_id: orderId } }) as {
-        ok?: false;
-        provider?: "shiprocket" | "delhivery";
-        awb_code?: string | null;
-        fallback_reason?: string;
-        message?: string;
-        action_required?: string;
-      };
-      if (res.ok === false) {
-        toast.error(res.action_required ?? res.message ?? "Courier push failed", { id: t });
-        load();
-        if (activeId === orderId) adminGetOrder({ data: { id: orderId } }).then(setDetail);
-        return;
-      }
-      await adminUpdateOrder({ data: { id: orderId, status: "shipped" } }).catch(() => {});
-      const label = res.provider === "delhivery"
-        ? `Pushed to Delhivery (Shiprocket unavailable)${res.awb_code ? ` · AWB ${res.awb_code}` : ""}`
-        : "Pushed to Shiprocket";
-      toast.success(label, { id: t });
-      load();
-      if (activeId === orderId) adminGetOrder({ data: { id: orderId } }).then(setDetail);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to push", { id: t });
-    } finally {
-      setPushingId(null);
-    }
-  }
+  const nav = useNavigate();
+  const [status, setStatus] = useState<"all" | OrderStatus>("all");
+  const [payment, setPayment] = useState<"all" | "unpaid" | "paid" | "failed" | "refunded">("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const input = { status, payment, q, page, from: from ? new Date(from).toISOString() : null, to: to ? new Date(to + "T23:59:59").toISOString() : null };
+  const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ["admin-orders", input], queryFn: () => ordersList({ data: input }), placeholderData: keepPreviousData });
+  const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+  const totalAll = data ? Object.values(data.counts).reduce((a, b) => a + b, 0) : 0;
+  const reset = (fn: () => void) => { fn(); setPage(1); };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="font-display text-2xl text-primary">Orders</h1>
-          <p className="text-xs text-muted-foreground">{rows.length} total</p>
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          {["all", ...STATUSES].map((s) => (
-            <button key={s} onClick={() => setFilter(s)} className={`text-[11px] px-3 py-1.5 rounded-full ${filter === s ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{s}</button>
-          ))}
-          <button onClick={load} className="text-[11px] px-3 py-1.5 rounded-full bg-secondary flex items-center gap-1"><RefreshCw className="h-3 w-3" /> Refresh</button>
-        </div>
+      <PageHeader title={`Orders (${totalAll})`} subtitle="Track, process and ship customer orders." actions={<button className={btnGhost} onClick={() => refetch()}><RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} /> Refresh</button>} />
+
+      <div className="flex flex-wrap gap-2">
+        {(["all", ...ORDER_STATUSES] as const).map((s) => (
+          <button key={s} onClick={() => reset(() => setStatus(s))} className={`text-xs px-3 py-1.5 rounded-full border ${status === s ? "bg-admin-nav text-admin-nav-foreground border-admin-nav" : "bg-card border-border"}`}>
+            {s === "all" ? "All" : STATUS_LABEL[s]} <span className="opacity-70">({s === "all" ? totalAll : data?.counts[s] ?? 0})</span>
+          </button>
+        ))}
       </div>
 
-      {loading ? <div className="text-sm text-muted-foreground">Loading…</div> : (
-        <div className="bg-card border border-border rounded-lg overflow-x-auto">
+      <Card className="p-3 flex flex-wrap gap-2 items-center">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+          <input value={q} onChange={(e) => reset(() => setQ(e.target.value))} placeholder="Search order #, customer name, email or phone" className={`${inputCls} w-full pl-9`} />
+        </div>
+        <select value={payment} onChange={(e) => reset(() => setPayment(e.target.value as any))} className={inputCls} aria-label="Payment">
+          <option value="all">All payments</option><option value="paid">Paid</option><option value="unpaid">Unpaid</option><option value="failed">Failed</option><option value="refunded">Refunded</option>
+        </select>
+        <input type="date" value={from} onChange={(e) => reset(() => setFrom(e.target.value))} className={inputCls} aria-label="From date" />
+        <input type="date" value={to} onChange={(e) => reset(() => setTo(e.target.value))} className={inputCls} aria-label="To date" />
+      </Card>
+
+      <Card className="p-0 overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="text-left px-3 py-2">Order</th>
-                <th className="text-left px-3 py-2">When</th>
-                <th className="text-left px-3 py-2">Customer</th>
-                <th className="text-right px-3 py-2">Total</th>
-                <th className="text-left px-3 py-2">Payment</th>
-                <th className="text-left px-3 py-2">Status</th>
-                  <th className="text-right px-3 py-2">Courier</th>
-              </tr>
+            <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground text-left">
+              <tr><th className="p-3">Order</th><th className="p-3">Date</th><th className="p-3">Customer</th><th className="p-3 text-right">Total</th><th className="p-3">Payment</th><th className="p-3">Status</th><th className="p-3">Tracking</th></tr>
             </thead>
             <tbody>
-              {filtered.map((o) => (
-                <tr key={o.id} onClick={() => setActiveId(o.id)} className="cursor-pointer border-t border-border hover:bg-secondary/30">
-                  <td className="px-3 py-2 font-mono text-xs">{o.order_number}</td>
-                  <td className="px-3 py-2 text-xs whitespace-nowrap">{format(new Date(o.created_at), "dd MMM HH:mm")}</td>
-                  <td className="px-3 py-2">{o.customer_name}<div className="text-[10px] text-muted-foreground">{o.customer_email}</div></td>
-                  <td className="px-3 py-2 text-right font-semibold">₹{Number(o.total).toLocaleString("en-IN")}</td>
-                  <td className="px-3 py-2 text-xs">{o.payment_method} · <span className="text-muted-foreground">{o.payment_status}</span></td>
-                  <td className="px-3 py-2"><span className="text-[10px] uppercase px-2 py-0.5 bg-gold/20 text-primary rounded-full">{o.status}</span></td>
-                  <td className="px-3 py-2 text-right">
-                    <button
-                      onClick={(e) => pushToShiprocket(o.id, e)}
-                      disabled={pushingId === o.id || o.status === "cancelled"}
-                      className="text-[11px] px-2.5 py-1 rounded-full bg-primary text-primary-foreground inline-flex items-center gap-1 disabled:opacity-50"
-                       title="Send this order to courier"
-                    >
-                      {pushingId === o.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Truck className="h-3 w-3" />}
-                      Send
-                    </button>
-                  </td>
+              {isLoading && Array.from({ length: 6 }).map((_, i) => <tr key={i}><td colSpan={7} className="p-3"><Skeleton className="h-8 w-full" /></td></tr>)}
+              {data?.rows.map((o: any) => (
+                <tr key={o.id} onClick={() => nav({ to: "/admin/orders/$id", params: { id: o.id } })} className="cursor-pointer border-t border-border hover:bg-secondary/30">
+                  <td className="p-3 font-mono text-xs">{o.order_number}</td>
+                  <td className="p-3 text-xs whitespace-nowrap">{format(new Date(o.created_at), "dd MMM yyyy, HH:mm")}</td>
+                  <td className="p-3">{o.customer_name}<div className="text-xs text-muted-foreground">{o.customer_phone || o.customer_email}</div></td>
+                  <td className="p-3 text-right font-semibold">{inr(o.total)}</td>
+                  <td className="p-3"><Chip tone={PAY_TONE[o.payment_status] ?? "gray"}>{o.payment_status}</Chip><div className="text-[11px] text-muted-foreground mt-0.5">{o.payment_method}</div></td>
+                  <td className="p-3"><Chip tone={STATUS_TONE[o.status as OrderStatus] ?? "gray"}>{STATUS_LABEL[o.status as OrderStatus] ?? o.status}</Chip></td>
+                  <td className="p-3 font-mono text-xs">{o.tracking_number || "—"}</td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={7} className="px-3 py-8 text-center text-xs text-muted-foreground">No orders.</td></tr>}
+              {data && data.rows.length === 0 && <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">No orders match these filters.</td></tr>}
             </tbody>
           </table>
         </div>
-      )}
-
-      {activeId && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-0 md:p-6" onClick={() => setActiveId(null)}>
-          <div className="bg-card w-full md:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-2xl md:rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="font-display text-xl text-primary">{detail?.order?.order_number ?? "…"}</div>
-                <div className="text-xs text-muted-foreground">{detail?.order && format(new Date(detail.order.created_at), "dd MMM yyyy · HH:mm")}</div>
-              </div>
-              <button onClick={() => setActiveId(null)}><X className="h-5 w-5" /></button>
-            </div>
-            {!detail ? <div className="text-sm text-muted-foreground">Loading…</div> : (
-              <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <Info label="Customer" value={`${detail.order.customer_name}\n${detail.order.customer_email}\n${detail.order.customer_phone}`} />
-                  <Info label="Ship to" value={Object.values(detail.order.shipping_address || {}).filter(Boolean).join(", ")} />
-                </div>
-
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead className="bg-secondary/60"><tr><th className="text-left p-2">Item</th><th className="text-right p-2">Qty</th><th className="text-right p-2">Price</th><th className="text-right p-2">Total</th></tr></thead>
-                    <tbody>
-                      {detail.items.map((i: any) => (
-                        <tr key={i.id} className="border-t border-border">
-                          <td className="p-2">{i.product_name}<div className="text-[10px] text-muted-foreground">{[i.size, i.color].filter(Boolean).join(" · ")}</div></td>
-                          <td className="p-2 text-right">{i.qty}</td>
-                          <td className="p-2 text-right">₹{Number(i.price).toLocaleString("en-IN")}</td>
-                          <td className="p-2 text-right font-medium">₹{(i.qty * Number(i.price)).toLocaleString("en-IN")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="space-y-1 text-xs">
-                  <Row label="Subtotal" value={`₹${Number(detail.order.subtotal).toLocaleString("en-IN")}`} />
-                  <Row label="GST" value={`₹${Number(detail.order.gst).toLocaleString("en-IN")}`} />
-                  <Row label="Shipping" value={`₹${Number(detail.order.shipping).toLocaleString("en-IN")}`} />
-                  {Number(detail.order.discount) > 0 && <Row label={`Discount${detail.order.coupon_code ? ` (${detail.order.coupon_code})` : ""}`} value={`-₹${Number(detail.order.discount).toLocaleString("en-IN")}`} />}
-                  <Row label="Total" value={`₹${Number(detail.order.total).toLocaleString("en-IN")}`} bold />
-                </div>
-
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Order Status</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {STATUSES.map((s) => (
-                      <button key={s} onClick={() => update({ status: s })} className={`text-[11px] px-2.5 py-1 rounded-full border ${detail.order.status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>{s}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Payment</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(["unpaid", "paid", "failed", "refunded"] as const).map((s) => (
-                      <button key={s} onClick={() => update({ payment_status: s })} className={`text-[11px] px-2.5 py-1 rounded-full border ${detail.order.payment_status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>{s}</button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-3">
-                  <label className="block">
-                    <div className="text-[10px] uppercase text-muted-foreground mb-1">Tracking #</div>
-                    <input defaultValue={detail.order.tracking_number ?? ""} onBlur={(e) => update({ tracking_number: e.target.value || null })} className="w-full border border-border rounded px-2 py-1.5 bg-background text-xs" />
-                  </label>
-                  <label className="block">
-                    <div className="text-[10px] uppercase text-muted-foreground mb-1">Tracking URL</div>
-                    <input defaultValue={detail.order.tracking_url ?? ""} onBlur={(e) => update({ tracking_url: e.target.value || null })} className="w-full border border-border rounded px-2 py-1.5 bg-background text-xs" />
-                  </label>
-                </div>
-
-                <div className="pt-2 border-t border-border">
-                  <button
-                    onClick={() => pushToShiprocket(detail.order.id)}
-                    disabled={pushingId === detail.order.id}
-                    className="w-full text-sm px-4 py-2.5 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {pushingId === detail.order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Truck className="h-4 w-4" />}
-                     Send to Courier
-                  </button>
-                  <p className="text-[10px] text-muted-foreground text-center mt-1.5">Creates a courier shipment. If the first provider is unavailable, fallback is attempted automatically.</p>
-                </div>
-              </div>
-            )}
+        <div className="flex items-center justify-between p-3 border-t border-border text-sm">
+          <span className="text-muted-foreground">{data?.total ?? 0} orders</span>
+          <div className="flex gap-2 items-center">
+            <button className={btnGhost} disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <span>Page {page} of {pages}</span>
+            <button className={btnGhost} disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         </div>
-      )}
+      </Card>
     </div>
   );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return <div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div><div className="whitespace-pre-line">{value}</div></div>;
-}
-function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
-  return <div className={`flex justify-between ${bold ? "font-semibold text-sm pt-1 border-t border-border" : ""}`}><span>{label}</span><span>{value}</span></div>;
 }
