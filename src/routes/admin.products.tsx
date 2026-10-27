@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { adminListProducts, adminUpsertProduct, adminDeleteProduct, adminListCategories, adminListVariants, adminSaveVariants, adminBulkProducts, adminBulkUpsertProducts, adminCloneProduct } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Download, ImagePlus, GripVertical, Loader2, Copy, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, Chip, inr, btnGhost, inputCls as adminInput } from "@/components/admin/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
@@ -19,236 +21,276 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+
 export const Route = createFileRoute("/admin/products")({
+  validateSearch: (s: Record<string, unknown>) => ({ new: s.new === 1 || s.new === "1" ? 1 : undefined }) as { new?: 1 },
   component: ProductsPage,
-  head: () => ({ meta: adminPageMeta("Products") }),
+  head: () => ({ meta: adminPageMeta("All Products") }),
 });
 
+const PAGE_SIZES = [10, 25, 50];
+type SortKey = "name" | "sku" | "price" | "stock" | "created_at";
+
+function productStatus(p: any): { tone: "green" | "orange" | "red" | "blue"; label: string } {
+  if (p.status === "pending_review") return { tone: "orange", label: "Pending Review" };
+  if (p.status === "rejected") return { tone: "red", label: "Rejected" };
+  if (!p.is_published || p.status === "draft" || p.status === "inactive") return { tone: "blue", label: "Draft" };
+  if (p.stock_state === "out") return { tone: "red", label: "Out of Stock" };
+  if (p.stock_state === "low") return { tone: "orange", label: "Low Stock" };
+  return { tone: "green", label: "Active" };
+}
+
 function ProductsPage() {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isTeam, loading: authLoading } = useAuth();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [rows, setRows] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<any | null>(null);
   const [q, setQ] = useState("");
-  const [catFilter, setCatFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
-  const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [catFilter, setCatFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sort, setSort] = useState<{ key: SortKey; asc: boolean }>({ key: "created_at", asc: false });
+  const [selected, setSelected] = useState<Record<string, any>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [debouncedQ, setDebouncedQ] = useState("");
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q.trim().toLowerCase()), 250);
-    return () => clearTimeout(t);
-  }, [q]);
+  const [deleteIds, setDeleteIds] = useState<{ ids: string[]; label: string } | null>(null);
+  const [moveOpen, setMoveOpen] = useState(false);
+
+  useEffect(() => { const t = setTimeout(() => { setDebouncedQ(q.trim()); setPage(1); }, 250); return () => clearTimeout(t); }, [q]);
+  useEffect(() => { if (search.new) { setEditing({}); navigate({ search: {}, replace: true }); } }, [search.new, navigate]);
 
   async function load() {
     setLoading(true);
-    try {
-      const [p, c] = await Promise.all([adminListProducts(), adminListCategories()]);
-      setRows(p); setCats(c);
-    } finally { setLoading(false); }
+    let query = supabase.from("products").select("*, category:categories(name)", { count: "exact" }).is("deleted_at", null);
+    if (debouncedQ) {
+      const term = debouncedQ.replace(/[%,()]/g, " ");
+      query = query.or(`name.ilike.%${term}%,sku.ilike.%${term}%`);
+    }
+    if (catFilter) query = query.eq("category_id", catFilter);
+    if (statusFilter === "active") query = query.eq("is_published", true).eq("stock_state", "ok");
+    else if (statusFilter === "low") query = query.eq("stock_state", "low");
+    else if (statusFilter === "out") query = query.eq("stock_state", "out");
+    else if (statusFilter === "draft") query = query.eq("is_published", false).neq("status", "pending_review");
+    else if (statusFilter === "pending") query = query.eq("status", "pending_review");
+    const fromIdx = (page - 1) * pageSize;
+    const { data, count, error } = await query.order(sort.key, { ascending: sort.asc, nullsFirst: false }).range(fromIdx, fromIdx + pageSize - 1);
+    if (error) toast.error(error.message);
+    setRows(data ?? []); setTotal(count ?? 0); setLoading(false);
   }
-  useEffect(() => { if (!authLoading && isAdmin) load(); }, [authLoading, isAdmin]);
+  useEffect(() => { if (!authLoading && isTeam) load(); /* eslint-disable-next-line */ }, [authLoading, isTeam, debouncedQ, catFilter, statusFilter, page, pageSize, sort]);
+  useEffect(() => { if (!authLoading && isTeam) supabase.from("categories").select("id, name").order("sort_order").then(({ data }) => setCats(data ?? [])); }, [authLoading, isTeam]);
 
-  // Live-sync: any product / variant / category change refreshes the list
-  useEffect(() => {
-    if (authLoading || !isAdmin) return;
-    let t: ReturnType<typeof setTimeout> | null = null;
-    const debounced = () => { if (t) clearTimeout(t); t = setTimeout(load, 250); };
-    const channel = supabase
-      .channel(`admin-products-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, debounced)
-      .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, debounced)
-      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, debounced)
-      .subscribe();
-    return () => { if (t) clearTimeout(t); supabase.removeChannel(channel); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, isAdmin]);
+  const selectedIds = Object.keys(selected);
+  const allShown = rows.length > 0 && rows.every((r) => selected[r.id]);
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const showingFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const showingTo = Math.min(total, page * pageSize);
 
-  async function confirmRemove() {
-    if (!deleteTarget) return;
-    try { await adminDeleteProduct({ data: { id: deleteTarget.id } }); toast.success("Deleted"); load(); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
-    finally { setDeleteTarget(null); }
-  }
+  function toggleSort(key: SortKey) { setSort((s) => (s.key === key ? { key, asc: !s.asc } : { key, asc: true })); setPage(1); }
 
-  const filtered = rows.filter((r) => {
-    if (debouncedQ && !(r.name.toLowerCase().includes(debouncedQ) || r.slug.includes(debouncedQ))) return false;
-    if (catFilter && r.category_id !== catFilter) return false;
-    if (statusFilter === "published" && !r.is_published) return false;
-    if (statusFilter === "draft" && r.is_published) return false;
-    const s = Number(r.stock ?? 0);
-    if (stockFilter === "in" && s < 10) return false;
-    if (stockFilter === "low" && (s === 0 || s >= 10)) return false;
-    if (stockFilter === "out" && s > 0) return false;
-    return true;
-  });
-  const selectedIds = Object.keys(selected).filter((k) => selected[k]);
-  const allShownSelected = filtered.length > 0 && filtered.every((r) => selected[r.id]);
-
-  async function runBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
-    if (selectedIds.length === 0) return;
-    if (action === "delete") { setBulkDeleteOpen(true); return; }
-    await doBulk(action);
-  }
-
-  async function doBulk(action: "publish" | "unpublish" | "delete" | "bestseller_on" | "bestseller_off" | "new_on" | "new_off") {
+  async function bulkUpdate(patch: Record<string, any>, msg: string) {
     setBulkBusy(true);
-    try {
-      await adminBulkProducts({ data: { ids: selectedIds, action } });
-      toast.success(`Updated ${selectedIds.length} product(s)`);
-      setSelected({});
-      load();
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Bulk action failed"); }
-    finally { setBulkBusy(false); setBulkDeleteOpen(false); }
+    const { error } = await supabase.from("products").update(patch as any).in("id", selectedIds);
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${msg} ${selectedIds.length} product(s)`); setSelected({}); load();
   }
+
+  async function confirmDelete() {
+    if (!deleteIds) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("products").update({ deleted_at: new Date().toISOString(), is_published: false, status: "inactive" }).in("id", deleteIds.ids);
+    setBulkBusy(false); setDeleteIds(null);
+    if (error) return toast.error(error.message);
+    toast.success("Moved to trash"); setSelected((s) => { const n = { ...s }; deleteIds.ids.forEach((id) => delete n[id]); return n; }); load();
+  }
+
+  function exportSelected() {
+    const list = Object.values(selected);
+    const csv = Papa.unparse(list.map((p: any) => ({
+      name: p.name, sku: p.sku ?? "", category: p.category?.name ?? "", price: p.price, regular_price: p.original_price,
+      stock: p.stock, status: productStatus(p).label, slug: p.slug,
+    })));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `ihs-products-${list.length}.csv`; a.click();
+  }
+
+  async function duplicate(p: any) {
+    const { data: full, error } = await supabase.from("products").select("*").eq("id", p.id).single();
+    if (error || !full) return toast.error(error?.message ?? "Not found");
+    const { id, created_at, updated_at, stock_state, deleted_at, ...rest } = full as any;
+    void id; void created_at; void updated_at; void stock_state; void deleted_at;
+    const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    const copy = {
+      ...rest,
+      name: `${full.name} (Copy)`,
+      slug: `${full.slug}-copy-${suffix.toLowerCase()}`,
+      sku: `${full.sku || "IHS"}-C${suffix}`,
+      status: "draft", is_published: false, rejection_reason: null,
+    };
+    const { data: created, error: insErr } = await supabase.from("products").insert(copy).select("*, category:categories(name)").single();
+    if (insErr || !created) return toast.error(insErr?.message ?? "Copy failed");
+    const { data: variants } = await supabase.from("product_variants").select("size, color, stock, price, sale_price, image_url, status").eq("product_id", p.id);
+    if (variants?.length) await supabase.from("product_variants").insert(variants.map((v) => ({ ...v, product_id: created.id, sku: null })));
+    toast.success("Duplicated as draft"); load(); setEditing(created);
+  }
+
+  const SortTh = ({ k, children, className = "" }: { k: SortKey; children: React.ReactNode; className?: string }) => (
+    <th className={`p-3 font-medium ${className}`}>
+      <button type="button" onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 hover:text-foreground">
+        {children}{sort.key === k ? (sort.asc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
+      </button>
+    </th>
+  );
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl text-primary">Products</h1>
-          <p className="text-xs text-muted-foreground">{rows.length} items</p>
+          <h1 className="font-display text-3xl text-admin-nav">All Products <span className="text-muted-foreground text-2xl">({total.toLocaleString("en-IN")})</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your catalogue, stock and visibility.</p>
         </div>
         <div className="flex gap-2">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="text-sm border border-border rounded-md px-3 py-1.5 bg-background" />
-          <button type="button" onClick={() => setImportOpen(true)} className="border border-border rounded-full px-4 py-1.5 text-sm flex items-center gap-1 hover:bg-secondary"><Upload className="h-4 w-4" /> Bulk Import</button>
-          <button type="button" onClick={() => setEditing({})} className="bg-primary text-primary-foreground rounded-full px-4 py-1.5 text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Add</button>
+          <button type="button" onClick={() => setImportOpen(true)} className={btnGhost}><Upload className="h-4 w-4" /> Import</button>
+          <button type="button" onClick={() => setEditing({})} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-status-green text-card text-sm font-medium hover:opacity-90"><Plus className="h-4 w-4" /> Add New Product</button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="border border-border rounded-md px-2 py-1.5 bg-background">
+      <Card className="p-3 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-52">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or SKU" className={`${adminInput} w-full pl-9`} />
+        </div>
+        <select value={catFilter} onChange={(e) => { setCatFilter(e.target.value); setPage(1); }} className={adminInput}>
           <option value="">All categories</option>
           {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="border border-border rounded-md px-2 py-1.5 bg-background">
-          <option value="all">Any status</option>
-          <option value="published">Published</option>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className={adminInput}>
+          <option value="all">All statuses</option>
+          <option value="active">Active</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
           <option value="draft">Draft</option>
+          <option value="pending">Pending Review</option>
         </select>
-        <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value as any)} className="border border-border rounded-md px-2 py-1.5 bg-background">
-          <option value="all">Any stock</option>
-          <option value="in">In stock (10+)</option>
-          <option value="low">Low (1–9)</option>
-          <option value="out">Out of stock</option>
-        </select>
-        <span className="text-muted-foreground">{filtered.length} of {rows.length}</span>
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-1 ml-auto flex-wrap">
-            <span className="text-muted-foreground mr-1">{selectedIds.length} selected:</span>
-            <button disabled={bulkBusy} onClick={() => runBulk("publish")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">Publish</button>
-            <button disabled={bulkBusy} onClick={() => runBulk("unpublish")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">Unpublish</button>
-            <button disabled={bulkBusy} onClick={() => runBulk("bestseller_on")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">★ Bestseller</button>
-            <button disabled={bulkBusy} onClick={() => runBulk("new_on")} className="px-2 py-1 border border-border rounded-md hover:bg-secondary">New</button>
-            <button disabled={bulkBusy} onClick={() => runBulk("delete")} className="px-2 py-1 border border-red-500/40 text-red-500 rounded-md hover:bg-red-500/10">Delete</button>
-          </div>
-        )}
-      </div>
+      </Card>
 
-      {loading ? <div className="text-sm text-muted-foreground">Loading…</div> : (
-        <div className="bg-card border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="p-2 w-8"><input type="checkbox" checked={allShownSelected} onChange={(e) => {
-                  const next = { ...selected };
-                  filtered.forEach((r) => { next[r.id] = e.target.checked; });
-                  setSelected(next);
-                }} /></th>
-                <th className="text-left p-2">Product</th><th className="text-left p-2">Category</th><th className="text-right p-2">Price</th><th className="text-right p-2">Stock</th><th className="text-left p-2">Status</th><th className="p-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-secondary/30">
-                  <td className="p-2"><input type="checkbox" checked={!!selected[p.id]} onChange={(e) => setSelected((s) => ({ ...s, [p.id]: e.target.checked }))} /></td>
-                  <td className="p-2 flex items-center gap-2">
-                    {p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded object-cover" />}
-                    <div>
-                      <div className="font-medium">{p.name}{p.is_bestseller && <span className="ml-1 text-[9px] text-amber-500">★</span>}{p.is_new && <span className="ml-1 text-[9px] text-emerald-500">NEW</span>}</div>
-                      <div className="text-[10px] text-muted-foreground">{p.slug}</div>
-                    </div>
+      {selectedIds.length > 0 && (
+        <Card className="p-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-medium mr-1">{selectedIds.length} selected</span>
+          <button disabled={bulkBusy} onClick={() => bulkUpdate({ is_published: true, status: "active" }, "Published")} className={btnGhost}>Publish</button>
+          <button disabled={bulkBusy} onClick={() => bulkUpdate({ is_published: false, status: "inactive" }, "Unpublished")} className={btnGhost}>Unpublish</button>
+          <div className="relative">
+            <button disabled={bulkBusy} onClick={() => setMoveOpen((o) => !o)} className={btnGhost}>Move to Category</button>
+            {moveOpen && (
+              <div className="absolute z-30 mt-1 w-56 bg-card border border-border rounded-xl shadow-[var(--shadow-admin-card)] p-1 max-h-72 overflow-auto">
+                {cats.map((c) => <button key={c.id} onClick={() => { setMoveOpen(false); bulkUpdate({ category_id: c.id }, `Moved to ${c.name}:`); }} className="block w-full text-left px-3 py-2 rounded-md hover:bg-secondary">{c.name}</button>)}
+              </div>
+            )}
+          </div>
+          <button onClick={exportSelected} className={btnGhost}><Download className="h-4 w-4" /> Export</button>
+          <button disabled={bulkBusy} onClick={() => setDeleteIds({ ids: selectedIds, label: `${selectedIds.length} products` })} className={`${btnGhost} text-status-red`}><Trash2 className="h-4 w-4" /> Delete</button>
+          <button onClick={() => setSelected({})} className="ml-auto text-xs text-muted-foreground underline">Clear</button>
+        </Card>
+      )}
+
+      <Card className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[880px]">
+          <thead className="text-left text-xs text-muted-foreground bg-secondary/40">
+            <tr>
+              <th className="p-3 w-10"><input type="checkbox" aria-label="Select all on page" checked={allShown} onChange={(e) => setSelected((s) => { const n = { ...s }; rows.forEach((r) => { if (e.target.checked) n[r.id] = r; else delete n[r.id]; }); return n; })} /></th>
+              <th className="p-3 font-medium">Image</th>
+              <SortTh k="name">Product Name</SortTh>
+              <SortTh k="sku">SKU</SortTh>
+              <th className="p-3 font-medium">Category</th>
+              <SortTh k="price">Price</SortTh>
+              <SortTh k="stock">Stock</SortTh>
+              <th className="p-3 font-medium">Status</th>
+              <th className="p-3 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && Array.from({ length: Math.min(pageSize, 6) }).map((_, i) => <tr key={i} className="border-t border-border/60"><td colSpan={9} className="p-3"><Skeleton className="h-10" /></td></tr>)}
+            {!loading && rows.length === 0 && <tr><td colSpan={9} className="p-10 text-center text-muted-foreground">No products match these filters.</td></tr>}
+            {!loading && rows.map((p) => {
+              const st = productStatus(p);
+              const onSale = Number(p.original_price) > Number(p.price);
+              const stockCls = p.stock_state === "out" ? "text-status-red" : p.stock_state === "low" ? "text-status-orange" : "text-status-green";
+              return (
+                <tr key={p.id} className="border-t border-border/60 hover:bg-secondary/20">
+                  <td className="p-3"><input type="checkbox" aria-label={`Select ${p.name}`} checked={!!selected[p.id]} onChange={(e) => setSelected((s) => { const n = { ...s }; if (e.target.checked) n[p.id] = p; else delete n[p.id]; return n; })} /></td>
+                  <td className="p-3"><div className="h-14 w-11 rounded-md bg-secondary overflow-hidden">{p.images?.[0] && <img src={p.images[0]} alt="" loading="lazy" className="h-full w-full object-cover" />}</div></td>
+                  <td className="p-3"><button type="button" onClick={() => setEditing(p)} className="font-medium text-left hover:underline">{p.name}</button></td>
+                  <td className="p-3 text-muted-foreground">{p.sku ?? "—"}</td>
+                  <td className="p-3">{p.category?.name ?? "—"}</td>
+                  <td className="p-3 whitespace-nowrap">
+                    <span className="font-medium">{inr(p.price)}</span>
+                    {onSale && <span className="ml-1.5 text-xs text-muted-foreground line-through">{inr(p.original_price)}</span>}
                   </td>
-                  <td className="p-2 text-xs">{p.category?.name ?? "—"}</td>
-                  <td className="p-2 text-right">₹{Number(p.price).toLocaleString("en-IN")}</td>
-                  <td className={`p-2 text-right ${p.track_inventory === false ? "text-muted-foreground" : p.stock === 0 ? "text-red-500" : p.stock <= (p.low_stock_threshold ?? 5) ? "text-amber-500" : ""}`}>{p.track_inventory === false ? "∞" : p.stock}</td>
-                  <td className="p-2 text-[10px] uppercase">{p.is_published ? "Live" : "Draft"}</td>
-                  <td className="p-2 text-right whitespace-nowrap">
-                    <button type="button" onClick={() => setEditing(p)} className="text-xs p-1.5 hover:bg-secondary rounded"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button
-                      type="button"
-                      title="Clone this product"
-                      onClick={async () => {
-                        try {
-                          const r = await adminCloneProduct({ data: { id: p.id } });
-                          toast.success("Cloned as draft");
-                          load();
-                          // open the new copy for editing right away
-                          setTimeout(async () => {
-                            const fresh = await adminListProducts();
-                            const copy = fresh.find((x: any) => x.id === r.id);
-                            if (copy) setEditing(copy);
-                          }, 200);
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Clone failed");
-                        }
-                      }}
-                      className="text-xs p-1.5 hover:bg-secondary rounded"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                    <button type="button" onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="text-xs p-1.5 hover:bg-secondary rounded text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <td className={`p-3 font-semibold tabular-nums ${stockCls}`}>{p.stock}</td>
+                  <td className="p-3"><Chip tone={st.tone}>{st.label}</Chip></td>
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <button type="button" title="Edit" aria-label="Edit" onClick={() => setEditing(p)} className="p-2 rounded-md hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
+                    <button type="button" title="Duplicate" aria-label="Duplicate" onClick={() => duplicate(p)} className="p-2 rounded-md hover:bg-secondary"><Copy className="h-4 w-4" /></button>
+                    <button type="button" title="Delete" aria-label="Delete" onClick={() => setDeleteIds({ ids: [p.id], label: p.name })} className="p-2 rounded-md hover:bg-secondary text-status-red"><Trash2 className="h-4 w-4" /></button>
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-xs text-muted-foreground">No products match these filters.</td></tr>}
-            </tbody>
-          </table>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-t border-border/60 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            Showing {showingFrom} to {showingTo} of {total.toLocaleString("en-IN")} products
+            <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }} className="h-8 px-2 rounded-md border border-border bg-card">
+              {PAGE_SIZES.map((s) => <option key={s} value={s}>{s} / page</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-1">
+            <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="h-8 w-8 grid place-items-center rounded-md border border-border disabled:opacity-40" aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>
+            {pageList(page, pages).map((n, i) => n === 0 ? <span key={`e${i}`} className="px-1 text-muted-foreground">…</span> : (
+              <button key={n} onClick={() => setPage(n)} className={`h-8 min-w-8 px-2 rounded-md text-sm ${n === page ? "bg-admin-nav text-admin-nav-foreground" : "border border-border hover:bg-secondary"}`}>{n}</button>
+            ))}
+            <button disabled={page >= pages} onClick={() => setPage(page + 1)} className="h-8 w-8 grid place-items-center rounded-md border border-border disabled:opacity-40" aria-label="Next page"><ChevronRight className="h-4 w-4" /></button>
+          </div>
         </div>
-      )}
+      </Card>
 
       {editing && <ProductDrawer initial={editing} cats={cats} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
       {importOpen && <BulkImportDialog onClose={() => setImportOpen(false)} onDone={() => { setImportOpen(false); load(); }} />}
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <AlertDialog open={!!deleteIds} onOpenChange={(o) => !o && setDeleteIds(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete product?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span> and its variants. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemove} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => !o && setBulkDeleteOpen(false)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedIds.length} products?</AlertDialogTitle>
-            <AlertDialogDescription>
-              All selected products and their variants will be permanently removed. This cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Delete {deleteIds?.label}?</AlertDialogTitle>
+            <AlertDialogDescription>They will be hidden from the shop and removed from this list. Order history is kept.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkBusy}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={bulkBusy} onClick={() => doBulk("delete")} className="bg-red-600 hover:bg-red-700">
-              {bulkBusy ? "Deleting…" : `Delete ${selectedIds.length}`}
-            </AlertDialogAction>
+            <AlertDialogAction disabled={bulkBusy} onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:opacity-90">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   );
 }
+
+function pageList(cur: number, total: number): number[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set([1, total, cur - 1, cur, cur + 1].filter((n) => n >= 1 && n <= total));
+  const sorted = [...set].sort((a, b) => a - b);
+  const out: number[] = [];
+  sorted.forEach((n, i) => { if (i > 0 && n - sorted[i - 1] > 1) out.push(0); out.push(n); });
+  return out;
+}
+
 
 function ProductDrawer({ initial, cats, onClose, onSaved }: any) {
   const [form, setForm] = useState<any>({
