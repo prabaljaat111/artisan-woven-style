@@ -36,6 +36,13 @@
       "when": 1793125908070,
       "tag": "0004_category_seo_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793126155096,
+      "tag": "0005_product_default_variation",
+      "breakpoints": true
     }
   ]
 }
