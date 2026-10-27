@@ -1,3 +1,4 @@
+// @ts-ignore bun test runner module
 import { describe, it, expect } from "bun:test";
 import { autoMap, parseRows, leafCategory, buildExportRows } from "./woo-csv";
 
