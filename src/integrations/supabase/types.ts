@@ -1114,6 +1114,8 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
+        | "processing"
+        | "returned"
       payment_status: "unpaid" | "paid" | "failed" | "refunded"
     }
     CompositeTypes: {
@@ -1250,6 +1252,8 @@ export const Constants = {
         "delivered",
         "cancelled",
         "refunded",
+        "processing",
+        "returned",
       ],
       payment_status: ["unpaid", "paid", "failed", "refunded"],
     },
