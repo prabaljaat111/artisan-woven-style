@@ -66,6 +66,18 @@
   --font-display: "Cormorant Garamond", serif;
   --font-body: "Lato", sans-serif;
   --font-mega: "Archivo Black", "Lato", sans-serif;
+  --font-admin-display: "Playfair Display", serif;
+  --font-admin-body: "Inter", sans-serif;
+  --color-admin-nav: var(--admin-nav);
+  --color-admin-nav-foreground: var(--admin-nav-foreground);
+  --color-admin-pill: var(--admin-pill);
+  --color-admin-pill-foreground: var(--admin-pill-foreground);
+  --color-admin-canvas: var(--admin-canvas);
+  --color-status-green: var(--status-green);
+  --color-status-orange: var(--status-orange);
+  --color-status-red: var(--status-red);
+  --color-status-blue: var(--status-blue);
+  --shadow-admin-card: 0 1px 2px rgb(11 61 46 / 0.04), 0 6px 20px -8px rgb(11 61 46 / 0.12);
 }
 
 :root {
@@ -107,6 +119,15 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --admin-nav: #0B3D2E;
+  --admin-nav-foreground: #E9F1EC;
+  --admin-pill: #F5E6B8;
+  --admin-pill-foreground: #0B3D2E;
+  --admin-canvas: #FBF8F1;
+  --status-green: #1E8E4E;
+  --status-orange: #D97706;
+  --status-red: #DC2626;
+  --status-blue: #2563EB;
 }
 
 .dark {
@@ -194,3 +215,6 @@
 }
 .animate-kenburns { animation: kenburns 12s ease-in-out infinite; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+.admin-ui { font-family: var(--font-admin-body); }
+.admin-ui h1, .admin-ui h2, .admin-ui h3, .admin-ui .font-display { font-family: var(--font-admin-display); font-style: normal; }

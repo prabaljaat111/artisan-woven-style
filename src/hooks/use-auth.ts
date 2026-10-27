@@ -7,22 +7,25 @@ export interface AuthState {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  role?: TeamRole | null;
+  isTeam?: boolean;
 }
+
+export type TeamRole = "admin" | "manager" | "staff";
 
 export function useAuth(): AuthState {
   const [state, setState] = useState<AuthState>({ loading: true, user: null, session: null, isAdmin: false });
 
   useEffect(() => {
     let mounted = true;
+    let roleRef: TeamRole | null = null;
 
     async function checkRole(userId: string) {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-      return !!data;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      const roles = (data ?? []).map((r) => r.role as string);
+      const role: TeamRole | null = roles.includes("admin") ? "admin" : roles.includes("manager") ? "manager" : roles.includes("staff") ? "staff" : null;
+      roleRef = role;
+      return role === "admin";
     }
 
     // Set up listener FIRST
@@ -54,7 +57,7 @@ export function useAuth(): AuthState {
       // Defer role lookup so it doesn't deadlock the listener
       setTimeout(async () => {
         const isAdmin = await checkRole(session.user.id);
-        if (mounted) setState({ loading: false, user: session.user, session, isAdmin });
+        if (mounted) setState({ loading: false, user: session.user, session, isAdmin, role: roleRef, isTeam: !!roleRef });
       }, 0);
     });
 
@@ -66,7 +69,7 @@ export function useAuth(): AuthState {
         return;
       }
       const isAdmin = await checkRole(session.user.id);
-      if (mounted) setState({ loading: false, user: session.user, session, isAdmin });
+      if (mounted) setState({ loading: false, user: session.user, session, isAdmin, role: roleRef, isTeam: !!roleRef });
     });
 
     return () => {
