@@ -46,8 +46,8 @@ export function FeedPage({ kind }: { kind: "google" | "meta" }) {
       />
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><p className="text-sm text-muted-foreground">Published products</p><p className="text-2xl font-semibold mt-1">{all.length}</p></Card>
-        <Card><p className="text-sm text-muted-foreground">Included in feed</p><p className="text-2xl font-semibold mt-1 text-success">{ok}</p></Card>
-        <Card><p className="text-sm text-muted-foreground">Need attention</p><p className="text-2xl font-semibold mt-1 text-warning">{withIssues}</p></Card>
+        <Card><p className="text-sm text-muted-foreground">Included in feed</p><p className="text-2xl font-semibold mt-1 text-status-green">{ok}</p></Card>
+        <Card><p className="text-sm text-muted-foreground">Need attention</p><p className="text-2xl font-semibold mt-1 text-status-orange">{withIssues}</p></Card>
       </div>
       <Card>
         <h3 className="font-serif text-lg mb-2">Your live feed link</h3>
@@ -73,7 +73,7 @@ export function FeedPage({ kind }: { kind: "google" | "meta" }) {
                   <td className="pr-3 text-muted-foreground">{item.id.slice(0, 18)}</td>
                   <td className="pr-3">{inr(row.price)}</td>
                   <td className="pr-3">{item.availability}</td>
-                  <td>{item.issues.length ? <span className="inline-flex items-center gap-1"><AlertTriangle className="h-4 w-4 text-warning" /><Chip tone={item.image ? "orange" : "red"}>{item.issues.join(", ")}</Chip></span> : <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-4 w-4" />Ready</span>}</td>
+                  <td>{item.issues.length ? <span className="inline-flex items-center gap-1"><AlertTriangle className="h-4 w-4 text-status-orange" /><Chip tone={item.image ? "orange" : "red"}>{item.issues.join(", ")}</Chip></span> : <span className="inline-flex items-center gap-1 text-status-green"><CheckCircle2 className="h-4 w-4" />Ready</span>}</td>
                 </tr>
               ))}</tbody>
             </table>

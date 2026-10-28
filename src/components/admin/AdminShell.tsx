@@ -60,10 +60,10 @@ const NAV: NavItem[][] = [
     { label: "Analytics & Reports", icon: BarChart3, to: "/admin/settings/analytics" },
   ],
   [
-    { label: "Google Merchant Center", icon: ShoppingCart, ...ph("google-merchant"), roles: MGR },
-    { label: "Meta & WhatsApp Catalog", icon: MessageCircle, ...ph("meta-catalog"), roles: MGR },
+    { label: "Google Merchant Center", icon: ShoppingCart, to: "/admin/google-merchant", roles: MGR },
+    { label: "Meta & WhatsApp Catalog", icon: MessageCircle, to: "/admin/meta-catalog", roles: MGR },
     { label: "Website Pages", icon: FileText, to: "/admin/settings/website" },
-    { label: "Media Library", icon: ImageIcon, ...ph("media"), roles: ALL },
+    { label: "Media Library", icon: ImageIcon, to: "/admin/media", roles: ALL },
     { label: "Staff & Permissions", icon: ShieldCheck, to: "/admin/staff" },
     { label: "Settings", icon: Settings, to: "/admin/settings", exact: true },
     { label: "Backups & Security", icon: DatabaseBackup, to: "/admin/settings/backup" },

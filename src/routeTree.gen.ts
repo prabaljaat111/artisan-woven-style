@@ -49,6 +49,8 @@ import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as CategoryIndexRouteImport } from './routes/category.index'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as FeedsGoogleDotxmlRouteImport } from './routes/feeds.google[.]xml'
+import { Route as FeedsMetaDotcsvRouteImport } from './routes/feeds.meta[.]csv'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders_.$id'
 import { Route as AdminProductsIdRouteImport } from './routes/admin.products_.$id'
@@ -275,6 +277,16 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedsGoogleDotxmlRoute = FeedsGoogleDotxmlRouteImport.update({
+  id: '/feeds/google.xml',
+  path: '/feeds/google.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedsMetaDotcsvRoute = FeedsMetaDotcsvRouteImport.update({
+  id: '/feeds/meta.csv',
+  path: '/feeds/meta.csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductSlugRoute = ProductSlugRouteImport.update({
   id: '/product/$slug',
   path: '/product/$slug',
@@ -441,6 +453,8 @@ export interface FileRoutesByFullPath {
   '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
+  '/feeds/meta.csv': typeof FeedsMetaDotcsvRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
@@ -506,6 +520,8 @@ export interface FileRoutesByTo {
   '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
+  '/feeds/meta.csv': typeof FeedsMetaDotcsvRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
   '/category': typeof CategoryIndexRoute
@@ -574,6 +590,8 @@ export interface FileRoutesById {
   '/admin/staff': typeof AdminStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
+  '/feeds/meta.csv': typeof FeedsMetaDotcsvRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/category/': typeof CategoryIndexRoute
@@ -643,6 +661,8 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
+    | '/feeds/google.xml'
+    | '/feeds/meta.csv'
     | '/product/$slug'
     | '/admin/'
     | '/category/'
@@ -708,6 +728,8 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
+    | '/feeds/google.xml'
+    | '/feeds/meta.csv'
     | '/product/$slug'
     | '/admin'
     | '/category'
@@ -775,6 +797,8 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/api/chat'
     | '/category/$slug'
+    | '/feeds/google.xml'
+    | '/feeds/meta.csv'
     | '/product/$slug'
     | '/admin/'
     | '/category/'
@@ -827,6 +851,8 @@ export interface RootRouteChildren {
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
   CategorySlugRoute: typeof CategorySlugRoute
+  FeedsGoogleDotxmlRoute: typeof FeedsGoogleDotxmlRoute
+  FeedsMetaDotcsvRoute: typeof FeedsMetaDotcsvRoute
   ProductSlugRoute: typeof ProductSlugRoute
   CategoryIndexRoute: typeof CategoryIndexRoute
 }
@@ -1111,6 +1137,20 @@ declare module '@tanstack/react-router' {
       path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds/google.xml': {
+      id: '/feeds/google.xml'
+      path: '/feeds/google.xml'
+      fullPath: '/feeds/google.xml'
+      preLoaderRoute: typeof FeedsGoogleDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds/meta.csv': {
+      id: '/feeds/meta.csv'
+      path: '/feeds/meta.csv'
+      fullPath: '/feeds/meta.csv'
+      preLoaderRoute: typeof FeedsMetaDotcsvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/product/$slug': {
@@ -1414,6 +1454,8 @@ const rootRouteChildren: RootRouteChildren = {
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
   CategorySlugRoute: CategorySlugRoute,
+  FeedsGoogleDotxmlRoute: FeedsGoogleDotxmlRoute,
+  FeedsMetaDotcsvRoute: FeedsMetaDotcsvRoute,
   ProductSlugRoute: ProductSlugRoute,
   CategoryIndexRoute: CategoryIndexRoute,
 }
