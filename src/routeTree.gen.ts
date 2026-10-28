@@ -37,9 +37,12 @@ import { Route as AdminBrandsRouteImport } from './routes/admin.brands'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminGoogleMerchantRouteImport } from './routes/admin.google-merchant'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminLowStockRouteImport } from './routes/admin.low-stock'
+import { Route as AdminMediaRouteImport } from './routes/admin.media'
+import { Route as AdminMetaCatalogRouteImport } from './routes/admin.meta-catalog'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -217,6 +220,11 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGoogleMerchantRoute = AdminGoogleMerchantRouteImport.update({
+  id: '/google-merchant',
+  path: '/google-merchant',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -230,6 +238,16 @@ const AdminLeadsRoute = AdminLeadsRouteImport.update({
 const AdminLowStockRoute = AdminLowStockRouteImport.update({
   id: '/low-stock',
   path: '/low-stock',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMediaRoute = AdminMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMetaCatalogRoute = AdminMetaCatalogRouteImport.update({
+  id: '/meta-catalog',
+  path: '/meta-catalog',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -442,9 +460,12 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/google-merchant': typeof AdminGoogleMerchantRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/low-stock': typeof AdminLowStockRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -510,9 +531,12 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/google-merchant': typeof AdminGoogleMerchantRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/low-stock': typeof AdminLowStockRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -579,9 +603,12 @@ export interface FileRoutesById {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/google-merchant': typeof AdminGoogleMerchantRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/low-stock': typeof AdminLowStockRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -650,9 +677,12 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/google-merchant'
     | '/admin/inventory'
     | '/admin/leads'
     | '/admin/low-stock'
+    | '/admin/media'
+    | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -718,9 +748,12 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/google-merchant'
     | '/admin/inventory'
     | '/admin/leads'
     | '/admin/low-stock'
+    | '/admin/media'
+    | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -786,9 +819,12 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/coupons'
     | '/admin/customers'
+    | '/admin/google-merchant'
     | '/admin/inventory'
     | '/admin/leads'
     | '/admin/low-stock'
+    | '/admin/media'
+    | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reviews'
@@ -1055,6 +1091,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/google-merchant': {
+      id: '/admin/google-merchant'
+      path: '/google-merchant'
+      fullPath: '/admin/google-merchant'
+      preLoaderRoute: typeof AdminGoogleMerchantRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -1074,6 +1117,20 @@ declare module '@tanstack/react-router' {
       path: '/low-stock'
       fullPath: '/admin/low-stock'
       preLoaderRoute: typeof AdminLowStockRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/media': {
+      id: '/admin/media'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/meta-catalog': {
+      id: '/admin/meta-catalog'
+      path: '/meta-catalog'
+      fullPath: '/admin/meta-catalog'
+      preLoaderRoute: typeof AdminMetaCatalogRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/orders': {
@@ -1387,9 +1444,12 @@ interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminGoogleMerchantRoute: typeof AdminGoogleMerchantRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminLowStockRoute: typeof AdminLowStockRoute
+  AdminMediaRoute: typeof AdminMediaRoute
+  AdminMetaCatalogRoute: typeof AdminMetaCatalogRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
@@ -1412,9 +1472,12 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCouponsRoute: AdminCouponsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminGoogleMerchantRoute: AdminGoogleMerchantRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLeadsRoute: AdminLeadsRoute,
   AdminLowStockRoute: AdminLowStockRoute,
+  AdminMediaRoute: AdminMediaRoute,
+  AdminMetaCatalogRoute: AdminMetaCatalogRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
