@@ -92,6 +92,13 @@
       "when": 1793127302046,
       "tag": "0012_orders_module",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793188016614,
+      "tag": "0013_media_library_list",
+      "breakpoints": true
     }
   ]
 }

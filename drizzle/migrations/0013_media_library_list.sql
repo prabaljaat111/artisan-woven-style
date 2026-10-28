@@ -1,0 +1,1 @@
+CREATE POLICY "team lists product images" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'product-images' AND public.is_team_member(auth.uid()));
