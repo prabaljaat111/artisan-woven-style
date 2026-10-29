@@ -82,7 +82,7 @@ function readAttributes(raw: Record<string, string>) {
 
 export function parseRows(raw: Record<string, string>[], mapping: Mapping, opts: { knownCategories: string[]; createMissingCategories: boolean; existingSkus?: string[] }): ParsedRow[] {
   const get = (r: Record<string, string>, k: ImportField) => { const header = mapping[k]; return header ? (r[header] ?? "").toString().trim() : ""; };
-  const originalIds = new Map(raw.map((r) => [get(r, "id"), get(r, "sku")]).filter(([id, sku]) => id && sku));
+  const originalIds = new Map(raw.map((r) => [get(r, "id"), get(r, "sku")] as const).filter(([id, sku]) => id && sku));
   const known = new Set(opts.knownCategories.map((c) => c.toLowerCase()));
   const rows: ParsedRow[] = raw.map((r, i) => {
     const t = get(r, "type").toLowerCase();
