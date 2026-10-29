@@ -5,7 +5,7 @@ describe('Scheduled sales',()=>{
   it('keeps regular price before the sale',()=>expect(scheduledPrice(p,Date.parse('2026-10-29T12:00:00Z'))).toBe(2000));
   it('activates the sale at its start',()=>expect(scheduledPrice(p,Date.parse(p.sale_starts_at))).toBe(1500));
   it('ends the sale at its end',()=>expect(scheduledPrice(p,Date.parse(p.sale_ends_at))).toBe(2000));
-  it('keeps variant sales inactive before start even when parent prices match',()=>expect(saleIsActive({...p,price:2000},Date.parse('2026-10-29T12:00:00Z'))).toBe(false));
+  it('keeps variant sales inactive before start even when parent prices match',()=>{const unchangedParent={...p,price:2000};expect(saleIsActive(unchangedParent,Date.parse('2026-10-29T12:00:00Z'))).toBe(false);});
   it('activates variation sale prices at the scheduled start',()=>expect(saleIsActive(p,Date.parse(p.sale_starts_at))).toBe(true));
 });
 describe('Shipping zones',()=>{
