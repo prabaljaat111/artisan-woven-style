@@ -1,14 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "./admin-middleware";
+import type { Json } from "@/integrations/supabase/types";
 
 const TABLES = ["categories", "brands", "attributes", "attribute_values", "products", "product_variants", "coupons", "app_settings"] as const;
 
 export const exportStoreBackup = createServerFn({ method: "POST" }).middleware([requireAdmin]).handler(async () => {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
-  const tables: Record<string, unknown[]> = {};
+  const tables: Record<string, Json[]> = {};
   for (const table of TABLES) {
-    const rows: unknown[] = [];
+    const rows: Json[] = [];
     for (let offset = 0; ; offset += 500) {
       const { data, error } = await db.from(table).select("*").order(table === "app_settings" ? "key" : "id").range(offset, offset + 499);
       if (error) throw new Error(`Could not back up ${table}`);

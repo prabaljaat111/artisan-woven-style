@@ -131,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
-  const analytics = Route.useLoaderData();
+  const analytics = Route.useLoaderData() ?? ANALYTICS_DEFAULTS;
   return (
     <html lang="en">
       <head>

@@ -121,7 +121,7 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
     const { data: order, error: paymentError } = await supabaseAdmin
       .from("orders")
       .update({
-        payment_status: linked.status === "pending" ? "paid" : linked.status,
+        payment_status: "paid",
         status: linked.status === "pending" ? "paid" : linked.status,
         payment_reference: data.razorpay_payment_id,
       })
