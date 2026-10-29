@@ -10,6 +10,7 @@ function createPublicServerClient() {
   if (!url || !key) throw new Error("Missing backend public environment variables");
   return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    global: { fetch: (input, init) => { const headers = new Headers(init?.headers); if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization"); headers.set("apikey", key); return fetch(input, { ...init, headers }); } },
   });
 }
 
@@ -589,13 +590,13 @@ export const getProductVariantsByProductId = createServerFn({ method: "GET" })
     z.object({ productId: z.string().uuid() }).parse(i),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const supabasePublic = createPublicServerClient();
     const { data: product } = await supabasePublic
       .from("products")
       .select("id")
       .eq("id", data.productId)
       .eq("is_published", true)
+      .is("deleted_at", null)
       .maybeSingle();
     if (!product) return [] as Array<{ size: string; color: string | null; stock: number }>;
     const { data: rows } = await supabasePublic
