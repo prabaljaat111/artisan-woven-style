@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
-import { createOrder } from "@/lib/orders.functions";
+import { useQuery } from "@tanstack/react-query";
+import { checkoutTotals, DEFAULT_CHECKOUT_RULES, paymentAllowed } from "@/lib/checkout-rules";
+import { checkoutRules, createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 
@@ -60,7 +62,10 @@ function CheckoutPage() {
     name: "", email: "", phone: "", line1: "", city: "", state: "", pincode: "",
   });
   useEffect(() => { setMounted(true); }, []);
-  const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
+  const rulesQuery = useQuery({ queryKey: ["checkout-rules"], queryFn: () => checkoutRules() });
+  const rules = rulesQuery.data ?? DEFAULT_CHECKOUT_RULES;
+  const { subtotal, shipping, gst, total } = checkoutTotals(totalPrice(), paymentMethod, rules);
+  useEffect(() => { if (!paymentAllowed(totalPrice(), paymentMethod, rules)) setPaymentMethod(paymentAllowed(totalPrice(), "cod", rules) ? "cod" : "razorpay"); }, [rules, paymentMethod, totalPrice]);
   const phoneValid = /^[6-9]\d{9}$/.test(address.phone.replace(/\D/g, ""));
   const pinValid = /^\d{6}$/.test(address.pincode);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email.trim());
@@ -108,7 +113,7 @@ function CheckoutPage() {
     setProcessing(true);
     try {
       const orderItems = items.map((i) => ({
-        product_id: null,
+        product_id: /^[a-f0-9-]{36}$/i.test(i.id) ? i.id : null,
         product_name: i.name,
         product_slug: i.slug,
         image: i.image,
@@ -147,11 +152,13 @@ function CheckoutPage() {
       if (!loaded || !window.Razorpay) throw new Error("Unable to load payment gateway");
 
       const rzp = await createRazorpayOrder({
-        data: { order_id: created.id },
+        data: { order_id: created.id, payment_token: created.payment_token },
       });
 
+      const Razorpay = window.Razorpay;
+      if (!Razorpay) throw new Error("Unable to load payment gateway");
       await new Promise<void>((resolve, reject) => {
-        const inst = new window.Razorpay!({
+        const inst = new Razorpay({
           key: rzp.key_id,
           amount: rzp.amount,
           currency: rzp.currency,
@@ -176,6 +183,7 @@ function CheckoutPage() {
               const v = await verifyRazorpayPayment({
                 data: {
                   order_id: created.id,
+                  payment_token: created.payment_token,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
@@ -243,14 +251,14 @@ function CheckoutPage() {
               <p className="text-muted-foreground mt-0.5">{address.name} · {address.phone}</p>
               <p className="text-muted-foreground">{address.line1}, {address.city} {address.state} {address.pincode}</p>
             </div>
-            <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
+            {paymentAllowed(subtotal, "razorpay", rules) && <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
               <input type="radio" name="pay" checked={paymentMethod === "razorpay"} onChange={() => setPaymentMethod("razorpay")} className="accent-primary" />
               <span><span className="font-medium">Pay Online</span> <span className="text-xs text-muted-foreground">— UPI, Cards, Net Banking, Wallets (via Razorpay)</span></span>
-            </label>
-            <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
+            </label>}
+            {paymentAllowed(subtotal, "cod", rules) && <label className="flex items-center gap-3 border border-border rounded-md p-3 cursor-pointer hover:bg-secondary/50">
               <input type="radio" name="pay" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
               <span className="font-medium">Cash on Delivery</span>
-            </label>
+            </label>}
             <div className="bg-background border border-border rounded-md p-3 text-sm space-y-1.5">
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toLocaleString("en-IN")}</span></div>
@@ -270,7 +278,7 @@ function CheckoutPage() {
             )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
-              disabled={items.length === 0 || processing}
+              disabled={items.length === 0 || processing || rulesQuery.isLoading || !!rulesQuery.error || !paymentAllowed(subtotal, paymentMethod, rules)}
               onClick={handlePlaceOrder}
               className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3 disabled:opacity-50"
             >
@@ -283,7 +291,7 @@ function CheckoutPage() {
             <div className="text-5xl">🌸</div>
             <h2 className="font-display text-2xl text-primary mt-3">Order Confirmed!</h2>
             <p className="text-sm text-muted-foreground mt-2">Order ID: <span className="text-primary font-semibold">{orderNumber}</span></p>
-            <p className="text-xs text-muted-foreground mt-4">A confirmation has been sent on WhatsApp.</p>
+            <p className="text-xs text-muted-foreground mt-4">Save your order ID to track delivery.</p>
             <div className="flex flex-wrap gap-3 justify-center mt-6">
               <Link to="/track-order" className="bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm">Track Order</Link>
               <Link to="/shop" className="border border-primary text-primary px-6 py-3 rounded-full text-sm">Continue Shopping</Link>

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { checkoutTotals, paymentAllowed } from "./checkout-rules";
+import { createHmac } from "node:crypto";
 
 const ItemSchema = z.object({
   product_id: z.string().uuid().nullable().optional(),
@@ -26,16 +27,33 @@ const CreateOrderSchema = z.object({
   }),
   items: z.array(ItemSchema).min(1).max(50),
   coupon_code: z.string().max(40).optional().nullable(),
-  payment_method: z.string().max(40).default("cod"),
+  payment_method: z.enum(["cod", "razorpay"]).default("cod"),
   user_id: z.string().uuid().nullable().optional(),
 });
 
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => CreateOrderSchema.parse(input))
   .handler(async ({ data }) => {
-    const subtotal = data.items.reduce((s, i) => s + i.qty * i.price, 0);
-    const shipping = subtotal === 0 || subtotal > 999 ? 0 : 79;
-    const gst = Math.round(subtotal * 0.05);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { readCheckoutRules } = await import("./checkout-rules.server");
+    const rules = await readCheckoutRules();
+    const signingKey = process.env.RAZORPAY_KEY_SECRET;
+    if (data.payment_method === "razorpay" && !signingKey) throw new Error("Online payments are not configured. Please choose another method.");
+    const resolved = [];
+    for (const item of data.items) {
+      let query = supabaseAdmin.from("products").select("id,slug,name,price,images,product_type,is_published,stock,allow_backorders,track_inventory").is("deleted_at", null).eq("is_published", true);
+      query = item.product_id ? query.eq("id", item.product_id) : query.eq("slug", item.product_slug ?? "");
+      const { data: product, error } = await query.maybeSingle();
+      if (error || !product) throw new Error(`Product unavailable: ${item.product_name}`);
+      const { data: variants, error: variantError } = await supabaseAdmin.from("product_variants").select("size,color,stock,price,sale_price,status").eq("product_id", product.id);
+      if (variantError) throw new Error("Could not check product stock");
+      const variant = (variants ?? []).find((v) => v.size.toLowerCase() === (item.size ?? "").toLowerCase() && (!v.color || v.color.toLowerCase() === (item.color ?? "").toLowerCase()));
+      if ((variants?.length ?? 0) > 0 && (!variant || variant.status === "inactive")) throw new Error(`Selected size/color unavailable: ${product.name}`);
+      if (product.track_inventory && !product.allow_backorders && Number(variant?.stock ?? product.stock) < item.qty) throw new Error(`Not enough stock: ${product.name}`);
+      resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number(variant?.sale_price ?? variant?.price ?? product.price) });
+    }
+    const subtotal = resolved.reduce((s, i) => s + i.qty * i.price, 0);
+    if (!paymentAllowed(subtotal, data.payment_method, rules)) throw new Error("This payment method is unavailable for this order amount");
 
     // Coupon
     let discount = 0;
@@ -55,12 +73,12 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     }
 
-    const total = Math.max(0, subtotal + gst + shipping - discount);
+    const { shipping, gst, total } = checkoutTotals(subtotal, data.payment_method, rules, discount);
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
       .insert({
-        user_id: data.user_id ?? null,
+        user_id: null,
         customer_name: data.customer_name,
         customer_email: data.customer_email,
         customer_phone: data.customer_phone,
@@ -75,7 +93,7 @@ export const createOrder = createServerFn({ method: "POST" })
       .single();
     if (error || !order) throw new Error(error?.message ?? "Failed to create order");
 
-    const items = data.items.map((i) => ({ ...i, order_id: order.id }));
+    const items = resolved.map((i) => ({ ...i, order_id: order.id }));
     const { error: ie } = await supabaseAdmin.from("order_items").insert(items);
     if (ie) throw new Error(ie.message);
 
@@ -89,7 +107,7 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     }
 
-    return { order_number: order.order_number, id: order.id, total };
+    return { order_number: order.order_number, id: order.id, total, payment_token: signingKey ? createHmac("sha256", signingKey).update(`ihs-payment:${order.id}`).digest("hex") : "" };
   });
 
 const TrackSchema = z.object({
@@ -100,6 +118,7 @@ const TrackSchema = z.object({
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => TrackSchema.parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const orderNumber = data.order_number.trim().toUpperCase();
     const email = data.email.trim().toLowerCase();
     const { data: order } = await supabaseAdmin
@@ -122,3 +141,7 @@ export const trackOrder = createServerFn({ method: "POST" })
     ]);
     return { ...order, items: items ?? [], shipment: shipment ?? null };
   });
+export const checkoutRules = createServerFn({ method: "GET" }).handler(async () => {
+  const { readCheckoutRules } = await import("./checkout-rules.server");
+  return readCheckoutRules();
+});
