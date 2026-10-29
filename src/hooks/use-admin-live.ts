@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useAdminLive(enabled: boolean) {
+export function useAdminLive(enabled: boolean | undefined) {
   const client = useQueryClient();
   useEffect(() => {
     if (!enabled) return;
