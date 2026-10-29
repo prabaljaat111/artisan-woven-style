@@ -82,6 +82,7 @@ import { Route as AdminSettingsWebsiteRouteImport } from './routes/admin.setting
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
 import { Route as ApiPublicCatalogGoogleDotxmlRouteImport } from './routes/api/public/catalog/google[.]xml'
 import { Route as ApiPublicCatalogMetaDotcsvRouteImport } from './routes/api/public/catalog/meta[.]csv'
+import { Route as ApiPublicIntegrationDataRouteImport } from './routes/api/public/integration/data'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -451,6 +452,12 @@ const ApiPublicCatalogMetaDotcsvRoute =
     path: '/api/public/catalog/meta.csv',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIntegrationDataRoute =
+  ApiPublicIntegrationDataRouteImport.update({
+    id: '/api/public/integration/data',
+    path: '/api/public/integration/data',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -526,6 +533,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -599,6 +607,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -675,6 +684,7 @@ export interface FileRoutesById {
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -752,6 +762,7 @@ export interface FileRouteTypes {
     | '/admin/settings/'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -825,6 +836,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   id:
     | '__root__'
     | '/'
@@ -900,6 +912,7 @@ export interface FileRouteTypes {
     | '/admin/settings/'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -931,6 +944,7 @@ export interface RootRouteChildren {
   CategoryIndexRoute: typeof CategoryIndexRoute
   ApiPublicCatalogGoogleDotxmlRoute: typeof ApiPublicCatalogGoogleDotxmlRoute
   ApiPublicCatalogMetaDotcsvRoute: typeof ApiPublicCatalogMetaDotcsvRoute
+  ApiPublicIntegrationDataRoute: typeof ApiPublicIntegrationDataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1446,6 +1460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCatalogMetaDotcsvRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/integration/data': {
+      id: '/api/public/integration/data'
+      path: '/api/public/integration/data'
+      fullPath: '/api/public/integration/data'
+      preLoaderRoute: typeof ApiPublicIntegrationDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1586,6 +1607,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoryIndexRoute: CategoryIndexRoute,
   ApiPublicCatalogGoogleDotxmlRoute: ApiPublicCatalogGoogleDotxmlRoute,
   ApiPublicCatalogMetaDotcsvRoute: ApiPublicCatalogMetaDotcsvRoute,
+  ApiPublicIntegrationDataRoute: ApiPublicIntegrationDataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
