@@ -35,6 +35,24 @@ describe("woo csv import validation", () => {
   it("uses the leaf of a category path", () => {
     expect(leafCategory("Women > Kurtis, Sale")).toBe("Kurtis");
   });
+  it("maps common product spreadsheet headers", () => {
+    expect(autoMap(["product_name", "original_price", "price", "image_url", "category_slug", "is_published"]).regular_price).toBe("original_price");
+    expect(autoMap(["image_url"]).images).toBe("image_url");
+  });
+  it("accepts lowercase variation attributes", () => {
+    const data = [{ Type: "variation", SKU: "P1-S", Parent: "P1", "Regular price": "999", "attribute 1 name": "Size", "attribute 1 value(s)": "S" }];
+    const [r] = parseRows(data, autoMap(Object.keys(data[0])), { ...opts, existingSkus: ["P1"] });
+    expect(r.size).toBe("S"); expect(r.errors).toEqual([]);
+  });
+  it("resolves WooCommerce original ID parent references", () => {
+    const data = [{ ID: "42", Type: "variable", SKU: "P1", Name: "Kurti", Categories: "Kurtis" }, { Type: "variation", SKU: "P1-S", Parent: "id:42", "Regular price": "999", "Attribute 1 name": "Size", "Attribute 1 value(s)": "S" }];
+    const rows = parseRows(data, autoMap(["ID", ...headers]), opts);
+    expect(rows[1].parent).toBe("P1"); expect(rows[1].errors).toEqual([]); expect(rows[0].regular_price).toBe(999);
+  });
+  it("blocks repeated size and color combinations", () => {
+    const data = [row({ Type: "variation", SKU: "P1-S", Parent: "P1", "Regular price": "999", "Attribute 1 name": "Size", "Attribute 1 value(s)": "S" }), row({ Type: "variation", SKU: "P1-OTHER", Parent: "P1", "Regular price": "999", "Attribute 1 name": "Size", "Attribute 1 value(s)": "S" })];
+    expect(parseRows(data, map, { ...opts, existingSkus: ["P1"] })[1].errors).toContain("Duplicate Size / Color combination");
+  });
 });
 
 describe("woo csv export", () => {
