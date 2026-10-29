@@ -61,6 +61,26 @@ export function FeedPage({ kind }: { kind: "google" | "meta" }) {
         </div>
         <ol className="mt-4 space-y-2 text-sm list-decimal pl-5">{steps.map((s) => <li key={s}>{s}</li>)}</ol>
       </section>
+      <section className="py-2">
+        <h3 className="font-serif text-lg mb-1">Multi-channel sync schedule</h3>
+        <p className="text-sm text-muted-foreground mb-3">Paste the matching link once in each platform and set its schedule. Every fetch reads live products, prices and stock — no code or manual uploads needed.</p>
+        <div className="overflow-x-auto"><table className="w-full text-sm">
+          <thead><tr className="text-left text-muted-foreground border-b border-border"><th className="py-2 pr-3">Channel</th><th className="pr-3">Feed link</th><th className="pr-3">Set schedule to</th><th></th></tr></thead>
+          <tbody>{[
+            ["Google Shopping / Merchant Center", `${SITE_URL}/api/public/catalog/google.xml`, "Daily (Google's fastest file schedule)", "https://merchants.google.com/"],
+            ["Facebook & Instagram Shop", `${SITE_URL}/api/public/catalog/meta.csv`, "Hourly", "https://business.facebook.com/commerce/"],
+            ["WhatsApp catalog", `${SITE_URL}/api/public/catalog/meta.csv`, "Hourly (via the Meta catalog)", "https://business.facebook.com/latest/whatsapp_manager"],
+            ["Pinterest Catalogs", `${SITE_URL}/api/public/catalog/google.xml`, "Daily", "https://www.pinterest.com/business/catalogs/"],
+            ["TikTok Shop / Catalog", `${SITE_URL}/api/public/catalog/google.xml`, "Hourly", "https://ads.tiktok.com/i18n/catalog"],
+          ].map(([name, url, freq, open]) => (
+            <tr key={name} className="border-b border-border/60">
+              <td className="py-2 pr-3 font-medium">{name}</td>
+              <td className="pr-3"><code className="text-xs break-all">{url}</code></td>
+              <td className="pr-3">{freq}</td>
+              <td className="whitespace-nowrap"><button className={btnGhost} onClick={async () => { try { await navigator.clipboard.writeText(url); toast.success("Link copied"); } catch { toast.error("Copy failed"); } }}><Copy className="h-4 w-4" /></button><a className={btnGhost} href={open} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a></td>
+            </tr>))}</tbody>
+        </table></div>
+      </section>
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-serif text-lg">Products in feed</h3>

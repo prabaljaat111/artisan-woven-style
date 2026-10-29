@@ -179,6 +179,22 @@ function LoginPage() {
           </button>
         </form>
 
+        <div className="mt-3 text-center">
+          <button
+            type="button"
+            className="text-sm text-primary hover:underline"
+            onClick={async () => {
+              const parsed = z.string().trim().email().safeParse(email);
+              if (!parsed.success) { toast.error("Enter your admin email above first"); return; }
+              const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo: `${window.location.origin}/reset-password` });
+              if (error) toast.error(error.message);
+              else toast.success("If this email has an account, a reset link has been sent.");
+            }}
+          >
+            Forgot password?
+          </button>
+        </div>
+
         <div className="mt-5 text-[11px] text-muted-foreground text-center leading-relaxed">
           <p>Sessions are encrypted and rate-limited. All sign-in attempts are logged.</p>
           <p className="mt-1">Need access? Contact an existing administrator.</p>
