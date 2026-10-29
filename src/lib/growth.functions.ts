@@ -1,9 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { requireAdmin } from './admin-middleware';
+import type { Database } from '@/integrations/supabase/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const growthOverview=createServerFn({method:'GET'}).middleware([requireAdmin]).handler(async({context})=>{
-  const db=context.supabase;
+  const db=context.supabase as SupabaseClient<Database>;
   const result=await Promise.all([
     db.from('customer_groups').select('*').order('name'),
     db.from('profiles').select('id,full_name,customer_group_id,referral_code,referred_by').order('created_at',{ascending:false}).limit(500),
@@ -28,8 +30,9 @@ const action=z.discriminatedUnion('type',[
   z.object({type:z.literal('token'),name:z.string().trim().min(1).max(80),scope:z.enum(['catalog:read','inventory:read'])}),
   z.object({type:z.literal('revoke'),id:z.string().uuid()}),
 ]);
+export type GrowthActionInput=z.infer<typeof action>;
 export const growthAction=createServerFn({method:'POST'}).middleware([requireAdmin]).inputValidator(input=>action.parse(input)).handler(async({data,context})=>{
-  const db=context.supabase;
+  const db=context.supabase as SupabaseClient<Database>;
   let error;
   if(data.type==='group') ({error}=await db.from('customer_groups').insert({name:data.name,description:data.description}));
   if(data.type==='membership') ({error}=await db.from('profiles').update({customer_group_id:data.group_id}).eq('id',data.user_id));

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery,useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { growthOverview,growthAction } from '@/lib/growth.functions';
+import { growthOverview,growthAction,type GrowthActionInput } from '@/lib/growth.functions';
 import { pointBalance } from '@/lib/growth-rules';
 import { Button } from '@/components/ui/button';
 import { Plus,Trash2,RefreshCw,KeyRound,Download } from 'lucide-react';
@@ -19,7 +19,7 @@ export function GrowthTools({mode}:{mode:Mode}) {
   const [source,setSource]=useState(''); const [category,setCategory]=useState(''); const [priority,setPriority]=useState(0);
   const [states,setStates]=useState(''); const [pins,setPins]=useState(''); const [rate,setRate]=useState(0); const [free,setFree]=useState(''); const [courier,setCourier]=useState('');
   const [scope,setScope]=useState<'catalog:read'|'inventory:read'>('catalog:read'); const [token,setToken]=useState<string|null>(null); const [search,setSearch]=useState('');
-  const run=async(data:Parameters<typeof growthAction>[0]['data'])=>{
+  const run=async(data:GrowthActionInput)=>{
     setBusy(true); try {const r=await act({data}); if(r.token) setToken(r.token); toast.success('Saved'); await queryClient.invalidateQueries({queryKey:['growth-tools']});} catch(e){toast.error(e instanceof Error?e.message:'Could not save');} finally{setBusy(false);}
   };
   if(query.isPending) return <p className="text-sm text-muted-foreground">Loading…</p>;
