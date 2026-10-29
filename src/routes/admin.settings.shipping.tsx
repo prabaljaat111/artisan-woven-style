@@ -1,5 +1,5 @@
 import { adminPageMeta } from "@/lib/page-meta";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Save, CheckCircle2 } from "lucide-react";
@@ -19,7 +19,7 @@ interface SrSettings {
 }
 
 type Extra = { free_shipping_threshold: number; flat_rate: number };
-const DEFAULTS_EXTRA: Extra = { free_shipping_threshold: 999, flat_rate: 99 };
+const DEFAULTS_EXTRA: Extra = { free_shipping_threshold: 999, flat_rate: 79 };
 
 function Page() {
   const [sr, setSr] = useState<SrSettings>({ pickup_location: "Primary", length_cm: 25, breadth_cm: 20, height_cm: 5, weight_kg: 0.5, pickup_pincode: "226003" });
@@ -50,8 +50,7 @@ function Page() {
 
       <Section title="Shiprocket Integration" description="Live serviceability, AWB assignment, label/invoice generation.">
         <div className="flex items-center gap-2 text-sm">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span>Shiprocket credentials configured via secrets.</span>
+          <Link to="/admin/settings/backup" className="text-primary underline">Check Shiprocket connection status</Link>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <Field label="Pickup Location Nickname" hint="Exact nickname from Shiprocket → Settings → Pickup Addresses."><input className={input} value={sr.pickup_location} onChange={(e) => setSr({ ...sr, pickup_location: e.target.value })} required maxLength={80} /></Field>
@@ -76,7 +75,7 @@ function Page() {
           <Field label="Flat shipping rate (₹)" hint="Fallback charge used when courier rate lookup fails."><input type="number" className={input} value={extra.value.flat_rate} onChange={(e) => extra.setValue({ ...extra.value, flat_rate: Number(e.target.value) })} /></Field>
           <Field label="Free shipping above (₹)" hint="Orders with subtotal above this amount get free shipping."><input type="number" className={input} value={extra.value.free_shipping_threshold} onChange={(e) => extra.setValue({ ...extra.value, free_shipping_threshold: Number(e.target.value) })} /></Field>
         </div>
-        <button onClick={() => extra.save()} disabled={extra.saving} className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm flex items-center gap-2 disabled:opacity-50">
+        <button onClick={() => { if (extra.value.flat_rate < 0 || extra.value.free_shipping_threshold < 0) return toast.error("Shipping amounts cannot be negative"); extra.save(); }} disabled={extra.saving} className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm flex items-center gap-2 disabled:opacity-50">
           <Save className="h-4 w-4" /> {extra.saving ? "Saving…" : "Save shipping rules"}
         </button>
       </Section>

@@ -1,5 +1,7 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
+import { ANALYTICS_DEFAULTS, analyticsConfig } from "@/lib/analytics-config";
+import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
@@ -7,7 +9,7 @@ import { useSetting } from "@/hooks/use-setting";
 export const Route = createFileRoute("/admin/settings/analytics")({ head: () => ({ meta: adminPageMeta("Analytics Settings") }), component: Page });
 
 type V = { ga4_id: string; gtm_id: string; meta_pixel_id: string; gsc_verification: string };
-const DEFAULTS: V = { ga4_id: "", gtm_id: "", meta_pixel_id: "", gsc_verification: "" };
+const DEFAULTS: V = ANALYTICS_DEFAULTS;
 
 function Page() {
   const { value, setValue, save, loading, saving } = useSetting<V>("analytics", DEFAULTS);
@@ -15,7 +17,7 @@ function Page() {
   const set = <K extends keyof V>(k: K, v: V[K]) => setValue({ ...value, [k]: v });
   const input = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
   return (
-    <form onSubmit={(e) => { e.preventDefault(); save(); }} className="max-w-3xl space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); const valid = analyticsConfig(value); if (Object.keys(value).some((k) => value[k as keyof V].trim() !== valid[k as keyof V])) return toast.error("Check the tracking ID formats before saving"); save(valid); }} className="max-w-3xl space-y-6">
       <PageHeader title="Analytics" description="Connect tracking tools. Loaded site-wide via the root layout." actions={
         <button disabled={saving} className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm flex items-center gap-2 disabled:opacity-50">
           <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
@@ -33,6 +35,7 @@ function Page() {
         <Field label="Meta Pixel ID" hint="15-16 digit numeric ID from Meta Events Manager."><input className={input} value={value.meta_pixel_id} onChange={(e) => set("meta_pixel_id", e.target.value)} maxLength={20} /></Field>
       </Section>
 
+      <Section title="Visitor reports"><div className="flex flex-wrap gap-4 text-sm"><a href="https://analytics.google.com/" target="_blank" rel="noreferrer" className="text-primary underline">Open Google Analytics</a><a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-primary underline">Open Search Console</a></div><p className="text-sm text-muted-foreground">Sign in with the Google account that owns your property. Visitor data is held by Google and is not imported into this dashboard.</p></Section>
       <Section title="Conversion API & Event Tracking">
         <ComingSoon title="Server-side conversion events" description="Push Purchase, AddToCart, Lead events to Meta CAPI and GA4 Measurement Protocol from the server for ad-blocker-proof tracking." requires={["Meta CAPI access token", "GA4 Measurement Protocol API secret", "Event mapping"]} />
       </Section>

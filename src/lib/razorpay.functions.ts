@@ -1,25 +1,30 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import crypto from "node:crypto";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
 
 const CreateSchema = z.object({
   order_id: z.string().uuid(),
+  payment_token: z.string().regex(/^[a-f0-9]{64}$/),
 });
 
 export const createRazorpayOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => CreateSchema.parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keyId || !keySecret) throw new Error("Razorpay keys not configured");
+    const capability = crypto.createHmac("sha256", keySecret).update(`ihs-payment:${data.order_id}`).digest("hex");
+    if (!crypto.timingSafeEqual(Buffer.from(capability), Buffer.from(data.payment_token))) throw new Error("Payment access denied");
 
-    const { data: order } = await supabaseAdmin
+    const { data: order, error: paymentError } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, total, payment_status")
+      .select("id, order_number, total, payment_status, payment_method, status")
       .eq("id", data.order_id)
       .maybeSingle();
     if (!order) throw new Error("Order not found");
+    if (order.payment_method !== "razorpay" || ["cancelled", "returned", "refunded"].includes(order.status)) throw new Error("Order cannot be paid online");
     if (order.payment_status === "paid") throw new Error("Order already paid");
 
     // SECURITY: amount is derived from the DB order total, never trusted from the client.
@@ -65,6 +70,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
 
 const VerifySchema = z.object({
   order_id: z.string().uuid(),
+  payment_token: z.string().regex(/^[a-f0-9]{64}$/),
   razorpay_order_id: z.string().min(1).max(100),
   razorpay_payment_id: z.string().min(1).max(100),
   razorpay_signature: z.string().min(1).max(200),
@@ -73,19 +79,20 @@ const VerifySchema = z.object({
 export const verifyRazorpayPayment = createServerFn({ method: "POST" })
   .inputValidator((input) => VerifySchema.parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keySecret) throw new Error("Razorpay not configured");
 
+    const capability = crypto.createHmac("sha256", keySecret).update(`ihs-payment:${data.order_id}`).digest("hex");
+    if (!crypto.timingSafeEqual(Buffer.from(capability), Buffer.from(data.payment_token))) throw new Error("Payment access denied");
+    const { data: linked, error: linkError } = await supabaseAdmin.from("orders").select("razorpay_order_id,payment_method,payment_status,status").eq("id", data.order_id).maybeSingle();
+    if (linkError || !linked || linked.payment_method !== "razorpay" || linked.razorpay_order_id !== data.razorpay_order_id || ["cancelled", "returned", "refunded"].includes(linked.status)) throw new Error("Payment is not linked to this order");
     const expected = crypto
       .createHmac("sha256", keySecret)
       .update(`${data.razorpay_order_id}|${data.razorpay_payment_id}`)
       .digest("hex");
 
     if (expected !== data.razorpay_signature) {
-      await supabaseAdmin
-        .from("orders")
-        .update({ payment_status: "failed" })
-        .eq("id", data.order_id);
       throw new Error("Payment signature verification failed");
     }
 
@@ -108,23 +115,21 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
     if (!rzpRes.ok) throw new Error("Could not verify payment amount");
     const rzpOrder = (await rzpRes.json()) as { amount: number; status: string };
     if (rzpOrder.amount !== expectedPaise) {
-      await supabaseAdmin
-        .from("orders")
-        .update({ payment_status: "failed" })
-        .eq("id", data.order_id);
       throw new Error("Payment amount mismatch");
     }
 
-    const { data: order } = await supabaseAdmin
+    const { data: order, error: paymentError } = await supabaseAdmin
       .from("orders")
       .update({
         payment_status: "paid",
-        status: "paid",
+        status: linked.status === "pending" ? "paid" : linked.status,
         payment_reference: data.razorpay_payment_id,
       })
       .eq("id", data.order_id)
       .select("order_number")
       .single();
+
+    if (paymentError) throw new Error(paymentError.message);
 
     // Auto-create Shiprocket shipment (non-blocking failure)
     try {

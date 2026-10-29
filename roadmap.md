@@ -1,3 +1,12 @@
+# Admin functionality audit
+- [x] Review 41 admin pages with the signed-in account and record failures.
+- [x] Repair transactional product saving, catalog safeguards, inventory thresholds, navigation, tracking settings and payment verification.
+- [x] Add catalog backup/restore, return-order listing and sales/inventory CSV reports.
+- [x] Verify draft creation/read-back, catalog download/restore/read-back, draft soft deletion and report export; 21 regression tests passed.
+- [x] Identify integrations requiring external setup and distinguish credential presence from verified operation.
+- [ ] Complete remaining website-setting connections, marketing automation, advanced security and role-specific action checks; these remain unfinished, not certified functional.
+- [ ] Verify live payment, shipping and automated WhatsApp delivery — requires authorized external-service operations; daily email requires a sending domain.
+
 # Hostinger readiness
 - [x] Automate public hosting configuration and pre-build checks without exporting private credentials.
 - [x] Verify automated configuration and update Hostinger instructions.

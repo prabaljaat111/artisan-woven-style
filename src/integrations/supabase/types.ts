@@ -1143,6 +1143,11 @@ export type Database = {
           variation_id: string
         }[]
       }
+      restore_catalog_backup: { Args: { _tables: Json }; Returns: Json }
+      save_product_form: {
+        Args: { _id: string; _product: Json; _variations: Json }
+        Returns: Json
+      }
       team_member_names: {
         Args: { _ids: string[] }
         Returns: {

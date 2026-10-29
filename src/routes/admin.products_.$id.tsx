@@ -16,7 +16,7 @@ function EditProductPage() {
     queryKey: ["product-edit", id],
     queryFn: async () => {
       const [{ data: p, error }, { data: v }] = await Promise.all([
-        supabase.from("products").select("*").eq("id", id).maybeSingle(),
+        supabase.from("products").select("*").eq("id", id).is("deleted_at", null).maybeSingle(),
         supabase.from("product_variants").select("size, color, sku, price, sale_price, stock, image_url, status").eq("product_id", id).order("created_at"),
       ]);
       if (error) throw error;

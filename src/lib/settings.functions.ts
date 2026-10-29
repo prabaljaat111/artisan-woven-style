@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const KeySchema = z.string().min(1).max(80).regex(/^[a-z0-9_.\-]+$/i);
 
@@ -11,11 +10,13 @@ export const getSetting = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((d: { key: string }) => ({ key: KeySchema.parse(d.key) }))
   .handler(async ({ data }) => {
-    const { data: row } = await supabaseAdmin
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
       .from("app_settings")
       .select("value")
       .eq("key", data.key)
       .maybeSingle();
+    if (error) throw new Error(error.message);
     return { value: (row?.value ?? null) as JsonValue };
   });
 
@@ -26,6 +27,7 @@ export const saveSetting = createServerFn({ method: "POST" })
     value: d.value,
   }))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("app_settings")
       .upsert({ key: data.key, value: data.value as never, updated_at: new Date().toISOString() }, { onConflict: "key" });
@@ -36,6 +38,7 @@ export const saveSetting = createServerFn({ method: "POST" })
 export const listAdmins = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: roles } = await supabaseAdmin
       .from("user_roles")
       .select("user_id, role, created_at")
@@ -66,6 +69,7 @@ export const setUserRole = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.action === "add") {
       const { error } = await supabaseAdmin
         .from("user_roles")

@@ -45,7 +45,7 @@ const schema = z.object({
   short_description: z.string().refine((h) => htmlToText(h).length > 0, "Short description is required").refine((h) => htmlToText(h).length <= 500, "Keep it under 500 characters"),
   category_id: z.string().min(1, "Choose a category"),
   regular_price: z.string().refine((v) => Number(v) > 0, "Enter a regular price above ₹0"),
-  sale_price: z.string(),
+  sale_price: z.string().refine((v) => !v || (Number.isFinite(Number(v)) && Number(v) >= 0), "Enter a valid sale price"),
   slug: z.string().regex(/^[a-z0-9-]*$/, "Use lowercase letters, numbers and dashes only").max(80),
   stock: z.string().refine((v) => Number.isInteger(Number(v)) && Number(v) >= 0, "Stock must be 0 or more"),
   reorder_level: z.string().refine((v) => Number.isInteger(Number(v)) && Number(v) >= 0, "Must be 0 or more"),
@@ -135,7 +135,8 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
   const [autoSavedAt, setAutoSavedAt] = useState<Date | null>(null);
   const savingRef = useRef(false);
   async function save(mode: "draft" | "review" | "publish", silent = false) {
-    try { return await doSave(mode, silent); } finally { savingRef.current = false; }
+    if (savingRef.current) return;
+    try { return await doSave(mode, silent); } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed"); } finally { savingRef.current = false; setSaving(null); }
   }
   async function doSave(mode: "draft" | "review" | "publish", silent: boolean) {
     const parsed = schema.safeParse(form);
@@ -208,32 +209,20 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     if (form.product_type === "simple") payload.stock = Number(form.stock);
     if (!productId) payload.submitted_by = user?.id;
 
-    const res = productId
-      ? await supabase.from("products").update(payload as any).eq("id", productId).select("id, status").single()
-      : await supabase.from("products").insert(payload as any).select("id, status").single();
-    if (res.error || !res.data) {
-      setSaving(null);
-      const msg = res.error?.message ?? "Save failed";
-      if (msg.includes("products_slug")) { setErrors({ slug: "This URL slug is already used" }); setTab("Advanced"); }
-      return toast.error(msg.includes("products_slug") ? "URL slug already in use" : msg);
-    }
-    const id = res.data.id;
-
-    if (form.product_type === "variable") {
-      await supabase.from("product_variants").delete().eq("product_id", id);
-      const rows = variations.map((v) => ({
-        product_id: id, size: v.size.trim(), color: v.color?.trim() || null, sku: v.sku || null, status: v.status,
-        price: num(v.price), sale_price: num(v.sale_price), stock: Number(v.stock) || 0, image_url: v.image_url || null,
-      }));
-      if (rows.length) {
-        const { error } = await supabase.from("product_variants").insert(rows);
-        if (error) toast.error(`Variations: ${error.message}`);
-      }
-    }
+    const res = await supabase.rpc("save_product_form", {
+      _id: productId ?? null,
+      _product: payload as any,
+      _variations: variations.map((v) => ({ size: v.size.trim(), color: v.color?.trim() || null, sku: v.sku.trim().toUpperCase() || null, status: v.status, price: num(v.price), sale_price: num(v.sale_price), stock: Number(v.stock), image_url: v.image_url || null })) as any,
+    } as any); // PostgreSQL accepts null for a new product; generated RPC types omit nullable arguments.
+    if (res.error) throw new Error(res.error.message);
+    const saved = res.data as { id?: string; status?: string } | null;
+    if (!saved?.id) throw new Error("Save did not return a product");
+    const id = saved.id;
+    setForm((f) => ({ ...f, status: saved.status ?? status, sku, slug }));
 
     setSaving(null);
     dirtyRef.current = false; setDirty(false);
-    const finalStatus = res.data.status;
+    const finalStatus = saved.status;
     if (silent) setAutoSavedAt(new Date());
     else toast.success(finalStatus === "active" ? "Published" : finalStatus === "pending_review" ? "Submitted for review" : "Draft saved");
     if (!productId) navigate({ to: "/admin/products/$id", params: { id }, replace: silent });

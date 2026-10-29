@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save, CheckCircle2 } from "lucide-react";
 import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/settings/payment")({ head: () => ({ meta: adminPageMeta("Payment Settings") }), component: Page });
 
@@ -15,7 +16,7 @@ function Page() {
   const set = <K extends keyof V>(k: K, v: V[K]) => setValue({ ...value, [k]: v });
   const input = "w-full border border-border rounded-md px-3 py-2 bg-background text-sm";
   return (
-    <form onSubmit={(e) => { e.preventDefault(); save(); }} className="max-w-4xl space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); if (value.cod_min < 0 || value.cod_max < value.cod_min || value.cod_fee < 0) return toast.error("Enter valid COD limits and a non-negative fee"); save(); }} className="max-w-4xl space-y-6">
       <PageHeader title="Payments" description="Manage payment methods customers can use at checkout." actions={
         <button disabled={saving} className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm flex items-center gap-2 disabled:opacity-50">
           <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
@@ -23,14 +24,13 @@ function Page() {
 
       <Section title="Razorpay" description="Cards, UPI, netbanking, and wallets via Razorpay.">
         <div className="flex items-center gap-2 text-sm">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span>Razorpay credentials configured via secrets.</span>
+          <Link to="/admin/settings/backup" className="text-primary underline">Check Razorpay connection status</Link>
         </div>
         <Toggle label="Enable Razorpay at checkout" hint="When off, the Razorpay option is hidden from the checkout page." checked={value.razorpay_enabled} onChange={(b) => set("razorpay_enabled", b)} />
       </Section>
 
-      <Section title="UPI" description="Direct UPI ID payments (advanced).">
-        <Toggle label="Enable UPI direct" hint="Currently routed through Razorpay — keep on unless you have a separate PSP." checked={value.upi_enabled} onChange={(b) => set("upi_enabled", b)} />
+      <Section title="UPI" description="UPI is available through Razorpay. Direct UPI transfers are not supported.">
+        <p className="text-sm text-muted-foreground">Use the Razorpay switch above to enable or disable online payments.</p>
       </Section>
 
       <Section title="Cash on Delivery" description="Customer pays when the order is delivered.">

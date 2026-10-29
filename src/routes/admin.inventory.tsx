@@ -33,22 +33,24 @@ function InventoryPage() {
   const [adjOpen, setAdjOpen] = useState(false);
   const [tab, setTab] = useState<"stock" | "history">("stock");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: loadError } = useQuery({
     queryKey: ["inventory-v2"],
     queryFn: async () => {
-      const [{ data: prods, error }, { data: vars }, { data: cats }] = await Promise.all([
+      const [{ data: prods, error }, { data: vars, error: variantError }, { data: cats, error: categoryError }] = await Promise.all([
         supabase.from("products").select("id, name, sku, stock, reorder_level, images, category_id, product_type").is("deleted_at", null).order("name"),
-        supabase.from("product_variants").select("id, product_id, sku, size, color, stock, image_url, status").order("created_at"),
+        supabase.from("product_variants").select("id, product_id, sku, size, color, stock, image_url, status, reorder_level").order("created_at"),
         supabase.from("categories").select("id, name").order("sort_order"),
       ]);
       if (error) throw error;
+      if (variantError) throw variantError;
+      if (categoryError) throw categoryError;
       const byProduct = new Map<string, any[]>();
       (vars ?? []).forEach((v) => { const a = byProduct.get(v.product_id) ?? []; a.push(v); byProduct.set(v.product_id, a); });
       const rows: Row[] = [];
       for (const p of prods ?? []) {
         const vs = byProduct.get(p.id);
         const base = { productId: p.id, name: p.name, categoryId: p.category_id, reorder: p.reorder_level ?? 5 };
-        if (vs?.length) vs.forEach((v) => rows.push({ ...base, key: v.id, variantId: v.id, image: v.image_url || p.images?.[0] || null, sku: v.sku, size: v.size, color: v.color, stock: v.stock ?? 0, inactive: v.status === "inactive" }));
+        if (vs?.length) vs.forEach((v) => rows.push({ ...base, reorder: v.reorder_level ?? base.reorder, key: v.id, variantId: v.id, image: v.image_url || p.images?.[0] || null, sku: v.sku, size: v.size, color: v.color, stock: v.stock ?? 0, inactive: v.status === "inactive" }));
         else rows.push({ ...base, key: p.id, variantId: null, image: p.images?.[0] ?? null, sku: p.sku, size: null, color: null, stock: p.stock ?? 0, inactive: false });
       }
       return { rows, cats: cats ?? [] };
@@ -57,10 +59,10 @@ function InventoryPage() {
   const refresh = () => { qc.invalidateQueries({ queryKey: ["inventory-v2"] }); qc.invalidateQueries({ queryKey: ["stock-history"] }); };
 
   const all = data?.rows ?? [];
-  const summary = useMemo(() => ({ total: all.length, in: all.filter((r) => stateOf(r) === "in").length, low: all.filter((r) => stateOf(r) === "low").length, out: all.filter((r) => stateOf(r) === "out").length }), [all]);
+  const summary = useMemo(() => ({ total: all.length, in: all.filter((r) => !r.inactive && stateOf(r) === "in").length, low: all.filter((r) => !r.inactive && stateOf(r) === "low").length, out: all.filter((r) => !r.inactive && stateOf(r) === "out").length }), [all]);
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return all.filter((r) => (!s || r.name.toLowerCase().includes(s) || (r.sku ?? "").toLowerCase().includes(s)) && (!cat || r.categoryId === cat) && (status === "all" || stateOf(r) === status));
+    return all.filter((r) => (!s || r.name.toLowerCase().includes(s) || (r.sku ?? "").toLowerCase().includes(s)) && (!cat || r.categoryId === cat) && (status === "all" || (!r.inactive && stateOf(r) === status)));
   }, [all, q, cat, status]);
   useEffect(() => setPage(1), [q, cat, status]);
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
@@ -111,6 +113,7 @@ function InventoryPage() {
         <select className={inputCls} value={status} onChange={(e) => setStatus(e.target.value as any)} aria-label="Stock status"><option value="all">All stock</option><option value="in">In Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option></select>
       </Card>
 
+      {loadError && <p role="alert" className="text-status-red mb-3">Inventory could not load: {loadError.message}</p>}
       <Card className="overflow-x-auto">
         <table className="w-full text-sm min-w-[760px]">
           <thead className="text-left text-xs text-muted-foreground bg-secondary/40"><tr><th className="p-3">Product</th><th className="p-3">SKU</th><th className="p-3">Size / Color</th><th className="p-3">Current Stock</th><th className="p-3">Status</th><th className="p-3 text-right">Actions</th></tr></thead>
@@ -160,6 +163,7 @@ function StockInput({ row, onSave }: { row: Row; onSave: (n: number) => Promise<
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => setVal(String(row.stock)), [row.stock]);
+  useEffect(() => () => clearTimeout(timer.current), []);
   function change(v: string) {
     const clean = v.replace(/\D/g, "").slice(0, 6);
     setVal(clean);
