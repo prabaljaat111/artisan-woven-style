@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Heart, Star, MessageCircle, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Check, Ruler, Banknote, PackageCheck, Zap, Globe2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
-import { findProduct, type Product } from "@/data/products";
+import { type Product } from "@/data/products";
 import { buildProductDetailSections } from "@/lib/product-details";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
@@ -15,8 +15,7 @@ import { LandmarkCard } from "@/components/LandmarkCards";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { checkServiceability } from "@/lib/shiprocket.functions";
-import { getProductVariantsByProductId } from "@/lib/admin.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { selectedVariation, selectionStock, selectionPrice } from "@/lib/product-selection";
 
 // Pan-India delivery date estimator. Dispatch in 1 business day, then add
 // transit days (skipping Sundays). Returns "Mon, 16 Jun" style label.
@@ -106,15 +105,8 @@ export const Route = createFileRoute("/product/$slug")({
     </div>
   ),
   loader: async ({ params }): Promise<Product> => {
-    // Prefer admin-managed DB products; fall back to the static demo catalogue.
-    try {
-      const list = await listPublishedProducts();
-      const dbHit = list.find((p) => p.slug === params.slug);
-      if (dbHit) return dbHit;
-    } catch {
-      // Network/DB hiccup — fall back silently so the page can still render.
-    }
-    const p = findProduct(params.slug);
+    const list = await listPublishedProducts();
+    const p = list.find((product) => product.slug === params.slug);
     if (!p) throw notFound();
     return p;
   },
@@ -134,8 +126,8 @@ function ProductPage() {
     if (set.size === 0) return ALL_SIZES;
     return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s: string) => !ALL_SIZES.includes(s))];
   }, [p.sizes]);
-  const [size, setSize] = useState(selection.size && sizes.includes(selection.size) ? selection.size : sizes[1] ?? sizes[0]);
-  const [color, setColor] = useState(selection.color && p.colors.includes(selection.color) ? selection.color : p.colors[0]);
+  const [size, setSize] = useState(selection.size && sizes.includes(selection.size) ? selection.size : p.defaultSize ?? sizes[0] ?? "");
+  const [color, setColor] = useState(selection.color && p.colors.includes(selection.color) ? selection.color : p.defaultColor ?? p.colors[0] ?? "");
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number; on: boolean }>({ x: 50, y: 50, on: false });
@@ -147,55 +139,18 @@ function ProductPage() {
   const incrementProductView = useUI((s) => s.incrementProductView);
   const addRecent = useRecentlyViewed((s) => s.add);
   const recentIds = useRecentlyViewed((s) => s.ids);
-  // Per-size stock from DB (variants). If a product has no variants, the
-  // size selector falls back to the product-level demo stock so the UX
-  // still indicates low stock / out of stock.
-  const [variantMap, setVariantMap] = useState<Record<string, number> | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    const fetchVariants = () => {
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) {
-        setVariantMap(null);
-        return;
-      }
-      getProductVariantsByProductId({ data: { productId: p.id } })
-        .then((rows: Array<{ size: string; stock: number }>) => {
-          if (cancelled) return;
-          if (!rows.length) { setVariantMap(null); return; }
-          const m: Record<string, number> = {};
-          rows.forEach((r) => { m[r.size] = (m[r.size] ?? 0) + r.stock; });
-          setVariantMap(m);
-        })
-        .catch(() => { if (!cancelled) setVariantMap(null); });
-    };
-    fetchVariants();
-    // Live-sync: refetch when any variant or this product changes in DB
-    const channel = supabase
-      .channel(`pdp-${p.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, fetchVariants)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `id=eq.${p.id}` }, fetchVariants)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, [p.id]);
-  const sizeStock = (s: string): number => {
-    // If inventory isn't tracked, every size is always purchasable.
-    if (p.trackInventory === false) return 999;
-    if (variantMap) return variantMap[s] ?? 0;
-    // Deterministic fallback per size for demo products
-    if (p.stock <= 0) return 0;
-    const idx = p.sizes.indexOf(s);
-    const seed = [1, 0.6, 0.2, 0.05, 0.1, 0.3][idx % 6] ?? 0.2;
-    return Math.max(0, Math.round(p.stock * seed));
-  };
+  const sizeStock = (s: string): number => selectionStock(p, s, color);
   const selectedStock = sizeStock(size);
+  const variant = selectedVariation(p, size, color);
+  const currentPrice = selectionPrice(p, size, color);
+  const regularPrice = variant?.price ?? p.originalPrice;
   useEffect(() => {
     incrementProductView();
     addRecent(p.id);
     setImgIdx(0);
-    setSize(selection.size && sizes.includes(selection.size) ? selection.size : sizes[1] ?? sizes[0] ?? "");
-    setColor(selection.color && p.colors.includes(selection.color) ? selection.color : p.colors[0] ?? "");
+    setSize(selection.size && sizes.includes(selection.size) ? selection.size : p.defaultSize ?? sizes[0] ?? "");
+    setColor(selection.color && p.colors.includes(selection.color) ? selection.color : p.defaultColor ?? p.colors[0] ?? "");
     setQty(1);
-    setVariantMap(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
   const wished = mounted && ids.includes(p.id);
@@ -204,7 +159,7 @@ function ProductPage() {
     ? recentIds.filter((id) => id !== p.id).map((id) => all.find((x) => x.id === id)).filter(Boolean).slice(0, 4) as Product[]
     : [];
 
-  const savings = Math.max(0, p.originalPrice - p.price);
+  const savings = Math.max(0, regularPrice - currentPrice);
 
   // Pincode serviceability
   const [pin, setPin] = useState("");
@@ -243,23 +198,24 @@ function ProductPage() {
   // Color-aware gallery: when a product has multiple images, prefer ones whose
   // URL contains the selected colour name. Falls back to the full image set.
   const gallery = useMemo(() => {
+    if (variant?.image) return [variant.image, ...p.images.filter(src => src !== variant.image)];
     if (!p.images?.length) return [];
     if (!color || p.images.length < 2) return p.images;
     const tag = color.toLowerCase().replace(/[^a-z]+/g, "-");
     const matched = p.images.filter((src: string) => src.toLowerCase().includes(tag));
     return matched.length ? matched : p.images;
-  }, [p.images, color]);
+  }, [p.images, color, variant?.image]);
   const details = useMemo(() => buildProductDetailSections(p, color), [p, color]);
   useEffect(() => { setImgIdx(0); }, [color]);
   function nextImg() { setImgIdx((i) => (i + 1) % gallery.length); }
   function prevImg() { setImgIdx((i) => (i - 1 + gallery.length) % gallery.length); }
 
   const handleAdd = () => {
-    if (selectedStock <= 0) {
+    if (selectedStock <= 0 || qty > selectedStock) {
       toast.error("This product is currently out of stock");
       return;
     }
-    addItem({ id: p.id, name: p.name, slug: p.slug, price: p.price, image: p.images[0], size, color, qty });
+    addItem({ id: p.id, name: p.name, slug: p.slug, price: currentPrice, image: gallery[0] ?? "", size, color, qty });
     toast.success(`Added to cart · ${p.name}`, { description: `${size} · ${color} · Qty ${qty}` });
   };
   const handleWishlist = () => {
@@ -327,12 +283,10 @@ function ProductPage() {
             <Star className="h-4 w-4 fill-gold text-gold" /> {p.rating.toFixed(1)} ({p.reviews} reviews)
           </div>
           <div className="flex items-baseline gap-3 mt-4 flex-wrap">
-            <span className="font-display text-3xl text-primary">₹{p.price.toLocaleString("en-IN")}</span>
-            <span className="line-through text-muted-foreground">₹{p.originalPrice.toLocaleString("en-IN")}</span>
-            <span className="bg-gold text-primary text-xs font-bold px-2 py-1 rounded">{Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)}% OFF</span>
+            <span className="font-display text-3xl text-primary">₹{currentPrice.toLocaleString("en-IN")}</span>
+            {savings > 0 && <><span className="line-through text-muted-foreground">₹{regularPrice.toLocaleString("en-IN")}</span><span className="bg-gold text-primary text-xs font-bold px-2 py-1 rounded">{Math.round(savings / regularPrice * 100)}% OFF</span></>}
           </div>
           {savings > 0 && <p className="text-xs text-terracotta mt-1">You save ₹{savings.toLocaleString("en-IN")}</p>}
-          <p className="text-[11px] text-terracotta mt-2">🔥 24 people viewed this in the last hour</p>
           <div className="mt-3">
             {p.trackInventory === false ? (
               <span className="inline-flex items-center gap-1.5 bg-green-600/10 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -420,7 +374,7 @@ function ProductPage() {
             <div className="flex items-center border border-border rounded-md">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="h-10 w-10">−</button>
               <span className="w-10 text-center">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} className="h-10 w-10">+</button>
+              <button disabled={qty >= selectedStock} onClick={() => setQty((q) => Math.min(selectedStock, q + 1))} className="h-10 w-10">+</button>
             </div>
           </div>
           <div className="hidden md:flex gap-3 mt-6">

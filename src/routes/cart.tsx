@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useCart, priceBreakdown } from "@/store/cart";
+import { useCart } from "@/store/cart";
+import { useQuery } from "@tanstack/react-query";
+import { checkoutRules } from "@/lib/orders.functions";
+import { checkoutTotals, DEFAULT_CHECKOUT_RULES } from "@/lib/checkout-rules";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ property: "og:title", content: "Your Cart \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Review the pieces in your cart and proceed to checkout." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Your Cart — Indian Handicraft Standards" }, { name: "description", content: "Review the pieces in your cart and proceed to checkout." }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -9,13 +12,14 @@ export const Route = createFileRoute("/cart")({
 });
 
 const MAX_QTY = 10;
-const FREE_SHIP_THRESHOLD = 999;
 
 function CartPage() {
   const { items, removeItem, updateQty, totalPrice } = useCart();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { subtotal, shipping, gst, total } = priceBreakdown(totalPrice());
+  const { data: rules = DEFAULT_CHECKOUT_RULES } = useQuery({ queryKey: ["checkout-rules"], queryFn: () => checkoutRules(), refetchInterval: 30_000 });
+  const FREE_SHIP_THRESHOLD = rules.free_shipping_threshold;
+  const { subtotal, shipping, gst, total } = checkoutTotals(totalPrice(), "razorpay", rules);
   const remainingForFree = Math.max(0, FREE_SHIP_THRESHOLD + 1 - subtotal);
   const progress = Math.min(100, Math.round((subtotal / (FREE_SHIP_THRESHOLD + 1)) * 100));
   if (!mounted) {
