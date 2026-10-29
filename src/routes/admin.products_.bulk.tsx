@@ -129,6 +129,12 @@ function ImportTab() {
     const existingVars = await allVariants();
     const varBySku = new Map(existingVars.flatMap((v) => v.sku ? [[v.sku.toLowerCase(), v] as const] : []));
     const slugs = new Set(existing.map((e) => e.slug));
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await supabase.from("products").select("slug").order("id").range(offset, offset + 499);
+      if (error) throw error;
+      (data ?? []).forEach((p) => slugs.add(p.slug));
+      if ((data?.length ?? 0) < 500) break;
+    }
     const uniqueSlug = (name: string) => { let s = slugify(name), i = 2; while (slugs.has(s)) s = `${slugify(name)}-${i++}`; slugs.add(s); return s; };
     const parents = importRows.filter((r) => r.type !== "variation");
     const variations = importRows.filter((r) => r.type === "variation");
