@@ -6,6 +6,9 @@ import { checkoutTotals, DEFAULT_CHECKOUT_RULES, paymentAllowed } from "@/lib/ch
 import { checkoutRules, createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { checkServiceability } from "@/lib/shiprocket.functions";
+import { useServerFn } from '@tanstack/react-start';
+import { useAuth } from '@/hooks/use-auth';
+import { saveCustomerCart } from '@/lib/customer-program.functions';
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ property: "og:title", content: "Checkout \u2014 Indian Handicraft Standards" }, { property: "og:description", content: "Securely complete your purchase." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Checkout — Indian Handicraft Standards" }, { name: "description", content: "Securely complete your purchase." }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -41,6 +44,9 @@ interface AddressForm {
 }
 
 function CheckoutPage() {
+  const {user}=useAuth();
+  const persistCart=useServerFn(saveCustomerCart);
+  const orderFn=useServerFn(createOrder);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const { items, totalPrice, clear } = useCart();
   const [mounted, setMounted] = useState(false);
@@ -122,7 +128,7 @@ function CheckoutPage() {
         qty: i.qty,
         price: i.price,
       }));
-      const created = await createOrder({
+      const created = await orderFn({
         data: {
           customer_name: address.name,
           customer_email: address.email,
@@ -276,6 +282,7 @@ function CheckoutPage() {
             {coupon.trim() && (
               <p className="text-xs text-muted-foreground">Coupon will be validated and applied at payment.</p>
             )}
+            {user&&<div className="flex flex-wrap gap-3 text-sm"><Link to="/rewards" className="text-primary underline">Use reward points</Link><label className="flex items-center gap-2"><input type="checkbox" aria-label="Email me cart reminders" onChange={e=>persistCart({data:{items,consent:e.target.checked}}).catch(()=>setError('Could not save reminder preference'))}/>Email me cart reminders</label></div>}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               disabled={items.length === 0 || processing || rulesQuery.isLoading || !!rulesQuery.error || !paymentAllowed(subtotal, paymentMethod, rules)}

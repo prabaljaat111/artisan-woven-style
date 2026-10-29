@@ -227,6 +227,39 @@ export type Database = {
           },
         ]
       }
+      conversion_events: {
+        Row: {
+          created_at: string
+          event_key: string
+          event_name: string
+          ga4_status: string
+          id: string
+          last_error: string | null
+          meta_status: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          event_key: string
+          event_name: string
+          ga4_status?: string
+          id?: string
+          last_error?: string | null
+          meta_status?: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          event_key?: string
+          event_name?: string
+          ga4_status?: string
+          id?: string
+          last_error?: string | null
+          meta_status?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
@@ -237,7 +270,10 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          max_uses: number | null
           min_order: number
+          owner_id: string | null
+          used_count: number
         }
         Insert: {
           code: string
@@ -248,7 +284,10 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          max_uses?: number | null
           min_order?: number
+          owner_id?: string | null
+          used_count?: number
         }
         Update: {
           code?: string
@@ -259,9 +298,20 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          max_uses?: number | null
           min_order?: number
+          owner_id?: string | null
+          used_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coupons_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customer_groups: {
         Row: {
@@ -1440,6 +1490,10 @@ export type Database = {
       }
       assign_referral: { Args: { _code?: string }; Returns: string }
       can_approve: { Args: { _user_id: string }; Returns: boolean }
+      claim_order_coupon: {
+        Args: { _order_id: string; _user_id?: string }
+        Returns: boolean
+      }
       dashboard_overview: {
         Args: { _from: string; _to: string }
         Returns: Json

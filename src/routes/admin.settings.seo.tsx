@@ -1,7 +1,8 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
-import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, Section, PageHeader } from "@/components/admin/SettingsField";
+import { SitemapTools } from "@/components/admin/SitemapTools";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/seo")({ head: () => ({ meta: adminPageMeta("Seo Settings") }), component: Page });
@@ -58,7 +59,7 @@ function Page() {
       </Section>
 
       <Section title="Sitemap & Robots">
-        <ComingSoon title="Visual sitemap & robots editor" description="Sitemap is auto-generated at /sitemap.xml from your published routes and products. Robots.txt is served from /robots.txt." />
+        <SitemapTools />
       </Section>
     </form>
   );

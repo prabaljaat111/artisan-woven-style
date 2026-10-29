@@ -12,7 +12,6 @@ export const requireAdmin = createMiddleware({ type: "function" })
       .eq("role", "admin")
       .maybeSingle();
     if (error || !data) throw new Error("Forbidden: admin only");
-    const factors = claims.amr;
     // An enrolled TOTP user must challenge their session before privileged RPCs.
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError) throw new Error("Could not verify account security");

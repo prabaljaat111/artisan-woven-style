@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
 import { GrowthTools } from "@/components/admin/GrowthTools";
+import { CrmExport } from "@/components/admin/CrmExport";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/leads")({ head: () => ({ meta: adminPageMeta("Leads Settings") }), component: Page });
@@ -55,6 +56,7 @@ function Page() {
       <Section title="Assignment">
         <Field label="Notify these emails on new leads" hint="Comma-separated list."><textarea rows={2} className={input} value={value.assignment_emails_csv} onChange={(e) => set("assignment_emails_csv", e.target.value)} /></Field>
         <GrowthTools mode="routing" />
+        <CrmExport />
       </Section>
     </form>
   );

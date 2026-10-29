@@ -35,9 +35,13 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         // Pull live DB products too so admin-added items get crawled.
         const seen = new Set<string>();
+        let excluded: string[]=[];
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data } = await supabaseAdmin.from("products").select("slug").eq("is_published", true);
+          const [productResult,settingsResult]=await Promise.all([supabaseAdmin.from("products").select("slug").eq("is_published", true).is("deleted_at",null),supabaseAdmin.from("app_settings").select("value").eq("key","seo.crawling").maybeSingle()]);
+          const data=productResult.data;
+          const rules=settingsResult.data?.value as {excluded_paths?:string[]}|undefined;
+          excluded=Array.isArray(rules?.excluded_paths)?rules.excluded_paths:[];
           for (const r of data ?? []) {
             if (!r.slug || seen.has(r.slug)) continue;
             seen.add(r.slug);
@@ -49,7 +53,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           entries.push({ path: `/product/${p.slug}`, changefreq: "weekly", priority: "0.7" });
         }
 
-        const urls = entries.map((e) =>
+        const urls = entries.filter(e=>!excluded.includes(e.path)).map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
