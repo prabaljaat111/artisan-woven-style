@@ -1,4 +1,5 @@
 # Admin functionality audit
+- [ ] Run a fresh signed-in shop/admin functionality audit, repair reproducible failures, and report external-service blockers.
 - [x] Replace Coming Soon sections with customer groups, reward rules/ledger/referrals/redemption, scheduled sales, shipping zones, lead routing/CRM export, TOTP setup, audit logs/scoped tokens and crawler tools. Verified group and zone create/read/delete, token read/revoke, sitemap and rewards read-back as existing authorized admin; 39 regression tests passed.
 - [ ] Activate automated CRM sync, conversion event dispatch and recovery email delivery — requires CRM account, GA4/Meta secrets, marketing-email sender and scheduled sending setup. Conversion outbox and cart consent/storage are implemented; automation is not active.
 - [ ] Enable Stripe international checkout — requires approved supported payment setup; existing Razorpay and COD remain unchanged.
