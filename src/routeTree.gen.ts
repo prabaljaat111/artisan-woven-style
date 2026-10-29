@@ -45,6 +45,7 @@ import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminMetaCatalogRouteImport } from './routes/admin.meta-catalog'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
+import { Route as AdminReturnsRouteImport } from './routes/admin.returns'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
@@ -260,6 +261,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReturnsRoute = AdminReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -468,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/shipments': typeof AdminShipmentsRoute
@@ -539,6 +546,7 @@ export interface FileRoutesByTo {
   '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -611,6 +619,7 @@ export interface FileRoutesById {
   '/admin/meta-catalog': typeof AdminMetaCatalogRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/shipments': typeof AdminShipmentsRoute
@@ -685,6 +694,7 @@ export interface FileRouteTypes {
     | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/returns'
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/shipments'
@@ -756,6 +766,7 @@ export interface FileRouteTypes {
     | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/returns'
     | '/admin/reviews'
     | '/admin/shipments'
     | '/admin/staff'
@@ -827,6 +838,7 @@ export interface FileRouteTypes {
     | '/admin/meta-catalog'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/returns'
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/shipments'
@@ -1147,6 +1159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/returns': {
+      id: '/admin/returns'
+      path: '/returns'
+      fullPath: '/admin/returns'
+      preLoaderRoute: typeof AdminReturnsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reviews': {
       id: '/admin/reviews'
       path: '/reviews'
@@ -1452,6 +1471,7 @@ interface AdminRouteChildren {
   AdminMetaCatalogRoute: typeof AdminMetaCatalogRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminReturnsRoute: typeof AdminReturnsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminShipmentsRoute: typeof AdminShipmentsRoute
@@ -1480,6 +1500,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMetaCatalogRoute: AdminMetaCatalogRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminReturnsRoute: AdminReturnsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminShipmentsRoute: AdminShipmentsRoute,
