@@ -127,6 +127,13 @@
       "when": 1793306002140,
       "tag": "0017_customer_rewards_transactions",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793306295436,
+      "tag": "0018_reward_coupon_and_profile_safeguards",
+      "breakpoints": true
     }
   ]
 }
