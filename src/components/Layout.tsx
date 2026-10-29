@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CartPriceSync } from "./CartPriceSync";
 
 const ChatWidget = lazy(() =>
   import("./ChatWidget").then((m) => ({ default: m.ChatWidget }))
@@ -41,6 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <AnnouncementBar />
+      <CartPriceSync />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
