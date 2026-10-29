@@ -80,6 +80,8 @@ import { Route as AdminSettingsSeoRouteImport } from './routes/admin.settings.se
 import { Route as AdminSettingsShippingRouteImport } from './routes/admin.settings.shipping'
 import { Route as AdminSettingsWebsiteRouteImport } from './routes/admin.settings.website'
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
+import { Route as ApiPublicCatalogGoogleDotxmlRouteImport } from './routes/api/public/catalog/google[.]xml'
+import { Route as ApiPublicCatalogMetaDotcsvRouteImport } from './routes/api/public/catalog/meta[.]csv'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -437,6 +439,18 @@ const AdminSettingsWhatsappRoute = AdminSettingsWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const ApiPublicCatalogGoogleDotxmlRoute =
+  ApiPublicCatalogGoogleDotxmlRouteImport.update({
+    id: '/api/public/catalog/google.xml',
+    path: '/api/public/catalog/google.xml',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCatalogMetaDotcsvRoute =
+  ApiPublicCatalogMetaDotcsvRouteImport.update({
+    id: '/api/public/catalog/meta.csv',
+    path: '/api/public/catalog/meta.csv',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -510,6 +524,8 @@ export interface FileRoutesByFullPath {
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
+  '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -581,6 +597,8 @@ export interface FileRoutesByTo {
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
+  '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
+  '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -655,6 +673,8 @@ export interface FileRoutesById {
   '/admin/settings/website': typeof AdminSettingsWebsiteRoute
   '/admin/settings/whatsapp': typeof AdminSettingsWhatsappRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
+  '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -730,6 +750,8 @@ export interface FileRouteTypes {
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings/'
+    | '/api/public/catalog/google.xml'
+    | '/api/public/catalog/meta.csv'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -801,6 +823,8 @@ export interface FileRouteTypes {
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings'
+    | '/api/public/catalog/google.xml'
+    | '/api/public/catalog/meta.csv'
   id:
     | '__root__'
     | '/'
@@ -874,6 +898,8 @@ export interface FileRouteTypes {
     | '/admin/settings/website'
     | '/admin/settings/whatsapp'
     | '/admin/settings/'
+    | '/api/public/catalog/google.xml'
+    | '/api/public/catalog/meta.csv'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -903,6 +929,8 @@ export interface RootRouteChildren {
   FeedsMetaDotcsvRoute: typeof FeedsMetaDotcsvRoute
   ProductSlugRoute: typeof ProductSlugRoute
   CategoryIndexRoute: typeof CategoryIndexRoute
+  ApiPublicCatalogGoogleDotxmlRoute: typeof ApiPublicCatalogGoogleDotxmlRoute
+  ApiPublicCatalogMetaDotcsvRoute: typeof ApiPublicCatalogMetaDotcsvRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1404,6 +1432,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsWhatsappRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/api/public/catalog/google.xml': {
+      id: '/api/public/catalog/google.xml'
+      path: '/api/public/catalog/google.xml'
+      fullPath: '/api/public/catalog/google.xml'
+      preLoaderRoute: typeof ApiPublicCatalogGoogleDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/catalog/meta.csv': {
+      id: '/api/public/catalog/meta.csv'
+      path: '/api/public/catalog/meta.csv'
+      fullPath: '/api/public/catalog/meta.csv'
+      preLoaderRoute: typeof ApiPublicCatalogMetaDotcsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1542,6 +1584,8 @@ const rootRouteChildren: RootRouteChildren = {
   FeedsMetaDotcsvRoute: FeedsMetaDotcsvRoute,
   ProductSlugRoute: ProductSlugRoute,
   CategoryIndexRoute: CategoryIndexRoute,
+  ApiPublicCatalogGoogleDotxmlRoute: ApiPublicCatalogGoogleDotxmlRoute,
+  ApiPublicCatalogMetaDotcsvRoute: ApiPublicCatalogMetaDotcsvRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

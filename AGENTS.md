@@ -9,3 +9,4 @@
 - Validate public analytics identifiers before emitting tags; expose only explicitly allowlisted public settings.
 - Resolve checkout product identities, prices, inventory and payment rules on the server; require an order-specific signed capability before public guest payment operations.
 - Use the dedicated WooCommerce bulk page for catalog imports; load full SKU indexes, preserve omitted update fields, and never update child rows when their imported parent fails.
+- Serve scheduled catalogs under /api/public/catalog using public-only reads and shared variant mapping; retain immutable item IDs and report provider setup separately from local feed readiness.

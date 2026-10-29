@@ -54,6 +54,7 @@ function colorToHex(name: string): string {
 }
 
 export const Route = createFileRoute("/product/$slug")({
+  validateSearch: (search: Record<string, unknown>): { size?: string; color?: string } => ({ size: typeof search.size === "string" ? search.size.slice(0, 40) : undefined, color: typeof search.color === "string" ? search.color.slice(0, 80) : undefined }),
   component: ProductPage,
   head: ({ loaderData }) => {
     const p = loaderData as Product | undefined;
@@ -79,7 +80,7 @@ export const Route = createFileRoute("/product/$slug")({
         "@type": "Offer",
         priceCurrency: "INR",
         price: p.price,
-        availability: "https://schema.org/InStock",
+        availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       },
     };
     const url = `https://indianhandicraftstandards.com/product/${p.slug}`;
@@ -120,6 +121,7 @@ export const Route = createFileRoute("/product/$slug")({
 });
 
 function ProductPage() {
+  const selection = Route.useSearch();
   const loaded = Route.useLoaderData() as Product | undefined;
   if (!loaded) throw notFound();
   const all = useStorefrontProducts();
@@ -132,8 +134,8 @@ function ProductPage() {
     if (set.size === 0) return ALL_SIZES;
     return [...ALL_SIZES.filter((s) => set.has(s)), ...(p.sizes ?? []).filter((s: string) => !ALL_SIZES.includes(s))];
   }, [p.sizes]);
-  const [size, setSize] = useState(sizes[1] ?? sizes[0]);
-  const [color, setColor] = useState(p.colors[0]);
+  const [size, setSize] = useState(selection.size && sizes.includes(selection.size) ? selection.size : sizes[1] ?? sizes[0]);
+  const [color, setColor] = useState(selection.color && p.colors.includes(selection.color) ? selection.color : p.colors[0]);
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number; on: boolean }>({ x: 50, y: 50, on: false });

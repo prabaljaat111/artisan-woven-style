@@ -27,6 +27,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
     .from("products")
     .select("id, slug, name, description, specifications, attributes, care_instructions, shipping_info, return_policy, authenticity, price, original_price, color, colors, is_new, is_bestseller, stock, sizes, images, video_url, rating, reviews, low_stock_threshold, track_inventory, category:categories(slug, name)")
     .eq("is_published", true)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((r: any, i: number) => ({
