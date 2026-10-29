@@ -34,19 +34,3 @@ export function PageHeader({ title, description, actions }: { title: string; des
     </div>
   );
 }
-
-export function ComingSoon({ title, description, requires }: { title: string; description: string; requires?: string[] }) {
-  return (
-    <div className="bg-cream border border-dashed border-border rounded-xl p-8 text-center">
-      <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Coming soon</div>
-      <h3 className="font-display text-xl text-primary mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-md mx-auto">{description}</p>
-      {requires && requires.length > 0 && (
-        <div className="mt-5 text-xs text-muted-foreground">
-          <div className="font-semibold mb-1">Requires</div>
-          <ul className="space-y-0.5">{requires.map((r) => <li key={r}>· {r}</li>)}</ul>
-        </div>
-      )}
-    </div>
-  );
-}

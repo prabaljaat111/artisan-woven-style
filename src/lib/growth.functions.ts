@@ -37,7 +37,11 @@ export const growthAction=createServerFn({method:'POST'}).middleware([requireAdm
   if(data.type==='group') ({error}=await db.from('customer_groups').insert({name:data.name,description:data.description}));
   if(data.type==='membership') ({error}=await db.from('profiles').update({customer_group_id:data.group_id}).eq('id',data.user_id));
   if(data.type==='points') ({error}=await db.from('loyalty_ledger').insert({user_id:data.user_id,points:data.points,reason:data.reason,created_by:context.userId}));
-  if(data.type==='routing') {const {type,...row}=data; ({error}=await db.from('lead_routing_rules').insert(row));}
+  if(data.type==='routing') {
+    const team=await db.from('user_roles').select('role').eq('user_id',data.assigned_to).in('role',['admin','manager','staff']);
+    if(team.error||!team.data?.length) throw new Error('Choose a staff member, manager, or admin for lead assignment');
+    const {type,...row}=data; ({error}=await db.from('lead_routing_rules').insert(row));
+  }
   if(data.type==='zone') {const {type,...row}=data; ({error}=await db.from('shipping_zones').insert(row));}
   if(data.type==='delete') ({error}=await db.from(data.entity).delete().eq('id',data.id));
   if(data.type==='revoke') ({error}=await db.from('integration_tokens').update({revoked_at:new Date().toISOString()}).eq('id',data.id));

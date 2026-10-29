@@ -1,5 +1,9 @@
 # Admin functionality audit
-- [ ] Complete all remaining Coming Soon sections with working store tools; verify authenticated flows and request publication. External account activation remains provider-dependent.
+- [x] Replace Coming Soon sections with customer groups, reward rules/ledger/referrals/redemption, scheduled sales, shipping zones, lead routing/CRM export, TOTP setup, audit logs/scoped tokens and crawler tools. Verified group and zone create/read/delete, token read/revoke, sitemap and rewards read-back as existing authorized admin; 39 regression tests passed.
+- [ ] Activate automated CRM sync, conversion event dispatch and recovery email delivery — requires CRM account, GA4/Meta secrets, marketing-email sender and scheduled sending setup. Conversion outbox and cart consent/storage are implemented; automation is not active.
+- [ ] Enable Stripe international checkout — requires approved supported payment setup; existing Razorpay and COD remain unchanged.
+- [ ] Verify TOTP enrollment/challenge and reward earning/redemption end-to-end — requires authenticator enrollment and enabling chosen business reward rules; neither was changed on the real admin account for testing.
+- [ ] Publish completed local tools and verify deployed endpoints.
 - [x] Connect admin catalog previews and public Google/Meta feeds to shared live product/variant records; verified 105 matching offers, downloads and public accessibility locally; 5 catalog tests passed.
 - [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — requires publication (current live endpoints return 404), account access and provider approval; no relevant catalog connection is available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.
