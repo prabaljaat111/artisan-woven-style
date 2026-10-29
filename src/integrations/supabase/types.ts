@@ -1494,6 +1494,10 @@ export type Database = {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean
       }
+      create_checkout_order: {
+        Args: { _items: Json; _order: Json }
+        Returns: Json
+      }
       dashboard_overview: {
         Args: { _from: string; _to: string }
         Returns: Json
