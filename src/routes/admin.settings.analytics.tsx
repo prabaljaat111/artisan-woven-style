@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ANALYTICS_DEFAULTS, analyticsConfig } from "@/lib/analytics-config";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
-import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, Section, PageHeader } from "@/components/admin/SettingsField";
+import { ConversionTools } from "@/components/admin/ConversionTools";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/analytics")({ head: () => ({ meta: adminPageMeta("Analytics Settings") }), component: Page });
@@ -37,7 +38,7 @@ function Page() {
 
       <Section title="Visitor reports"><div className="flex flex-wrap gap-4 text-sm"><a href="https://analytics.google.com/" target="_blank" rel="noreferrer" className="text-primary underline">Open Google Analytics</a><a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-primary underline">Open Search Console</a></div><p className="text-sm text-muted-foreground">Sign in with the Google account that owns your property. Visitor data is held by Google and is not imported into this dashboard.</p></Section>
       <Section title="Conversion API & Event Tracking">
-        <ComingSoon title="Server-side conversion events" description="Push Purchase, AddToCart, Lead events to Meta CAPI and GA4 Measurement Protocol from the server for ad-blocker-proof tracking." requires={["Meta CAPI access token", "GA4 Measurement Protocol API secret", "Event mapping"]} />
+        <ConversionTools />
       </Section>
     </form>
   );
