@@ -50,7 +50,7 @@ const NAV: NavItem[][] = [
       ],
     },
     { label: "Orders", icon: ShoppingBag, to: "/admin/orders", badge: "orders" },
-    { label: "Returns & Refunds", icon: RotateCcw, ...ph("returns"), roles: MGR },
+    { label: "Returns & Refunds", icon: RotateCcw, to: "/admin/returns" },
     { label: "Customers", icon: Users, to: "/admin/customers" },
     { label: "Payments", icon: CreditCard, to: "/admin/settings/payment" },
     { label: "Shipping", icon: Truck, to: "/admin/shipments" },
@@ -197,18 +197,18 @@ function GlobalSearch() {
 
   useEffect(() => {
     clearTimeout(t.current);
-    const term = q.trim();
+    const term = q.trim().replace(/[%,()]/g, "");
     if (term.length < 2) { setRes([]); return; }
     t.current = setTimeout(async () => {
       const like = `%${term}%`;
       const [p, o, c] = await Promise.all([
-        supabase.from("products").select("name, sku, slug").or(`name.ilike.${like},sku.ilike.${like}`).limit(5),
-        supabase.from("orders").select("order_number, customer_name").or(`order_number.ilike.${like},customer_name.ilike.${like}`).limit(5),
+        supabase.from("products").select("id, name, sku, slug").is("deleted_at", null).or(`name.ilike.${like},sku.ilike.${like}`).limit(5),
+        supabase.from("orders").select("id, order_number, customer_name").or(`order_number.ilike.${like},customer_name.ilike.${like}`).limit(5),
         supabase.from("profiles").select("full_name, phone").ilike("full_name", like).limit(5),
       ]);
       setRes([
-        ...(p.data ?? []).map((x) => ({ type: "Product", label: x.name, sub: x.sku ?? x.slug, to: "/admin/products" })),
-        ...(o.data ?? []).map((x) => ({ type: "Order", label: x.order_number, sub: x.customer_name, to: "/admin/orders" })),
+        ...(p.data ?? []).map((x) => ({ type: "Product", label: x.name, sub: x.sku ?? x.slug, to: `/admin/products/${x.id}` })),
+        ...(o.data ?? []).map((x) => ({ type: "Order", label: x.order_number, sub: x.customer_name, to: `/admin/orders/${x.id}` })),
         ...(c.data ?? []).map((x) => ({ type: "Customer", label: x.full_name ?? "—", sub: x.phone ?? "", to: "/admin/customers" })),
       ]);
       setOpen(true);
