@@ -6,6 +6,7 @@ import { pointBalance } from '@/lib/growth-rules';
 import { Button } from '@/components/ui/button';
 import { Plus,Trash2,RefreshCw,KeyRound,Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { RewardRules } from './RewardRules';
 
 type Mode='loyalty'|'routing'|'zones'|'audit'|'recovery';
 const input='w-full border border-border rounded-md px-3 py-2 bg-background text-sm';
@@ -30,6 +31,7 @@ export function GrowthTools({mode}:{mode:Mode}) {
   return <div className="space-y-4">
     <div className="flex justify-end"><Button type="button" size="sm" variant="ghost" onClick={()=>query.refetch()}><RefreshCw className="h-4 w-4"/>Refresh</Button></div>
     {mode==='loyalty' && <>
+      <RewardRules />
       <div className="grid sm:grid-cols-2 gap-3"><input aria-label="Group name" className={input} placeholder="Group name" value={name} onChange={e=>setName(e.target.value)}/><input aria-label="Group description" className={input} placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)}/></div>
       <Button type="button" disabled={busy||!name.trim()} onClick={()=>run({type:'group',name,description})}><Plus className="h-4 w-4"/>Add customer group</Button>
       <div className="flex flex-wrap gap-3">{d.groups.map(g=><div key={g.id} className="flex items-center gap-2 border border-border rounded-md px-3 py-2 text-sm">{g.name}<Button type="button" size="icon" variant="ghost" aria-label={`Delete ${g.name}`} onClick={()=>remove('customer_groups',g.id)}><Trash2 className="h-4 w-4"/></Button></div>)}</div>

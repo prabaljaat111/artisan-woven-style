@@ -15,6 +15,7 @@ import { ANALYTICS_DEFAULTS } from "@/lib/analytics-config";
 import appCss from "../styles.css?url";
 import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/sonner";
+import { CartPersistence } from "@/components/CartPersistence";
 
 function NotFoundComponent() {
   return (
@@ -158,6 +159,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <CartPersistence />
       <Layout>
         <Outlet />
       </Layout>

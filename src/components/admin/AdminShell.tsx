@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { NotificationBell } from "@/components/admin/NotificationBell";
+import { TwoFactorSettings } from "@/components/admin/TwoFactorSettings";
 
 type NavItem = {
   label: string;
@@ -78,6 +79,8 @@ export function AdminShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [drawer, setDrawer] = useState(false);
   const [counts, setCounts] = useState({ orders: 0, alerts: 0 });
+  const [mfaRequired,setMfaRequired]=useState(false);
+  useEffect(()=>{if(!isTeam)return;supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data})=>setMfaRequired(data?.nextLevel==='aal2'&&data?.currentLevel!=='aal2'));},[isTeam]);
 
   useEffect(() => {
     if (!loading) {
@@ -105,6 +108,7 @@ export function AdminShell() {
   if (loading || !user || !isTeam) {
     return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Checking access…</div>;
   }
+  if(mfaRequired) return <div className="admin-ui min-h-screen bg-admin-canvas flex items-center justify-center p-5"><div className="max-w-lg w-full space-y-4"><h1 className="font-display text-3xl text-primary">Verify your sign-in</h1><TwoFactorSettings challengeOnly onVerified={()=>setMfaRequired(false)}/></div></div>;
 
   async function logout() {
     await supabase.auth.signOut();
