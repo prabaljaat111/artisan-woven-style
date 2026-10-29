@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { categories } from "@/data/products";
+import { useStorefrontCategories } from "@/hooks/use-storefront-categories";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 
 export const Route = createFileRoute("/category/")({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/category/")({
 });
 
 function CategoryIndex() {
+  const categories = useStorefrontCategories();
   const list = useStorefrontProducts();
   const countFor = (slug: string) => {
     if (slug === "budget") return list.filter((p) => p.price < 500).length;

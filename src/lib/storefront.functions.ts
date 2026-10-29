@@ -69,3 +69,10 @@ export const listPublishedProducts = createServerFn({ method: "GET" }).handler(a
     cardShape: (["taj", "imambara", "clocktower"] as const)[i % 3],
   }));
 });
+
+export const listPublishedCategories = createServerFn({ method: "GET" }).handler(async () => {
+  const db = createPublicServerClient();
+  const { data, error } = await db.from("categories").select("id,name,slug,description,image_url,sort_order,parent_id").order("sort_order");
+  if (error) throw new Error("Could not load categories");
+  return data ?? [];
+});

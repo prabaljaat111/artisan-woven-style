@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listPublishedProducts } from "@/lib/storefront.functions";
 import { type Product } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { useEffect } from "react";
  * edited items appear live without a hard refresh.
  */
 export function useStorefrontProducts(): Product[] {
+  const client = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["storefront-products"],
     queryFn: () => listPublishedProducts(),
@@ -23,10 +24,10 @@ export function useStorefrontProducts(): Product[] {
       .channel(`storefront-products-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, () => refetch())
-      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => { refetch(); client.invalidateQueries({ queryKey: ["storefront-categories"] }); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [refetch]);
+  }, [refetch, client]);
 
   return data ?? [];
 }
