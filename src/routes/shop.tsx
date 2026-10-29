@@ -100,7 +100,7 @@ function ShopPage() {
     const priceBuckets = cats.filter((c) => c in PRICE_BUCKETS);
     const realCats = cats.filter((c) => !(c in PRICE_BUCKETS));
     let list = products.filter((p) => {
-      if (p.price < min || p.price > max) return false;
+      if ((min > PRICE_MIN && p.price < min) || (max < PRICE_MAX && p.price > max)) return false;
       if (realCats.length && !realCats.includes(p.category)) return false;
       if (priceBuckets.length && !priceBuckets.some((b) => PRICE_BUCKETS[b](p.price))) return false;
       if (colors.length && !p.colors.some((c) => colors.includes(c))) return false;

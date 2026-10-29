@@ -5,10 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
 /**
- * Returns the merged storefront catalogue: admin-managed DB products first
- * (so they appear at the top of listings), then the static demo set as a
- * fallback. Subscribes to product / variant changes so newly added or
- * edited items appear live without a hard refresh.
+ * Published database products only. Changes refetch live, with timed recovery
+ * for missed events and scheduled price transitions.
  */
 export function useStorefrontProducts(): Product[] {
   const client = useQueryClient();
