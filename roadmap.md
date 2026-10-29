@@ -3,7 +3,8 @@
 - [ ] Activate automated CRM sync, conversion event dispatch and recovery email delivery — requires CRM account, GA4/Meta secrets, marketing-email sender and scheduled sending setup. Conversion outbox and cart consent/storage are implemented; automation is not active.
 - [ ] Enable Stripe international checkout — requires approved supported payment setup; existing Razorpay and COD remain unchanged.
 - [ ] Verify TOTP enrollment/challenge and reward earning/redemption end-to-end — requires authenticator enrollment and enabling chosen business reward rules; neither was changed on the real admin account for testing.
-- [ ] Publish completed local tools and verify deployed endpoints.
+- [x] Request publication of completed local tools after successful compilation, 39 regression tests and a basic security scan with no critical findings.
+- [ ] Verify completed deployment and live endpoints — publication scheduling does not confirm deployment completion.
 - [x] Connect admin catalog previews and public Google/Meta feeds to shared live product/variant records; verified 105 matching offers, downloads and public accessibility locally; 5 catalog tests passed.
 - [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — requires publication (current live endpoints return 404), account access and provider approval; no relevant catalog connection is available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.
