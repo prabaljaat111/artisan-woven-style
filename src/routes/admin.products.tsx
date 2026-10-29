@@ -159,7 +159,7 @@ function ProductsPage() {
           <p className="text-sm text-muted-foreground mt-1">Manage your catalogue, stock and visibility.</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setImportOpen(true)} className={btnGhost}><Upload className="h-4 w-4" /> Import</button>
+          <button type="button" onClick={() => go({ to: "/admin/products/bulk" })} className={btnGhost}><Upload className="h-4 w-4" /> Import</button>
           <button type="button" onClick={() => go({ to: "/admin/products/new" })} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-status-green text-card text-sm font-medium hover:opacity-90"><Plus className="h-4 w-4" /> Add New Product</button>
         </div>
       </div>
