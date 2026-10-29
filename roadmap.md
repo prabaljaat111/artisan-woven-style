@@ -1,4 +1,5 @@
 # Admin functionality audit
+- [ ] Integrate Google and Meta/WhatsApp catalogs with live storefront data and verify external setup where access is available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.
 - [x] Review 41 admin pages with the signed-in account and record failures.
 - [x] Repair transactional product saving, catalog safeguards, inventory thresholds, navigation, tracking settings and payment verification.
