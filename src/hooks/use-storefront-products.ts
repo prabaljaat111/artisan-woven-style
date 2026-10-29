@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { listPublishedProducts } from "@/lib/storefront.functions";
-import { products as staticProducts, type Product } from "@/data/products";
+import { type Product } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
@@ -15,6 +15,7 @@ export function useStorefrontProducts(): Product[] {
     queryKey: ["storefront-products"],
     queryFn: () => listPublishedProducts(),
     staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 
   useEffect(() => {
@@ -22,14 +23,12 @@ export function useStorefrontProducts(): Product[] {
       .channel(`storefront-products-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => refetch())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [refetch]);
 
-  if (!data || data.length === 0) return staticProducts;
-  // Merge: DB products shadow static by slug, then append remaining static demos.
-  const seen = new Set(data.map((p) => p.slug));
-  return [...data, ...staticProducts.filter((p) => !seen.has(p.slug))];
+  return data ?? [];
 }
 
 export function useProductBySlug(slug: string): Product | undefined {
