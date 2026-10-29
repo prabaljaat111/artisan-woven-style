@@ -210,10 +210,10 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
     if (!productId) payload.submitted_by = user?.id;
 
     const res = await supabase.rpc("save_product_form", {
-      _id: productId ?? "00000000-0000-0000-0000-000000000000",
+      _id: productId ?? null,
       _product: payload as any,
       _variations: variations.map((v) => ({ size: v.size.trim(), color: v.color?.trim() || null, sku: v.sku.trim().toUpperCase() || null, status: v.status, price: num(v.price), sale_price: num(v.sale_price), stock: Number(v.stock), image_url: v.image_url || null })) as any,
-    });
+    } as any); // PostgreSQL accepts null for a new product; generated RPC types omit nullable arguments.
     if (res.error) throw new Error(res.error.message);
     const saved = res.data as { id?: string; status?: string } | null;
     if (!saved?.id) throw new Error("Save did not return a product");
