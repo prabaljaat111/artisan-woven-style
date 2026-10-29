@@ -1,7 +1,7 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save, CheckCircle2 } from "lucide-react";
-import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, Section, PageHeader } from "@/components/admin/SettingsField";
 import { useSetting } from "@/hooks/use-setting";
 import { toast } from "sonner";
 
@@ -43,7 +43,7 @@ function Page() {
       </Section>
 
       <Section title="Stripe (international)">
-        <ComingSoon title="Stripe for international cards" description="Will be enabled when you start shipping outside India." requires={["Stripe account in dashboard.stripe.com", "Currency conversion strategy"]} />
+        <div className="space-y-3"><p className="text-sm text-muted-foreground">Stripe is not connected. International Stripe checkout cannot be activated until a supported payment setup is approved.</p><Link to="/admin/orders" className="text-primary underline text-sm">View existing Razorpay and COD payments</Link></div>
       </Section>
 
       <Section title="Transaction Logs" description="See every payment attempt and its status.">

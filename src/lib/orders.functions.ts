@@ -71,7 +71,7 @@ export const createOrder = createServerFn({ method: "POST" })
         .eq("code", data.coupon_code.toUpperCase())
         .eq("is_active", true)
         .maybeSingle();
-      if (coupon && (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) && subtotal >= Number(coupon.min_order)) {
+      if (coupon && (!coupon.owner_id || coupon.owner_id===authenticatedUserId) && (!coupon.max_uses || coupon.used_count<coupon.max_uses) && (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) && subtotal >= Number(coupon.min_order)) {
         appliedCoupon = coupon.code;
         discount = coupon.discount_type === "percent"
           ? Math.round((subtotal * Number(coupon.discount_value)) / 100)
@@ -102,6 +102,7 @@ export const createOrder = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error || !order) throw new Error(error?.message ?? "Failed to create order");
+    if(appliedCoupon){const claimed=await supabaseAdmin.rpc('claim_order_coupon',{_order_id:order.id,_user_id:authenticatedUserId??undefined});if(claimed.error){await supabaseAdmin.from('orders').update({status:'cancelled',notes:'Coupon reservation failed'}).eq('id',order.id);throw new Error('Coupon is unavailable or already used. Please try again without it.');}}
 
     const items = resolved.map((i) => ({ ...i, order_id: order.id }));
     const { error: ie } = await supabaseAdmin.from("order_items").insert(items);
