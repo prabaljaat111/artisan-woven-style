@@ -119,7 +119,7 @@ function ShopPage() {
     else if (sort === "featured") list = [...list].sort((a, b) => (Number(b.isBestseller ?? 0) - Number(a.isBestseller ?? 0)) || (Number(b.isNew ?? 0) - Number(a.isNew ?? 0)) || (b.rating - a.rating));
     else list = [...list].sort((a, b) => (Number(b.isBestseller ?? 0) - Number(a.isBestseller ?? 0)) || (b.rating - a.rating) || (b.reviews - a.reviews));
     return list;
-  }, [cats, colors, min, max, sale, sort, q]);
+  }, [products, cats, colors, min, max, sale, sort, q]);
 
   const activeFilterCount =
     cats.length + colors.length + (sale ? 1 : 0) + (min > PRICE_MIN ? 1 : 0) + (max < PRICE_MAX ? 1 : 0);
