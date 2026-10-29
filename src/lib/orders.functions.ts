@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { checkoutTotals, paymentAllowed } from "./checkout-rules";
 import { createHmac } from "node:crypto";
+import { scheduledPrice, zoneShipping } from "./growth-rules";
 
 const ItemSchema = z.object({
   product_id: z.string().uuid().nullable().optional(),
@@ -41,7 +42,7 @@ export const createOrder = createServerFn({ method: "POST" })
     if (data.payment_method === "razorpay" && !signingKey) throw new Error("Online payments are not configured. Please choose another method.");
     const resolved = [];
     for (const item of data.items) {
-      let query = supabaseAdmin.from("products").select("id,slug,name,price,images,product_type,is_published,stock,allow_backorders,track_inventory").is("deleted_at", null).eq("is_published", true);
+      let query = supabaseAdmin.from("products").select("id,slug,name,price,original_price,sale_starts_at,sale_ends_at,images,product_type,is_published,stock,allow_backorders,track_inventory").is("deleted_at", null).eq("is_published", true);
       query = item.product_id ? query.eq("id", item.product_id) : query.eq("slug", item.product_slug ?? "");
       const { data: product, error } = await query.maybeSingle();
       if (error || !product) throw new Error(`Product unavailable: ${item.product_name}`);
@@ -50,7 +51,8 @@ export const createOrder = createServerFn({ method: "POST" })
       const variant = (variants ?? []).find((v) => v.size.toLowerCase() === (item.size ?? "").toLowerCase() && (!v.color || v.color.toLowerCase() === (item.color ?? "").toLowerCase()));
       if ((variants?.length ?? 0) > 0 && (!variant || variant.status === "inactive")) throw new Error(`Selected size/color unavailable: ${product.name}`);
       if (product.track_inventory && !product.allow_backorders && Number(variant?.stock ?? product.stock) < item.qty) throw new Error(`Not enough stock: ${product.name}`);
-      resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number(variant?.sale_price ?? variant?.price ?? product.price) });
+      const saleActive=scheduledPrice(product)===Number(product.price);
+      resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number((saleActive?variant?.sale_price:null) ?? variant?.price ?? scheduledPrice(product)) });
     }
     const subtotal = resolved.reduce((s, i) => s + i.qty * i.price, 0);
     if (!paymentAllowed(subtotal, data.payment_method, rules)) throw new Error("This payment method is unavailable for this order amount");
@@ -73,7 +75,11 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     }
 
-    const { shipping, gst, total } = checkoutTotals(subtotal, data.payment_method, rules, discount);
+    const zones=await supabaseAdmin.from('shipping_zones').select('*').eq('active',true);
+    if(zones.error) throw new Error('Could not check shipping zones');
+    const zone=zoneShipping(zones.data??[],data.shipping_address.state??'',data.shipping_address.pincode,subtotal);
+    const effectiveRules=zone?{...rules,flat_rate:zone.rate,free_shipping_threshold:Number.MAX_SAFE_INTEGER}:rules;
+    const { shipping, gst, total } = checkoutTotals(subtotal, data.payment_method, effectiveRules, discount);
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")

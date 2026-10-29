@@ -1,7 +1,8 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Save } from "lucide-react";
-import { Field, PageHeader, Section, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
+import { GrowthTools } from "@/components/admin/GrowthTools";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/leads")({ head: () => ({ meta: adminPageMeta("Leads Settings") }), component: Page });
@@ -53,7 +54,7 @@ function Page() {
       </Section>
       <Section title="Assignment">
         <Field label="Notify these emails on new leads" hint="Comma-separated list."><textarea rows={2} className={input} value={value.assignment_emails_csv} onChange={(e) => set("assignment_emails_csv", e.target.value)} /></Field>
-        <ComingSoon title="Per-source routing & CRM sync" description="Route by source/category to specific teammates and mirror leads into HubSpot / Zoho / Pipedrive." />
+        <GrowthTools mode="routing" />
       </Section>
     </form>
   );

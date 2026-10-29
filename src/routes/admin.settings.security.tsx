@@ -2,7 +2,9 @@ import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Section, PageHeader } from "@/components/admin/SettingsField";
+import { GrowthTools } from "@/components/admin/GrowthTools";
+import { TwoFactorSettings } from "@/components/admin/TwoFactorSettings";
 import { listAdmins, setUserRole } from "@/lib/settings.functions";
 import { Shield, UserMinus, UserPlus } from "lucide-react";
 
@@ -80,11 +82,11 @@ function Page() {
       </Section>
 
       <Section title="Two-Factor Authentication">
-        <ComingSoon title="2FA for admin accounts" description="Require a TOTP code in addition to password for every admin login." requires={["TOTP enrollment flow", "Recovery codes"]} />
+        <TwoFactorSettings />
       </Section>
 
       <Section title="Activity Logs & API Access">
-        <ComingSoon title="Audit log & API tokens" description="Track every admin action and issue scoped API tokens for integrations." requires={["audit_log table with append-only RLS", "API token store"]} />
+        <GrowthTools mode="audit" />
       </Section>
     </div>
   );

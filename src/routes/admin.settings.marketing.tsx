@@ -1,6 +1,8 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Section, PageHeader } from "@/components/admin/SettingsField";
+import { GrowthTools } from "@/components/admin/GrowthTools";
+import { SaleScheduler } from "@/components/admin/SaleScheduler";
 import { Ticket } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings/marketing")({ head: () => ({ meta: adminPageMeta("Marketing Settings") }), component: Page });
@@ -15,13 +17,13 @@ function Page() {
         </Link>
       </Section>
       <Section title="Flash Sales & Festival Offers">
-        <ComingSoon title="Time-bound sale scheduler" description="Pin discounted prices to a date window with countdown timers across the site." requires={["Sale price scheduling field on products", "Cron job for activation"]} />
+        <SaleScheduler />
       </Section>
       <Section title="Loyalty & Referrals">
-        <ComingSoon title="Reward points & referral program" description="Customers earn points on purchases and referrals; redeemable at checkout." requires={["Points ledger table", "Referral attribution tracking", "Redemption rules"]} />
+        <GrowthTools mode="loyalty" />
       </Section>
       <Section title="Abandoned Cart Recovery">
-        <ComingSoon title="Automatic recovery emails" description="Detect carts inactive for 1h / 24h / 72h and send recovery emails with the saved cart link." requires={["Persistent cart table", "Email queue automation"]} />
+        <GrowthTools mode="recovery" />
       </Section>
     </div>
   );

@@ -1,0 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { supabase } from '@/integrations/supabase/client';
+import { scheduledPrice } from '@/lib/growth-rules';
+export function SaleScheduler(){
+  const q=useQuery({queryKey:['scheduled-sales'],queryFn:async()=>{const {data,error}=await supabase.from('products').select('id,name,price,original_price,sale_starts_at,sale_ends_at').is('deleted_at',null).not('sale_starts_at','is',null).order('sale_starts_at');if(error)throw error;return data;}});
+  return <div className="space-y-3"><Link to="/admin/products" className="text-primary underline text-sm">Manage product sale prices and dates</Link>{q.error&&<p role="alert" className="text-destructive text-sm">{q.error.message}</p>}<div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border text-left"><th className="py-3">Product</th><th>Current price</th><th>Starts</th><th>Ends</th><th>Status</th></tr></thead><tbody>{q.data?.map(p=><tr key={p.id} className="border-b border-border"><td className="py-3 pr-3"><Link to="/admin/products/$id" params={{id:p.id}} className="text-primary underline">{p.name}</Link></td><td className="pr-3">₹{scheduledPrice(p).toLocaleString('en-IN')}</td><td className="pr-3">{p.sale_starts_at?new Date(p.sale_starts_at).toLocaleString('en-IN'):'Now'}</td><td className="pr-3">{p.sale_ends_at?new Date(p.sale_ends_at).toLocaleString('en-IN'):'No end'}</td><td>{p.sale_ends_at&&Date.parse(p.sale_ends_at)<=Date.now()?'Ended':p.sale_starts_at&&Date.parse(p.sale_starts_at)>Date.now()?'Scheduled':'Active'}</td></tr>)}</tbody></table></div>{q.data?.length===0&&<p className="text-sm text-muted-foreground">No scheduled sales.</p>}</div>;
+}

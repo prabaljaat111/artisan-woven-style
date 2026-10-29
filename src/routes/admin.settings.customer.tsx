@@ -1,7 +1,8 @@
 import { adminPageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { Save } from "lucide-react";
-import { Field, PageHeader, Section, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, PageHeader, Section } from "@/components/admin/SettingsField";
+import { GrowthTools } from "@/components/admin/GrowthTools";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/customer")({ head: () => ({ meta: adminPageMeta("Customer Settings") }), component: Page });
@@ -61,7 +62,7 @@ function Page() {
         <Field label="Minimum Order Value (₹)" hint="0 means no minimum."><input type="number" min={0} className={input} value={value.min_order_value} onChange={(e) => set("min_order_value", +e.target.value)} /></Field>
       </Section>
       <Section title="Loyalty & Groups">
-        <ComingSoon title="Customer groups, points, referrals" description="Segment customers and run a points + referral program." requires={["Customer groups table", "Points ledger"]} />
+        <GrowthTools mode="loyalty" />
       </Section>
     </form>
   );
