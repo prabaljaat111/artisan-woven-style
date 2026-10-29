@@ -4,9 +4,9 @@
 - [ ] Enable Stripe international checkout — requires approved supported payment setup; existing Razorpay and COD remain unchanged.
 - [ ] Verify TOTP enrollment/challenge and reward earning/redemption end-to-end — requires authenticator enrollment and enabling chosen business reward rules; neither was changed on the real admin account for testing.
 - [x] Request publication of completed local tools after successful compilation, 39 regression tests and a basic security scan with no critical findings.
-- [ ] Verify completed deployment and live endpoints — publication scheduling does not confirm deployment completion.
+- [x] Verify the published Google catalog endpoint returns HTTP 200 and catalog XML; the final checkout quote update requires a fresh publication request.
 - [x] Connect admin catalog previews and public Google/Meta feeds to shared live product/variant records; verified 105 matching offers, downloads and public accessibility locally; 5 catalog tests passed.
-- [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — requires publication (current live endpoints return 404), account access and provider approval; no relevant catalog connection is available.
+- [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — Google feed now serves live; provider account access and approval still required, with no relevant catalog connection available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.
 - [x] Review 41 admin pages with the signed-in account and record failures.
 - [x] Repair transactional product saving, catalog safeguards, inventory thresholds, navigation, tracking settings and payment verification.
