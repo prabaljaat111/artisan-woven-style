@@ -65,7 +65,7 @@ export const Route = createFileRoute("/category/$slug")({
 
 function CategoryPage() {
   const { slug } = Route.useParams();
-  const cat = Route.useLoaderData();
+  const cat = Route.useLoaderData() as { name: string; slug: string } | undefined;
   const items = useProductsByCategory(slug);
   if (!cat) throw notFound();
   const banner = CATEGORY_BANNERS[slug] ?? { image: kurtiWhite, tagline: "Collection", blurb: "Each piece is hand-embroidered in Lucknow using traditional Chikankari techniques — a heritage craft over 400 years old." };

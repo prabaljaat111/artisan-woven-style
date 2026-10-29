@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal, X, Search } from "lucide-react";
-import { categories } from "@/data/products";
+import { useStorefrontCategories } from "@/hooks/use-storefront-categories";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
@@ -49,6 +49,7 @@ export const Route = createFileRoute("/shop")({
 });
 
 function ShopPage() {
+  const categories = useStorefrontCategories();
   const products = useStorefrontProducts();
   const ALL_COLORS = useMemo(() => Array.from(new Set(products.flatMap((p) => p.colors))).sort(), [products]);
   const navigate = useNavigate({ from: "/shop" });
