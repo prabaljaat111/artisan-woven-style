@@ -10,6 +10,7 @@ import { adminPageMeta } from "@/lib/page-meta";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, PageHeader, Chip, inputCls, btnPrimary, btnGhost } from "@/components/admin/ui";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { IMPORT_FIELDS, autoMap, parseRows, buildExportRows, EXPORT_COLUMNS, SAMPLE_CSV, type Mapping, type ParsedRow, type ExportColumn } from "@/lib/woo-csv";
 
 export const Route = createFileRoute("/admin/products_/bulk")({
@@ -20,6 +21,24 @@ export const Route = createFileRoute("/admin/products_/bulk")({
 const MAX_BYTES = 50 * 1024 * 1024;
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "product";
 function download(name: string, blob: Blob) { const url = URL.createObjectURL(blob); Object.assign(document.createElement("a"), { href: url, download: name }).click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+async function allProducts() {
+  const rows = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await supabase.from("products").select("id, sku, slug, product_type").is("deleted_at", null).order("id").range(offset, offset + 499);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if ((data?.length ?? 0) < 500) return rows;
+  }
+}
+async function allVariants() {
+  const rows = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await supabase.from("product_variants").select("id, sku, product_id, size, color").order("id").range(offset, offset + 499);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if ((data?.length ?? 0) < 500) return rows;
+  }
+}
 
 function BulkPage() {
   const [tab, setTab] = useState<"import" | "export">("import");
@@ -56,11 +75,13 @@ function ImportTab() {
   const [result, setResult] = useState<Result | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: cats = [] } = useQuery({ queryKey: ["bulk-cats"], queryFn: async () => (await supabase.from("categories").select("id, name, slug")).data ?? [] });
-  const { data: existing = [] } = useQuery({ queryKey: ["bulk-skus"], enabled: step !== "upload", queryFn: async () => (await supabase.from("products").select("id, sku, slug").is("deleted_at", null)).data ?? [] });
+  const catsQuery = useQuery({ queryKey: ["bulk-cats"], queryFn: async () => { const { data, error } = await supabase.from("categories").select("id, name, slug"); if (error) throw error; return data ?? []; } });
+  const cats = catsQuery.data ?? [];
+  const existingQuery = useQuery({ queryKey: ["bulk-skus"], enabled: step !== "upload", queryFn: allProducts });
+  const existing = existingQuery.data ?? [];
 
   const parsed: ParsedRow[] = useMemo(() => step === "preview" || step === "running"
-    ? parseRows(raw, mapping, { knownCategories: cats.map((c) => c.name), createMissingCategories: createCats, existingSkus: existing.map((e) => e.sku).filter(Boolean) as string[] })
+    ? parseRows(raw, mapping, { knownCategories: cats.flatMap((c) => [c.name, c.slug]), createMissingCategories: createCats, existingSkus: existing.filter((e) => e.product_type === "variable").map((e) => e.sku).filter(Boolean) as string[] })
     : [], [step, raw, mapping, cats, createCats, existing]);
   const invalid = parsed.filter((r) => r.errors.length).length;
 
@@ -70,6 +91,7 @@ function ImportTab() {
     Papa.parse<Record<string, string>>(f, {
       header: true, skipEmptyLines: "greedy", transformHeader: (h) => h.replace(/^\uFEFF/, "").trim(),
       complete: (res) => {
+        if (res.errors.length) return toast.error(`CSV row ${(res.errors[0].row ?? 0) + 2}: ${res.errors[0].message}`);
         const hs = (res.meta.fields ?? []).filter(Boolean);
         if (!hs.length || !res.data.length) return toast.error("This CSV has no rows");
         if (res.data.length > 20000) return toast.error("Max 20,000 rows per file");
@@ -80,42 +102,63 @@ function ImportTab() {
   }
 
   async function runImport() {
-    if (!user || !file) return;
+    if (!user || !file) return toast.error("Please sign in again before importing");
+    if (catsQuery.error || existingQuery.error || existingQuery.isFetching || catsQuery.isFetching) return toast.error("Wait for catalog data to load before importing");
+    const importRows = parsed;
+    let jobId: string | null = null;
     setStep("running"); setProgress(0);
     const res: Result = { created: 0, updated: 0, failed: 0, errors: [] };
     const fail = (r: ParsedRow, error: string) => { res.failed++; res.errors.push({ line: r.line, sku: r.sku, error }); };
-    const { data: job } = await supabase.from("import_jobs").insert({ file_name: file.name.slice(0, 200), user_id: user.id, user_email: user.email ?? null, total: parsed.length }).select("id").single();
+    try {
+    const { data: job, error: jobError } = await supabase.from("import_jobs").insert({ file_name: file.name.slice(0, 200), user_id: user.id, user_email: user.email ?? null, total: importRows.length }).select("id").single();
+    if (jobError || !job) throw new Error(jobError?.message ?? "Could not start import history");
+    jobId = job.id;
 
     // categories
-    const catMap = new Map(cats.map((c) => [c.name.toLowerCase(), c.id]));
+    const catMap = new Map(cats.flatMap((c) => [[c.name.toLowerCase(), c.id], [c.slug.toLowerCase(), c.id]] as [string, string][]));
     if (createCats) {
-      const missing = [...new Set(parsed.filter((r) => r.type !== "variation" && r.category && !catMap.has(r.category.toLowerCase())).map((r) => r.category!))];
+      const missing = [...new Set(importRows.filter((r) => !r.errors.length && r.type !== "variation" && r.category && !catMap.has(r.category.toLowerCase())).map((r) => r.category).filter((name): name is string => !!name))];
       for (const name of missing) {
         const { data, error } = await supabase.from("categories").insert({ name, slug: `${slugify(name)}-${Math.random().toString(36).slice(2, 5)}` }).select("id").single();
         if (data) catMap.set(name.toLowerCase(), data.id); else toast.error(`Couldn't create category ${name}: ${error?.message}`);
       }
     }
-    const skuToId = new Map(existing.filter((e) => e.sku).map((e) => [e.sku!.toLowerCase(), e.id]));
+    const skuToId = new Map(existing.flatMap((e) => e.sku ? [[e.sku.toLowerCase(), e.id] as const] : []));
+    const skuCounts = new Map<string, number>();
+    existing.forEach((e) => { if (e.sku) skuCounts.set(e.sku.toLowerCase(), (skuCounts.get(e.sku.toLowerCase()) ?? 0) + 1); });
+    const existingVars = await allVariants();
+    const varBySku = new Map(existingVars.flatMap((v) => v.sku ? [[v.sku.toLowerCase(), v] as const] : []));
     const slugs = new Set(existing.map((e) => e.slug));
     const uniqueSlug = (name: string) => { let s = slugify(name), i = 2; while (slugs.has(s)) s = `${slugify(name)}-${i++}`; slugs.add(s); return s; };
-    const parents = parsed.filter((r) => r.type !== "variation");
-    const variations = parsed.filter((r) => r.type === "variation");
+    const parents = importRows.filter((r) => r.type !== "variation");
+    const variations = importRows.filter((r) => r.type === "variation");
     let done = 0;
-    const tick = () => setProgress(Math.round((++done / parsed.length) * 100));
+    const tick = () => setProgress(Math.round((++done / importRows.length) * 100));
     const imported = new Set<string>();
 
     for (const r of parents) {
       if (r.errors.length) { fail(r, r.errors.join("; ")); tick(); continue; }
       const existingId = skuToId.get(r.sku.toLowerCase());
+      if ((skuCounts.get(r.sku.toLowerCase()) ?? 0) > 1) { fail(r, "Multiple products use this SKU; give them unique SKUs first"); tick(); continue; }
+      if (varBySku.has(r.sku.toLowerCase())) { fail(r, "SKU belongs to an existing variation"); tick(); continue; }
+      if (r.type === "simple" && existingId && existingVars.some((v) => v.product_id === existingId)) { fail(r, "Product has variations; keep its type Variable or remove variations in the editor first"); tick(); continue; }
       if (existingId && !updateExisting) { fail(r, "SKU already exists (updating is off)"); tick(); continue; }
       const regular = r.regular_price ?? 0;
       const payload: Record<string, unknown> = {
         name: r.name, sku: r.sku, short_description: r.short_description || null, description: r.description || r.short_description || r.name,
-        category_id: catMap.get(r.category!.toLowerCase()) ?? null, product_type: r.type, featured: r.featured,
+        category_id: catMap.get((r.category ?? "").toLowerCase()) ?? null, product_type: r.type, featured: r.featured,
         original_price: regular, price: r.sale_price ?? regular, on_sale: r.sale_price !== null,
         status: r.published ? "active" : "draft", is_published: r.published,
         weight: r.weight, length_cm: r.length, width_cm: r.width, height_cm: r.height,
       };
+      if (!payload.category_id) { fail(r, "Category could not be created or found"); tick(); continue; }
+      if (existingId) {
+        if (!mapping.published) { delete payload.status; delete payload.is_published; }
+        if (!mapping.featured) delete payload.featured;
+        if (!mapping.short_description) delete payload.short_description;
+        if (!mapping.description) delete payload.description;
+        for (const [field, column] of [["weight", "weight"], ["length", "length_cm"], ["width", "width_cm"], ["height", "height_cm"]] as const) if (!mapping[field]) delete payload[column];
+      }
       if (r.images.length) payload.images = r.images;
       if (r.type === "simple" && r.stock !== null) payload.stock = r.stock;
       const sizeAttr = r.attributes.find((a) => /size/i.test(a.name)), colorAttr = r.attributes.find((a) => /colou?r/i.test(a.name));
@@ -130,13 +173,14 @@ function ImportTab() {
     }
 
     // variations grouped by parent
-    const { data: existingVars } = await supabase.from("product_variants").select("id, sku, product_id");
-    const varBySku = new Map((existingVars ?? []).filter((v) => v.sku).map((v) => [v.sku!.toLowerCase(), v]));
     for (const r of variations) {
       const pid = skuToId.get(r.parent.toLowerCase());
+      const parentInFile = parents.some((p) => p.sku.toLowerCase() === r.parent.toLowerCase());
+      if (parentInFile && !imported.has(r.parent.toLowerCase())) { fail(r, "Parent product failed to import; variation left unchanged"); tick(); continue; }
       if (r.errors.length || !pid) { fail(r, r.errors.join("; ") || "Parent product failed to import"); tick(); continue; }
       const payload = { product_id: pid, sku: r.sku, size: r.size ?? "One Size", color: r.color, stock: r.stock ?? 0, price: r.regular_price, sale_price: r.sale_price, image_url: r.images[0] ?? null, status: r.published ? "active" : "inactive" };
-      const ev = varBySku.get(r.sku.toLowerCase());
+      if (skuToId.has(r.sku.toLowerCase())) { fail(r, "SKU belongs to an existing product"); tick(); continue; }
+      const ev = varBySku.get(r.sku.toLowerCase()) ?? existingVars.find((v) => v.product_id === pid && v.size.toLowerCase() === payload.size.toLowerCase() && (v.color ?? "").toLowerCase() === (payload.color ?? "").toLowerCase());
       if (ev && ev.product_id !== pid) { fail(r, "SKU belongs to a variation of another product"); tick(); continue; }
       if (ev && !updateExisting) { fail(r, "SKU already exists (updating is off)"); tick(); continue; }
       const q = ev ? await supabase.from("product_variants").update(payload).eq("id", ev.id) : await supabase.from("product_variants").insert(payload);
@@ -145,7 +189,14 @@ function ImportTab() {
     }
 
     const status = res.failed === 0 ? "completed" : res.created + res.updated > 0 ? "partial" : "failed";
-    if (job) await supabase.from("import_jobs").update({ status, created_count: res.created, updated_count: res.updated, failed_count: res.failed, errors: res.errors.slice(0, 2000), finished_at: new Date().toISOString() }).eq("id", job.id);
+    const { error: finishError } = await supabase.from("import_jobs").update({ status, created_count: res.created, updated_count: res.updated, failed_count: res.failed, errors: res.errors.slice(0, 2000), finished_at: new Date().toISOString() }).eq("id", job.id);
+    if (finishError) toast.error(`Products processed, but history could not finish: ${finishError.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Import failed";
+      for (const row of importRows) if (!res.errors.some((e) => e.line === row.line)) { if (res.created + res.updated + res.failed >= importRows.length) break; fail(row, message); }
+      if (jobId) await supabase.from("import_jobs").update({ status: "failed", created_count: res.created, updated_count: res.updated, failed_count: res.failed, errors: res.errors, finished_at: new Date().toISOString() }).eq("id", jobId);
+      toast.error(message);
+    }
     setResult(res); setStep("done");
     qc.invalidateQueries({ queryKey: ["import-history"] }); qc.invalidateQueries({ queryKey: ["bulk-skus"] }); qc.invalidateQueries({ queryKey: ["bulk-cats"] });
   }
@@ -222,7 +273,8 @@ function ImportTab() {
         </table>
       </div>
       <div className="flex gap-2"><button className={btnGhost} onClick={() => setStep("map")}><ArrowLeft className="h-4 w-4" /> Back to mapping</button>
-        <button className={btnPrimary} disabled={invalid === parsed.length} onClick={runImport}>Import {(parsed.length - invalid).toLocaleString("en-IN")} rows</button></div>
+        <Button disabled={!parsed.length || invalid === parsed.length || catsQuery.isFetching || existingQuery.isFetching || !!catsQuery.error || !!existingQuery.error} onClick={runImport}>Import {(parsed.length - invalid).toLocaleString("en-IN")} rows</Button></div>
+      {(catsQuery.error || existingQuery.error) && <p role="alert" className="text-status-red">Catalog data could not load. Refresh before importing.</p>}
     </Card>
   );
 
