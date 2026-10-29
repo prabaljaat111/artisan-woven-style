@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
 function createPublicServerClient() {
@@ -18,6 +17,7 @@ function createPublicServerClient() {
 export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
     const [orders30, ordersAll, products, customers, recentOrders, lowStock, leadsCount] = await Promise.all([
       supabaseAdmin.from("orders").select("total, created_at, status").gte("created_at", since),
@@ -73,6 +73,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
 export const adminListProducts = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await context.supabase
       .from("products")
       .select("*, category:categories(name, slug)")
@@ -85,6 +86,7 @@ export const adminGetProduct = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await context.supabase.from("products").select("*").eq("id", data.id).single();
     if (error) throw new Error(error.message);
     return row;
@@ -120,6 +122,7 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => ProductInput.parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { id, ...rest } = data;
     if (id) {
       const { error } = await context.supabase.from("products").update(rest as any).eq("id", id);
@@ -136,6 +139,7 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await context.supabase.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -147,6 +151,7 @@ export const adminCloneProduct = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: src, error } = await context.supabase
       .from("products").select("*").eq("id", data.id).single();
     if (error || !src) throw new Error(error?.message ?? "Product not found");
@@ -186,6 +191,7 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkInput.parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ids, action } = data;
     if (action === "delete") {
       const { error } = await context.supabase.from("products").delete().in("id", ids);
@@ -236,6 +242,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => BulkUpsertInput.parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Validate rows individually so one bad row doesn't kill the whole batch.
     const valid: z.infer<typeof BulkRow>[] = [];
     const errors: string[] = [];
@@ -298,6 +305,7 @@ export const adminBulkUpsertProducts = createServerFn({ method: "POST" })
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("orders")
       .select("*")
@@ -311,6 +319,7 @@ export const adminGetOrder = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: order }, { data: items }] = await Promise.all([
       supabaseAdmin.from("orders").select("*").eq("id", data.id).single(),
       supabaseAdmin.from("order_items").select("*").eq("order_id", data.id),
@@ -332,6 +341,7 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => OrderUpdate.parse(i))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { id, ...rest } = data;
     const { error } = await supabaseAdmin.from("orders").update(rest).eq("id", id);
     if (error) throw new Error(error.message);
@@ -342,8 +352,16 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
 export const adminListCustomers = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { data: profiles } = await supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false });
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profiles, error: profileError } = await supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false });
+    if (profileError) throw new Error(profileError.message);
+    const users: { users: { id: string; email?: string; last_sign_in_at?: string }[] } = { users: [] };
+    for (let page = 1; ; page++) {
+      const result = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      if (result.error) throw new Error(result.error.message);
+      users.users.push(...result.data.users);
+      if (result.data.users.length < 200) break;
+    }
     const merged = (profiles ?? []).map((p: any) => {
       const u = users.users.find((x) => x.id === p.id);
       return { ...p, email: u?.email ?? null, last_sign_in_at: u?.last_sign_in_at ?? null };
@@ -351,10 +369,11 @@ export const adminListCustomers = createServerFn({ method: "GET" })
     // Order counts per user
     const ids = merged.map((m) => m.id);
     if (ids.length === 0) return [];
-    const { data: ordersAgg } = await supabaseAdmin
+    const { data: ordersAgg, error: orderError } = await supabaseAdmin
       .from("orders")
       .select("user_id, total")
       .in("user_id", ids);
+    if (orderError) throw new Error(orderError.message);
     const stats: Record<string, { count: number; spent: number }> = {};
     (ordersAgg ?? []).forEach((o: any) => {
       if (!o.user_id) return;
@@ -369,6 +388,7 @@ export const adminListCustomers = createServerFn({ method: "GET" })
 export const adminListCategories = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await context.supabase.from("categories").select("*").order("sort_order");
     return data ?? [];
   });
@@ -385,12 +405,15 @@ export const adminUpsertCategory = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => CatInput.parse(i))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.id) {
       const { id, ...rest } = data;
-      await supabaseAdmin.from("categories").update(rest).eq("id", id);
+      const { error } = await supabaseAdmin.from("categories").update(rest).eq("id", id);
+      if (error) throw new Error(error.message);
     } else {
       const { id: _o, ...rest } = data;
-      await supabaseAdmin.from("categories").insert(rest);
+      const { error } = await supabaseAdmin.from("categories").insert(rest);
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
@@ -399,7 +422,9 @@ export const adminDeleteCategory = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    await supabaseAdmin.from("categories").delete().eq("id", data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("categories").delete().eq("id", data.id);
+      if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -407,7 +432,9 @@ export const adminDeleteCategory = createServerFn({ method: "POST" })
 export const adminListCoupons = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { data } = await supabaseAdmin.from("coupons").select("*").order("created_at", { ascending: false });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("coupons").select("*").order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
     return data ?? [];
   });
 
@@ -426,12 +453,15 @@ export const adminUpsertCoupon = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => CouponInput.parse(i))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.id) {
       const { id, ...rest } = data;
-      await supabaseAdmin.from("coupons").update(rest).eq("id", id);
+      const { error } = await supabaseAdmin.from("coupons").update(rest).eq("id", id);
+      if (error) throw new Error(error.message);
     } else {
       const { id: _o, ...rest } = data;
-      await supabaseAdmin.from("coupons").insert(rest);
+      const { error } = await supabaseAdmin.from("coupons").insert(rest);
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
@@ -440,7 +470,9 @@ export const adminDeleteCoupon = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    await supabaseAdmin.from("coupons").delete().eq("id", data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("coupons").delete().eq("id", data.id);
+      if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -448,10 +480,12 @@ export const adminDeleteCoupon = createServerFn({ method: "POST" })
 export const adminListReviews = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { data } = await supabaseAdmin
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
       .from("reviews")
       .select("*, product:products(name, slug, images)")
       .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
     return data ?? [];
   });
 
@@ -459,7 +493,9 @@ export const adminReviewSetApproval = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => z.object({ id: z.string().uuid(), is_approved: z.boolean() }).parse(i))
   .handler(async ({ data }) => {
-    await supabaseAdmin.from("reviews").update({ is_approved: data.is_approved }).eq("id", data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("reviews").update({ is_approved: data.is_approved }).eq("id", data.id);
+      if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -467,7 +503,9 @@ export const adminDeleteReview = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    await supabaseAdmin.from("reviews").delete().eq("id", data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("reviews").delete().eq("id", data.id);
+      if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -478,6 +516,7 @@ export const adminListVariants = createServerFn({ method: "GET" })
     z.object({ productId: z.string().uuid() }).parse(i),
   )
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await context.supabase
       .from("product_variants")
       .select("*")
@@ -506,6 +545,7 @@ export const adminSaveVariants = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((i) => VariantUpsert.parse(i))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Replace strategy: delete rows missing from input, upsert the rest.
     const incomingIds = data.variants.map((v) => v.id).filter(Boolean) as string[];
     const { data: existing } = await context.supabase
@@ -549,6 +589,7 @@ export const getProductVariantsByProductId = createServerFn({ method: "GET" })
     z.object({ productId: z.string().uuid() }).parse(i),
   )
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const supabasePublic = createPublicServerClient();
     const { data: product } = await supabasePublic
       .from("products")
