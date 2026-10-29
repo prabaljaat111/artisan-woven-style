@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import crypto from "node:crypto";
+import { isCapturedPayment, type CapturedPayment } from "./payment-validation";
 
 
 const CreateSchema = z.object({
@@ -54,10 +55,11 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
     }
     const rzpOrder = (await res.json()) as { id: string; amount: number; currency: string };
 
-    await supabaseAdmin
+    const { error: saveError } = await supabaseAdmin
       .from("orders")
       .update({ payment_reference: rzpOrder.id, razorpay_order_id: rzpOrder.id })
       .eq("id", order.id);
+    if (saveError) throw new Error("Could not link the payment to your order. Please try again.");
 
     return {
       key_id: keyId,
@@ -117,6 +119,14 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
     if (rzpOrder.amount !== expectedPaise) {
       throw new Error("Payment amount mismatch");
     }
+
+    const paymentRes = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(data.razorpay_payment_id)}`, {
+      headers: { Authorization: `Basic ${auth}` },
+    });
+    if (!paymentRes.ok) throw new Error("Could not confirm payment capture. Please check your order before retrying.");
+    const payment = (await paymentRes.json()) as CapturedPayment;
+    if (!isCapturedPayment(payment, data.razorpay_order_id, expectedPaise)) throw new Error("Payment has not been captured for this order. Please check your payment status.");
+    if (linked.payment_status === "paid") return { success: true, order_number: null };
 
     const { data: order, error: paymentError } = await supabaseAdmin
       .from("orders")

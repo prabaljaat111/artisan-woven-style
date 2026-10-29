@@ -85,9 +85,8 @@ export const createOrder = createServerFn({ method: "POST" })
     const effectiveRules=zone?{...rules,flat_rate:zone.rate,free_shipping_threshold:Number.MAX_SAFE_INTEGER}:rules;
     const { shipping, gst, total } = checkoutTotals(subtotal, data.payment_method, effectiveRules, discount);
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .insert({
+    const { data: savedOrder, error } = await supabaseAdmin.rpc("create_checkout_order", {
+      _order: {
         user_id: authenticatedUserId,
         customer_name: data.customer_name,
         customer_email: data.customer_email,
@@ -96,17 +95,11 @@ export const createOrder = createServerFn({ method: "POST" })
         subtotal, gst, shipping, discount, total,
         coupon_code: appliedCoupon,
         payment_method: data.payment_method,
-        status: "pending",
-        payment_status: data.payment_method === "cod" ? "unpaid" : "unpaid",
-      })
-      .select("*")
-      .single();
+      },
+      _items: resolved,
+    });
+    const order = savedOrder as { id: string; order_number: string } | null;
     if (error || !order) throw new Error(error?.message ?? "Failed to create order");
-    if(appliedCoupon){const claimed=await supabaseAdmin.rpc('claim_order_coupon',{_order_id:order.id,_user_id:authenticatedUserId??undefined});if(claimed.error){await supabaseAdmin.from('orders').update({status:'cancelled',notes:'Coupon reservation failed'}).eq('id',order.id);throw new Error('Coupon is unavailable or already used. Please try again without it.');}}
-
-    const items = resolved.map((i) => ({ ...i, order_id: order.id }));
-    const { error: ie } = await supabaseAdmin.from("order_items").insert(items);
-    if (ie) throw new Error(ie.message);
 
     // For COD orders, auto-push to Shiprocket immediately
     if (data.payment_method === "cod") {
