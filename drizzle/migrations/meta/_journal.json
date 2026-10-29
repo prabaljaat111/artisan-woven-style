@@ -148,6 +148,13 @@
       "when": 1793308105844,
       "tag": "0020_atomic_checkout_order",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793308818155,
+      "tag": "0021_admin_live_publication",
+      "breakpoints": true
     }
   ]
 }
