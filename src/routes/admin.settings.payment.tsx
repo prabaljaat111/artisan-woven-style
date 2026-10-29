@@ -30,6 +30,7 @@ function Page() {
       </Section>
 
       <Section title="UPI" description="UPI is available through Razorpay. Direct UPI transfers are not supported.">
+        <p className="text-sm text-muted-foreground">Use the Razorpay switch above to enable or disable online payments.</p>
       </Section>
 
       <Section title="Cash on Delivery" description="Customer pays when the order is delivered.">
