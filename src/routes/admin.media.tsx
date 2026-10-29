@@ -13,17 +13,20 @@ export const Route = createFileRoute("/admin/media")({
 });
 
 const BUCKET = "product-images";
-type F = { path: string; name: string; size: number; created: string; url: string };
+type F = { path: string; name: string; size: number; created: string; url: string; mime: string };
 
 async function listAll(prefix = "", depth = 0): Promise<F[]> {
-  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "desc" } });
-  if (error) throw error;
   const out: F[] = [];
+  for (let offset = 0; ; offset += 1000) {
+  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000, offset, sortBy: { column: "name", order: "asc" } });
+  if (error) throw error;
   for (const e of data ?? []) {
     const path = prefix ? `${prefix}/${e.name}` : e.name;
     if (!e.id) { if (depth < 3) out.push(...(await listAll(path, depth + 1))); continue; }
     if (e.name === ".emptyFolderPlaceholder") continue;
-    out.push({ path, name: e.name, size: (e.metadata as any)?.size ?? 0, created: e.created_at ?? "", url: supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl });
+    out.push({ mime: (e.metadata as any)?.mimetype ?? "", path, name: e.name, size: (e.metadata as any)?.size ?? 0, created: e.created_at ?? "", url: supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl });
+  }
+  if ((data?.length ?? 0) < 1000) break;
   }
   return out;
 }
@@ -76,12 +79,12 @@ function MediaPage() {
           {files.map((f) => (
             <Card key={f.path} className="!p-2">
               <div className="aspect-square rounded-lg overflow-hidden bg-secondary">
-                {/\.(mp4|webm|mov)$/i.test(f.name) ? <video src={f.url} className="h-full w-full object-cover" muted /> : <img src={f.url} alt={f.name} loading="lazy" className="h-full w-full object-cover" />}
+                {(f.mime.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogg|ogv)$/i.test(f.name)) ? <video src={f.url} className="h-full w-full object-cover" muted controls preload="metadata" /> : <img src={f.url} alt={f.name} loading="lazy" className="h-full w-full object-cover" />}
               </div>
               <p className="text-xs mt-2 truncate" title={f.path}>{f.name}</p>
               <p className="text-xs text-muted-foreground">{(f.size / 1024).toFixed(0)} KB</p>
               <div className="flex gap-1 mt-2">
-                <button className={`${btnGhost} flex-1 justify-center !h-8`} onClick={() => { navigator.clipboard.writeText(f.url); toast.success("Link copied"); }}><Copy className="h-3.5 w-3.5" />Copy</button>
+                <button className={`${btnGhost} flex-1 justify-center !h-8`} onClick={() => { navigator.clipboard.writeText(f.url).then(() => toast.success("Link copied")).catch(() => toast.error("Could not copy link")); }}><Copy className="h-3.5 w-3.5" />Copy</button>
                 <button className={`${btnGhost} !h-8 text-destructive`} aria-label="Delete" onClick={() => remove(f)}><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
             </Card>

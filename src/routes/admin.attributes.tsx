@@ -100,7 +100,6 @@ function GlobalTab({ attrs, counts, canManage, onChange, onOpen }: { attrs: Attr
     const used = a.attribute_values.reduce((n, v) => n + (counts[v.id] ?? 0), 0);
     if (used > 0) return toast.error(`“${a.name}” is used by products — remove it from those products first`);
     if (!confirm(`Delete attribute “${a.name}” and its ${a.attribute_values.length} values?`)) return;
-    await supabase.from("attribute_values").delete().eq("attribute_id", a.id);
     const { error } = await supabase.from("attributes").delete().eq("id", a.id);
     if (error) return toast.error(error.message);
     toast.success("Attribute deleted"); onChange();

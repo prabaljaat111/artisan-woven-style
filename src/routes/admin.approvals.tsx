@@ -33,7 +33,7 @@ function ApprovalsPage() {
   const [rejecting, setRejecting] = useState<{ id: string; name: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: loadError } = useQuery({
     queryKey: ["approvals-v2"], enabled: canApprove,
     queryFn: async () => {
       const cols = "id, name, sku, price, original_price, stock, images, sizes, colors, status, short_description, description, specifications, seo_title, meta_description, category_id, submitted_by, submitted_at, updated_at, rejection_reason, approved_snapshot, categories(name)";
@@ -43,6 +43,7 @@ function ApprovalsPage() {
         supabase.from("product_approval_logs").select("id, product_id, action, reason, actor_name, submitted_by, created_at, products(" + cols + ")").eq("action", "approved").order("created_at", { ascending: false }).limit(200),
         supabase.from("categories").select("id, name"),
       ]);
+      for (const result of [pend, rej, logs, cats]) if (result.error) throw result.error;
       const rejLogs = (await supabase.from("product_approval_logs").select("product_id, actor_name, created_at, reason").eq("action", "rejected").order("created_at", { ascending: false }).limit(500)).data ?? [];
       const ids = [...new Set([...(pend.data ?? []), ...(rej.data ?? [])].map((p: any) => p.submitted_by).concat((logs.data ?? []).map((l: any) => l.submitted_by)).filter(Boolean))] as string[];
       const { data: names } = ids.length ? await supabase.rpc("team_member_names", { _ids: ids }) : { data: [] as any[] };
@@ -90,6 +91,7 @@ function ApprovalsPage() {
         <div className="relative mb-2 w-full sm:w-72"><Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" /><input className={`${inputCls} w-full pl-9`} placeholder="Search product, SKU or person" maxLength={80} value={q} onChange={(e) => setQ(e.target.value)} /></div>
       </div>
 
+      {loadError && <p role="alert" className="mb-4 text-sm text-status-red">Could not load approvals: {loadError.message}</p>}
       <Card className="overflow-x-auto">
         <table className="w-full text-sm min-w-[820px]">
           <thead className="text-left text-xs text-muted-foreground bg-secondary/40"><tr>

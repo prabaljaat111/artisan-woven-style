@@ -84,7 +84,7 @@ function CategoriesPage() {
                 className={`border-t border-border/60 hover:bg-secondary/20 ${drag === i ? "opacity-40" : ""}`}>
                 <td className="p-3 cursor-grab text-muted-foreground"><GripVertical className="h-4 w-4" /></td>
                 <td className="p-3"><div className="h-11 w-11 rounded-lg bg-secondary overflow-hidden grid place-items-center">{c.image_url ? <img src={c.image_url} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="h-4 w-4 text-muted-foreground" />}</div></td>
-                <td className="p-3"><div className="font-medium">{c.name}</div>{c.parent_id && byId.get(c.parent_id) && <div className="text-xs text-muted-foreground">in {byId.get(c.parent_id)!.name}</div>}</td>
+                <td className="p-3"><div className="font-medium">{c.name}</div>{c.parent_id && byId.get(c.parent_id) && <div className="text-xs text-muted-foreground">in {byId.get(c.parent_id)?.name}</div>}</td>
                 <td className="p-3 text-muted-foreground">{c.slug}</td>
                 <td className="p-3 tabular-nums font-medium">{counts[c.id] ?? 0}</td>
                 <td className="p-3 text-muted-foreground max-w-xs truncate">{c.description || "—"}</td>
@@ -203,9 +203,9 @@ function DeleteDialog({ cat, count, all, hasChildren, onClose, onDone }: { cat: 
     if (!cat) return;
     setBusy(true);
     // re-check live before deleting
-    const { count: live } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category_id", cat.id);
+    const { count: live, error: countError } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category_id", cat.id).is("deleted_at", null);
+    if (countError) { setBusy(false); return toast.error(countError.message); }
     if ((live ?? 0) > 0) { setBusy(false); return toast.error("This category still has products — move them first"); }
-    await supabase.from("categories").update({ parent_id: cat.parent_id }).eq("parent_id", cat.id);
     const { error } = await supabase.from("categories").delete().eq("id", cat.id);
     setBusy(false);
     if (error) return toast.error(error.message);
