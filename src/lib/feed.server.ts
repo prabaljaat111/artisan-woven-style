@@ -1,7 +1,7 @@
 import type { FeedRow } from "./feed";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { scheduledPrice } from "./growth-rules";
+import { scheduledPrice, saleIsActive } from "./growth-rules";
 
 // Public feed: only published, non-deleted products, only public catalog fields.
 export async function loadFeedRows(): Promise<FeedRow[]> {
@@ -18,7 +18,7 @@ export async function loadFeedRows(): Promise<FeedRow[]> {
     .is("deleted_at", null)
     .order("id").range(offset, offset + 199);
   if (error) throw error;
-  rows.push(...(data ?? []).map((r) => ({ ...r, price: scheduledPrice(r), category_name: r.categories?.name ?? null, variants: r.product_variants.map(v=>({...v,sale_price:scheduledPrice(r)===Number(r.price)?v.sale_price:null})) })));
+  rows.push(...(data ?? []).map((r) => ({ ...r, price: scheduledPrice(r), category_name: r.categories?.name ?? null, variants: r.product_variants.map(v=>({...v,sale_price:saleIsActive(r)?v.sale_price:null})) })));
   if ((data?.length ?? 0) < 200) return rows;
   }
 }

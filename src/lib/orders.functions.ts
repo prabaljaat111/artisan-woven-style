@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { checkoutTotals, paymentAllowed } from "./checkout-rules";
 import { createHmac } from "node:crypto";
-import { scheduledPrice, zoneShipping } from "./growth-rules";
+import { scheduledPrice, saleIsActive, zoneShipping } from "./growth-rules";
 import { getRequestHeader } from '@tanstack/react-start/server';
 
 const ItemSchema = z.object({
@@ -55,7 +55,7 @@ export const createOrder = createServerFn({ method: "POST" })
       const variant = (variants ?? []).find((v) => v.size.toLowerCase() === (item.size ?? "").toLowerCase() && (!v.color || v.color.toLowerCase() === (item.color ?? "").toLowerCase()));
       if ((variants?.length ?? 0) > 0 && (!variant || variant.status === "inactive")) throw new Error(`Selected size/color unavailable: ${product.name}`);
       if (product.track_inventory && !product.allow_backorders && Number(variant?.stock ?? product.stock) < item.qty) throw new Error(`Not enough stock: ${product.name}`);
-      const saleActive=scheduledPrice(product)===Number(product.price);
+      const saleActive=saleIsActive(product);
       resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number((saleActive?variant?.sale_price:null) ?? variant?.price ?? scheduledPrice(product)) });
     }
     const subtotal = resolved.reduce((s, i) => s + i.qty * i.price, 0);
@@ -85,9 +85,8 @@ export const createOrder = createServerFn({ method: "POST" })
     const effectiveRules=zone?{...rules,flat_rate:zone.rate,free_shipping_threshold:Number.MAX_SAFE_INTEGER}:rules;
     const { shipping, gst, total } = checkoutTotals(subtotal, data.payment_method, effectiveRules, discount);
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .insert({
+    const { data: savedOrder, error } = await supabaseAdmin.rpc("create_checkout_order", {
+      _order: {
         user_id: authenticatedUserId,
         customer_name: data.customer_name,
         customer_email: data.customer_email,
@@ -96,17 +95,11 @@ export const createOrder = createServerFn({ method: "POST" })
         subtotal, gst, shipping, discount, total,
         coupon_code: appliedCoupon,
         payment_method: data.payment_method,
-        status: "pending",
-        payment_status: data.payment_method === "cod" ? "unpaid" : "unpaid",
-      })
-      .select("*")
-      .single();
+      },
+      _items: resolved,
+    });
+    const order = savedOrder as { id: string; order_number: string } | null;
     if (error || !order) throw new Error(error?.message ?? "Failed to create order");
-    if(appliedCoupon){const claimed=await supabaseAdmin.rpc('claim_order_coupon',{_order_id:order.id,_user_id:authenticatedUserId??undefined});if(claimed.error){await supabaseAdmin.from('orders').update({status:'cancelled',notes:'Coupon reservation failed'}).eq('id',order.id);throw new Error('Coupon is unavailable or already used. Please try again without it.');}}
-
-    const items = resolved.map((i) => ({ ...i, order_id: order.id }));
-    const { error: ie } = await supabaseAdmin.from("order_items").insert(items);
-    if (ie) throw new Error(ie.message);
 
     // For COD orders, auto-push to Shiprocket immediately
     if (data.payment_method === "cod") {

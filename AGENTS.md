@@ -8,6 +8,7 @@
 - Catalog backups restore only catalog/configuration records atomically; never replay order, payment, auth, or stock-history records through catalog restoration.
 - Validate public analytics identifiers before emitting tags; expose only explicitly allowlisted public settings.
 - Resolve checkout product identities, prices, inventory and payment rules on the server; require an order-specific signed capability before public guest payment operations.
+- Persist checkout orders, items and coupon claims in one service-only transaction, and verify captured gateway payments before marking orders paid, to prevent incomplete orders and false payment confirmation.
 - Use the dedicated WooCommerce bulk page for catalog imports; load full SKU indexes, preserve omitted update fields, and never update child rows when their imported parent fails.
 - Serve scheduled catalogs under /api/public/catalog using public-only reads and shared variant mapping; retain immutable item IDs and report provider setup separately from local feed readiness.
 - Derive scheduled prices at read/checkout time through shared growth rules, and use transactional reward RPCs with append-only ledgers; keep integration tokens hashed and enforce their scopes server-side.

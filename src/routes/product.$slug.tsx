@@ -192,8 +192,8 @@ function ProductPage() {
     incrementProductView();
     addRecent(p.id);
     setImgIdx(0);
-    setSize(sizes[1] ?? sizes[0] ?? "");
-    setColor(p.colors[0] ?? "");
+    setSize(selection.size && sizes.includes(selection.size) ? selection.size : sizes[1] ?? sizes[0] ?? "");
+    setColor(selection.color && p.colors.includes(selection.color) ? selection.color : p.colors[0] ?? "");
     setQty(1);
     setVariantMap(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
