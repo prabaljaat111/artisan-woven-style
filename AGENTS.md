@@ -7,3 +7,4 @@
 - Save product forms and variation changes through a single database transaction, preserving IDs for unchanged combinations to protect stock history.
 - Catalog backups restore only catalog/configuration records atomically; never replay order, payment, auth, or stock-history records through catalog restoration.
 - Validate public analytics identifiers before emitting tags; expose only explicitly allowlisted public settings.
+- Resolve checkout product identities, prices, inventory and payment rules on the server; require an order-specific signed capability before public guest payment operations.
