@@ -19,6 +19,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as RewardsRouteImport } from './routes/rewards'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -82,6 +83,7 @@ import { Route as AdminSettingsWebsiteRouteImport } from './routes/admin.setting
 import { Route as AdminSettingsWhatsappRouteImport } from './routes/admin.settings.whatsapp'
 import { Route as ApiPublicCatalogGoogleDotxmlRouteImport } from './routes/api/public/catalog/google[.]xml'
 import { Route as ApiPublicCatalogMetaDotcsvRouteImport } from './routes/api/public/catalog/meta[.]csv'
+import { Route as ApiPublicIntegrationDataRouteImport } from './routes/api/public/integration/data'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -131,6 +133,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ReturnsRoute = ReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RewardsRoute = RewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SaleRoute = SaleRouteImport.update({
@@ -451,6 +458,12 @@ const ApiPublicCatalogMetaDotcsvRoute =
     path: '/api/public/catalog/meta.csv',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIntegrationDataRoute =
+  ApiPublicIntegrationDataRouteImport.update({
+    id: '/api/public/integration/data',
+    path: '/api/public/integration/data',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -463,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/rewards': typeof RewardsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
@@ -526,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -537,6 +552,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/rewards': typeof RewardsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
@@ -599,6 +615,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -612,6 +629,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/rewards': typeof RewardsRoute
   '/sale': typeof SaleRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
@@ -675,6 +693,7 @@ export interface FileRoutesById {
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/api/public/catalog/google.xml': typeof ApiPublicCatalogGoogleDotxmlRoute
   '/api/public/catalog/meta.csv': typeof ApiPublicCatalogMetaDotcsvRoute
+  '/api/public/integration/data': typeof ApiPublicIntegrationDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -689,6 +708,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/returns'
+    | '/rewards'
     | '/sale'
     | '/shipping'
     | '/shop'
@@ -752,6 +772,7 @@ export interface FileRouteTypes {
     | '/admin/settings/'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -763,6 +784,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/returns'
+    | '/rewards'
     | '/sale'
     | '/shipping'
     | '/shop'
@@ -825,6 +847,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   id:
     | '__root__'
     | '/'
@@ -837,6 +860,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/returns'
+    | '/rewards'
     | '/sale'
     | '/shipping'
     | '/shop'
@@ -900,6 +924,7 @@ export interface FileRouteTypes {
     | '/admin/settings/'
     | '/api/public/catalog/google.xml'
     | '/api/public/catalog/meta.csv'
+    | '/api/public/integration/data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -913,6 +938,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
+  RewardsRoute: typeof RewardsRoute
   SaleRoute: typeof SaleRoute
   ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
@@ -931,6 +957,7 @@ export interface RootRouteChildren {
   CategoryIndexRoute: typeof CategoryIndexRoute
   ApiPublicCatalogGoogleDotxmlRoute: typeof ApiPublicCatalogGoogleDotxmlRoute
   ApiPublicCatalogMetaDotcsvRoute: typeof ApiPublicCatalogMetaDotcsvRoute
+  ApiPublicIntegrationDataRoute: typeof ApiPublicIntegrationDataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1003,6 +1030,13 @@ declare module '@tanstack/react-router' {
       path: '/returns'
       fullPath: '/returns'
       preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rewards': {
+      id: '/rewards'
+      path: '/rewards'
+      fullPath: '/rewards'
+      preLoaderRoute: typeof RewardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sale': {
@@ -1446,6 +1480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCatalogMetaDotcsvRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/integration/data': {
+      id: '/api/public/integration/data'
+      path: '/api/public/integration/data'
+      fullPath: '/api/public/integration/data'
+      preLoaderRoute: typeof ApiPublicIntegrationDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1568,6 +1609,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
+  RewardsRoute: RewardsRoute,
   SaleRoute: SaleRoute,
   ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
@@ -1586,6 +1628,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoryIndexRoute: CategoryIndexRoute,
   ApiPublicCatalogGoogleDotxmlRoute: ApiPublicCatalogGoogleDotxmlRoute,
   ApiPublicCatalogMetaDotcsvRoute: ApiPublicCatalogMetaDotcsvRoute,
+  ApiPublicIntegrationDataRoute: ApiPublicIntegrationDataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

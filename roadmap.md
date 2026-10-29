@@ -1,4 +1,5 @@
 # Admin functionality audit
+- [ ] Complete all remaining Coming Soon sections with working store tools; verify authenticated flows and request publication. External account activation remains provider-dependent.
 - [x] Connect admin catalog previews and public Google/Meta feeds to shared live product/variant records; verified 105 matching offers, downloads and public accessibility locally; 5 catalog tests passed.
 - [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — requires publication (current live endpoints return 404), account access and provider approval; no relevant catalog connection is available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.

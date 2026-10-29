@@ -1,0 +1,11 @@
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {supabase} from '@/integrations/supabase/client';
+import {Button} from '@/components/ui/button';
+import {useState} from 'react';
+import {toast} from 'sonner';
+export function RewardRules(){
+  const qc=useQueryClient();const [busy,setBusy]=useState(false);
+  const q=useQuery({queryKey:['reward-rules'],queryFn:async()=>{const {data,error}=await supabase.from('loyalty_rules').select('*').maybeSingle();if(error)throw error;return data??{id:true,enabled:false,rupees_per_point:100,point_value:1,minimum_redemption:100,referral_bonus:0};}});
+  if(!q.data)return <p className="text-sm">{q.error?.message??'Loading reward rules…'}</p>;
+  return <div className="space-y-3"><h3 className="font-display text-lg">Reward rules</h3><label className="flex gap-2 text-sm"><input type="checkbox" checked={q.data.enabled} disabled={busy} onChange={async e=>{setBusy(true);const {error}=await supabase.from('loyalty_rules').upsert({...q.data,id:true,enabled:e.target.checked});if(error)toast.error(error.message);await qc.invalidateQueries({queryKey:['reward-rules']});setBusy(false);}}/>Enable rewards</label><div className="grid sm:grid-cols-2 gap-3">{(['rupees_per_point','point_value','minimum_redemption','referral_bonus'] as const).map(k=><label key={k} className="text-sm">{{rupees_per_point:'₹ spent per point',point_value:'₹ per redeemed point',minimum_redemption:'Minimum points to redeem',referral_bonus:'Referral bonus points'}[k]}<input type="number" aria-label={k} min={k==='referral_bonus'?0:1} className="w-full border border-border rounded-md px-3 py-2 bg-background" defaultValue={q.data?.[k]} onBlur={async e=>{const n=Number(e.target.value);if(!Number.isFinite(n)||n<(k==='referral_bonus'?0:1))return toast.error('Enter a valid amount');const {error}=await supabase.from('loyalty_rules').upsert({...q.data,id:true,[k]:n});if(error)toast.error(error.message);else {toast.success('Reward rule saved');await qc.invalidateQueries({queryKey:['reward-rules']});}}}/></label>)}</div><a href="/rewards" className="text-primary underline text-sm">Open customer rewards page</a></div>;
+}

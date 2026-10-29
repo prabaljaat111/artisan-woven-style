@@ -1,0 +1,21 @@
+import {createFileRoute,Link} from '@tanstack/react-router';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {useServerFn} from '@tanstack/react-start';
+import {useState} from 'react';
+import {useAuth} from '@/hooks/use-auth';
+import {customerRewards,rewardAction} from '@/lib/customer-program.functions';
+import {pointBalance} from '@/lib/growth-rules';
+import {Button} from '@/components/ui/button';
+import {toast} from 'sonner';
+export const Route=createFileRoute('/rewards')({head:()=>({meta:[{title:'Your Rewards — Indian Handicraft Standards'},{name:'description',content:'View your IHS reward points, redeem rewards and manage your referral code.'},{property:'og:title',content:'Your Rewards — Indian Handicraft Standards'},{property:'og:description',content:'Your Chikankari shopping rewards and referral history.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'},{name:'robots',content:'noindex'}]}),component:Page});
+function Page(){
+  const auth=useAuth();const qc=useQueryClient();const act=useServerFn(rewardAction);const [code,setCode]=useState('');const [points,setPoints]=useState(0);const [coupon,setCoupon]=useState('');const [busy,setBusy]=useState(false);
+  const q=useQuery({queryKey:['customer-rewards',auth.user?.id],queryFn:()=>customerRewards(),enabled:!!auth.user});
+  const run=async(data:{type:'redeem';points:number}|{type:'referral';code?:string})=>{setBusy(true);try{const r=await act({data});if(data.type==='redeem')setCoupon(r);await qc.invalidateQueries({queryKey:['customer-rewards']});toast.success('Saved');}catch(e){toast.error(e instanceof Error?e.message:'Could not save');}finally{setBusy(false);}};
+  return <div className="max-w-3xl mx-auto px-5 py-12 space-y-6"><h1 className="font-display text-4xl text-primary">Your Rewards</h1>{!auth.user?<p>Sign in from the account menu to view your rewards.</p>:q.isPending?<p>Loading…</p>:q.error?<p role="alert" className="text-destructive">{q.error.message}</p>:q.data&&<>
+    <div className="border-b border-border pb-6"><p className="text-muted-foreground">Available points</p><div className="font-display text-5xl text-primary">{pointBalance(q.data.ledger).toLocaleString('en-IN')}</div></div>
+    {q.data.rules?.enabled?<div className="space-y-3"><p className="text-sm">{q.data.rules.minimum_redemption} points minimum · ₹{q.data.rules.point_value} per point</p><input aria-label="Points to redeem" type="number" min={q.data.rules.minimum_redemption} className="border border-border bg-background rounded-md p-2" value={points} onChange={e=>setPoints(Number(e.target.value))}/><Button disabled={busy||points<q.data.rules.minimum_redemption||points>pointBalance(q.data.ledger)} onClick={()=>run({type:'redeem',points})}>Redeem for coupon</Button>{coupon&&<div role="status" className="border border-border rounded-md p-3">Your checkout coupon: <strong>{coupon}</strong><p className="text-sm">Valid for one use within 30 days.</p></div>}</div>:<p className="text-sm text-muted-foreground">Reward earning and redemption are currently disabled.</p>}
+    <section className="space-y-3 border-t border-border pt-5"><h2 className="font-display text-2xl">Referrals</h2>{q.data.profile?.referral_code?<p>Your referral code: <strong>{q.data.profile.referral_code}</strong></p>:<Button disabled={busy} onClick={()=>run({type:'referral'})}>Create my referral code</Button>}{!q.data.profile?.referred_by&&<div className="flex gap-2"><input aria-label="Friend referral code" className="border border-border bg-background rounded-md p-2" value={code} placeholder="Friend’s referral code" onChange={e=>setCode(e.target.value)}/><Button disabled={busy||!code} onClick={()=>run({type:'referral',code})}>Apply referral</Button></div>}</section>
+    <section className="space-y-2"><h2 className="font-display text-2xl">Points history</h2>{q.data.ledger.map((p,i)=><div key={i} className="flex gap-3 border-b border-border py-3 text-sm"><span>{p.reason}</span><span className="ml-auto">{p.points>0?'+':''}{p.points}</span><time>{new Date(p.created_at).toLocaleDateString('en-IN')}</time></div>)}{q.data.ledger.length===0&&<p className="text-sm text-muted-foreground">No reward activity yet.</p>}</section>
+  </>}<Link to="/shop" className="text-primary underline">Continue shopping</Link></div>;
+}

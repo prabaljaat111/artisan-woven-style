@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Save, CheckCircle2 } from "lucide-react";
 import { adminGetShiprocketSettings, adminUpdateShiprocketSettings } from "@/lib/shiprocket.functions";
-import { Field, Section, PageHeader, ComingSoon } from "@/components/admin/SettingsField";
+import { Field, Section, PageHeader } from "@/components/admin/SettingsField";
+import { GrowthTools } from "@/components/admin/GrowthTools";
 import { useSetting } from "@/hooks/use-setting";
 
 export const Route = createFileRoute("/admin/settings/shipping")({ head: () => ({ meta: adminPageMeta("Shipping Settings") }), component: Page });
@@ -81,7 +82,7 @@ function Page() {
       </Section>
 
       <Section title="Shipping Zones & Courier Preferences">
-        <ComingSoon title="Per-zone rates & courier rules" description="Will let you set different rates by state/region and prefer specific couriers per pincode." requires={["Defined shipping zones", "Multiple Shiprocket pickup locations (optional)"]} />
+        <GrowthTools mode="zones" />
       </Section>
     </div>
   );
