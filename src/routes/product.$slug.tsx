@@ -54,7 +54,7 @@ function colorToHex(name: string): string {
 }
 
 export const Route = createFileRoute("/product/$slug")({
-  validateSearch: (search: Record<string, unknown>) => ({ size: typeof search.size === "string" ? search.size.slice(0, 40) : undefined, color: typeof search.color === "string" ? search.color.slice(0, 80) : undefined }),
+  validateSearch: (search: Record<string, unknown>): { size?: string; color?: string } => ({ size: typeof search.size === "string" ? search.size.slice(0, 40) : undefined, color: typeof search.color === "string" ? search.color.slice(0, 80) : undefined }),
   component: ProductPage,
   head: ({ loaderData }) => {
     const p = loaderData as Product | undefined;

@@ -1,5 +1,6 @@
 # Admin functionality audit
-- [ ] Integrate Google and Meta/WhatsApp catalogs with live storefront data and verify external setup where access is available.
+- [x] Connect admin catalog previews and public Google/Meta feeds to shared live product/variant records; verified 105 matching offers, downloads and public accessibility locally; 5 catalog tests passed.
+- [ ] Complete Google/Meta scheduled-source setup and WhatsApp catalog association — requires publication (current live endpoints return 404), account access and provider approval; no relevant catalog connection is available.
 - [x] Repair bulk product upload; verified 5-row creation, 5-row SKU update, variation stock totals, history, error reporting, deleted-slug conflicts and product-list Import navigation; 10 CSV tests passed. Temporary listings were soft-deleted.
 - [x] Review 41 admin pages with the signed-in account and record failures.
 - [x] Repair transactional product saving, catalog safeguards, inventory thresholds, navigation, tracking settings and payment verification.
