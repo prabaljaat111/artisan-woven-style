@@ -1143,6 +1143,10 @@ export type Database = {
           variation_id: string
         }[]
       }
+      save_product_form: {
+        Args: { _id: string; _product: Json; _variations: Json }
+        Returns: Json
+      }
       team_member_names: {
         Args: { _ids: string[] }
         Returns: {
