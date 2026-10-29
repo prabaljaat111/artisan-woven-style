@@ -7,12 +7,13 @@ import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { BrandLogo, FullBrandLogo } from "./BrandLogo";
 import { LotusMark } from "./LotusMark";
-import { categories } from "@/data/products";
+import { useStorefrontCategories } from "@/hooks/use-storefront-categories";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CartPriceSync } from "./CartPriceSync";
 
 const ChatWidget = lazy(() =>
   import("./ChatWidget").then((m) => ({ default: m.ChatWidget }))
@@ -41,6 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <AnnouncementBar />
+      <CartPriceSync />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
@@ -63,6 +65,7 @@ function AnnouncementBar() {
 }
 
 function Header() {
+  const categories = useStorefrontCategories();
   const totalCount = useCart((s) => s.totalCount());
   const wishCount = useWishlist((s) => s.ids.length);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -377,6 +380,7 @@ function ExitIntent() {
 }
 
 function Footer() {
+  const categories = useStorefrontCategories();
   return (
     <footer className="bg-primary text-primary-foreground pb-36 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">

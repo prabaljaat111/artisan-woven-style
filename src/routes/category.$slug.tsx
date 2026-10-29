@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { categories } from "@/data/products";
+import { listPublishedCategories } from "@/lib/storefront.functions";
 import { useProductsByCategory } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 import kurtiWhite from "@/assets/products/kurti-white.jpg";
@@ -55,7 +55,8 @@ export const Route = createFileRoute("/category/$slug")({
       <Link to="/shop" className="text-gold mt-4 inline-block">Browse all →</Link>
     </div>
   ),
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    const categories = await listPublishedCategories();
     const cat = categories.find((c) => c.slug === params.slug);
     if (!cat) throw notFound();
     return cat;
@@ -64,7 +65,7 @@ export const Route = createFileRoute("/category/$slug")({
 
 function CategoryPage() {
   const { slug } = Route.useParams();
-  const cat = Route.useLoaderData() as (typeof categories)[number] | undefined;
+  const cat = Route.useLoaderData() as { name: string; slug: string } | undefined;
   const items = useProductsByCategory(slug);
   if (!cat) throw notFound();
   const banner = CATEGORY_BANNERS[slug] ?? { image: kurtiWhite, tagline: "Collection", blurb: "Each piece is hand-embroidered in Lucknow using traditional Chikankari techniques — a heritage craft over 400 years old." };

@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { TwoFactorSettings } from "@/components/admin/TwoFactorSettings";
+import { useAdminLive } from "@/hooks/use-admin-live";
 
 type NavItem = {
   label: string;
@@ -76,6 +77,7 @@ const allowed = (role: TeamRole | null | undefined, roles?: TeamRole[]) => !!rol
 export function AdminShell() {
   const navigate = useNavigate();
   const { loading, user, role, isTeam } = useAuth();
+  useAdminLive(isTeam);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [drawer, setDrawer] = useState(false);
   const [counts, setCounts] = useState({ orders: 0, alerts: 0 });

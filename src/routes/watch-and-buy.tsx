@@ -5,6 +5,7 @@ import { ShoppingBag, Heart, Volume2, VolumeX, Play } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { toast } from "sonner";
+import { Link as ProductLink } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/watch-and-buy")({
   head: () => ({
@@ -229,24 +230,11 @@ function ReelSlide({
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              addItem({
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                price: product.price,
-                image: product.images[0],
-                size: product.sizes[Math.min(2, product.sizes.length - 1)],
-                color: product.colors[0] ?? "",
-                qty: 1,
-              });
-              toast("Added to cart 🛍️");
-            }}
+          <ProductLink to="/product/$slug" params={{ slug: product.slug }}
             className="flex-1 inline-flex items-center justify-center gap-2 bg-white text-primary rounded-full py-3 text-sm font-semibold hover:bg-white/90 transition"
           >
-            <ShoppingBag className="h-4 w-4" /> Add to cart
-          </button>
+            <ShoppingBag className="h-4 w-4" /> Select options
+          </ProductLink>
           <Link
             to="/product/$slug"
             params={{ slug: product.slug }}

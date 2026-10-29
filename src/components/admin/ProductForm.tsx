@@ -14,7 +14,7 @@ import { VariationsSection, type Variation } from "@/components/admin/Variations
 export type ProductFormState = {
   name: string; short_description: string; description: string; category_id: string; brand_id: string;
   product_type: "simple" | "variable"; regular_price: string; sale_price: string; sale_starts_at: string; sale_ends_at: string;
-  sku: string; featured: boolean; on_sale: boolean; images: string[];
+  sku: string; featured: boolean; on_sale: boolean; images: string[]; video_url: string;
   track_inventory: boolean; stock: string; reorder_level: string; allow_backorders: boolean; stock_status: string;
   weight: string; length_cm: string; width_cm: string; height_cm: string; shipping_class: string;
   upsell_ids: string[]; cross_sell_ids: string[]; product_attributes: AttrSel[];
@@ -24,7 +24,7 @@ export type ProductFormState = {
 
 const EMPTY: ProductFormState = {
   name: "", short_description: "", description: "", category_id: "", brand_id: "", product_type: "simple",
-  regular_price: "", sale_price: "", sale_starts_at: "", sale_ends_at: "", sku: "", featured: false, on_sale: false, images: [],
+  regular_price: "", sale_price: "", sale_starts_at: "", sale_ends_at: "", sku: "", featured: false, on_sale: false, images: [], video_url: "",
   track_inventory: true, stock: "0", reorder_level: "5", allow_backorders: false, stock_status: "auto",
   weight: "", length_cm: "", width_cm: "", height_cm: "", shipping_class: "",
   upsell_ids: [], cross_sell_ids: [], product_attributes: [],
@@ -65,7 +65,7 @@ export function fromRow(p: any): ProductFormState {
     category_id: p.category_id ?? "", brand_id: p.brand_id ?? "", product_type: p.product_type ?? "simple",
     regular_price: String(p.original_price ?? p.price ?? ""), sale_price: onSale ? String(p.price) : "",
     sale_starts_at: toLocalInput(p.sale_starts_at), sale_ends_at: toLocalInput(p.sale_ends_at),
-    sku: p.sku ?? "", featured: !!p.featured, on_sale: !!p.on_sale || onSale, images: p.images ?? [],
+    sku: p.sku ?? "", featured: !!p.featured, on_sale: !!p.on_sale || onSale, images: p.images ?? [], video_url: p.video_url ?? "",
     track_inventory: p.track_inventory ?? true, stock: String(p.stock ?? 0), reorder_level: String(p.reorder_level ?? 5),
     allow_backorders: !!p.allow_backorders, stock_status: p.stock_status ?? "auto",
     weight: p.weight?.toString() ?? "", length_cm: p.length_cm?.toString() ?? "", width_cm: p.width_cm?.toString() ?? "", height_cm: p.height_cm?.toString() ?? "",
@@ -168,6 +168,7 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
       toast.error("Please fix the highlighted fields");
       return;
     }
+    if (form.video_url && !/^https:\/\//i.test(form.video_url)) { toast.error("Use a secure HTTPS video file link"); return; }
     savingRef.current = true;
     setSaving(mode);
     const cat = cats.find((c) => c.id === form.category_id);
@@ -191,7 +192,7 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
       original_price: regular, price: sale ?? regular, on_sale: form.on_sale || sale !== null,
       sale_starts_at: form.sale_starts_at ? new Date(form.sale_starts_at).toISOString() : null,
       sale_ends_at: form.sale_ends_at ? new Date(form.sale_ends_at).toISOString() : null,
-      featured: form.featured, images: form.images,
+      featured: form.featured, images: form.images, video_url: form.video_url || null,
       track_inventory: form.track_inventory, reorder_level: Number(form.reorder_level), low_stock_threshold: Number(form.reorder_level),
       allow_backorders: form.allow_backorders, stock_status: form.stock_status,
       weight: num(form.weight), length_cm: num(form.length_cm), width_cm: num(form.width_cm), height_cm: num(form.height_cm),
@@ -426,7 +427,7 @@ export function ProductForm({ productId, initial, initialVariations = [], reject
           </div>
         </Card>
 
-        <ImagesPanel images={form.images} onChange={(imgs) => set("images", imgs)} />
+        <div className="space-y-4"><ImagesPanel images={form.images} onChange={(imgs) => set("images", imgs)} /><Card className="p-5 space-y-3"><h2 className="font-display text-xl">Product video</h2><input aria-label="Product video URL" type="url" value={form.video_url} onChange={e => set("video_url", e.target.value)} placeholder="https://…/product-video.mp4" className={`${inputCls} w-full`} />{form.video_url && <video src={form.video_url} controls playsInline preload="metadata" className="w-full aspect-[9/16] max-h-80 object-contain bg-secondary" />}</Card></div>
       </div>
 
       <div className="fixed bottom-0 right-0 left-0 lg:left-64 z-20 bg-card/95 backdrop-blur border-t border-border px-4 md:px-6 py-3 flex flex-wrap items-center justify-end gap-2">

@@ -23,6 +23,10 @@ import kurtiYellow from "@/assets/products/kurti-yellow.jpg";
 import sareeTurquoise from "@/assets/products/saree-turquoise.jpg";
 import sareeRed from "@/assets/products/saree-red.jpg";
 
+export interface ProductVariation {
+  id: string; size: string; color: string | null; stock: number; price: number | null; salePrice: number | null; image: string | null; status: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -34,6 +38,10 @@ export interface Product {
   sizes: string[];
   colors: string[];
   videoUrl?: string | null;
+  variations?: ProductVariation[];
+  defaultSize?: string | null;
+  defaultColor?: string | null;
+  allowBackorders?: boolean;
   specifications?: Record<string, string>;
   attributes?: Record<string, string>;
   careInstructions?: string[];

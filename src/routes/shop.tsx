@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal, X, Search } from "lucide-react";
-import { categories } from "@/data/products";
+import { useStorefrontCategories } from "@/hooks/use-storefront-categories";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { LandmarkCard } from "@/components/LandmarkCards";
 
@@ -49,6 +49,7 @@ export const Route = createFileRoute("/shop")({
 });
 
 function ShopPage() {
+  const categories = useStorefrontCategories();
   const products = useStorefrontProducts();
   const ALL_COLORS = useMemo(() => Array.from(new Set(products.flatMap((p) => p.colors))).sort(), [products]);
   const navigate = useNavigate({ from: "/shop" });
@@ -99,7 +100,7 @@ function ShopPage() {
     const priceBuckets = cats.filter((c) => c in PRICE_BUCKETS);
     const realCats = cats.filter((c) => !(c in PRICE_BUCKETS));
     let list = products.filter((p) => {
-      if (p.price < min || p.price > max) return false;
+      if ((min > PRICE_MIN && p.price < min) || (max < PRICE_MAX && p.price > max)) return false;
       if (realCats.length && !realCats.includes(p.category)) return false;
       if (priceBuckets.length && !priceBuckets.some((b) => PRICE_BUCKETS[b](p.price))) return false;
       if (colors.length && !p.colors.some((c) => colors.includes(c))) return false;
@@ -118,7 +119,7 @@ function ShopPage() {
     else if (sort === "featured") list = [...list].sort((a, b) => (Number(b.isBestseller ?? 0) - Number(a.isBestseller ?? 0)) || (Number(b.isNew ?? 0) - Number(a.isNew ?? 0)) || (b.rating - a.rating));
     else list = [...list].sort((a, b) => (Number(b.isBestseller ?? 0) - Number(a.isBestseller ?? 0)) || (b.rating - a.rating) || (b.reviews - a.reviews));
     return list;
-  }, [cats, colors, min, max, sale, sort, q]);
+  }, [products, cats, colors, min, max, sale, sort, q]);
 
   const activeFilterCount =
     cats.length + colors.length + (sale ? 1 : 0) + (min > PRICE_MIN ? 1 : 0) + (max < PRICE_MAX ? 1 : 0);

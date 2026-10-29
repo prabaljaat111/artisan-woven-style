@@ -141,7 +141,7 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
   .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await context.supabase.from("products").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("products").update({ deleted_at: new Date().toISOString(), is_published: false, status: "inactive" }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -195,7 +195,7 @@ export const adminBulkProducts = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ids, action } = data;
     if (action === "delete") {
-      const { error } = await context.supabase.from("products").delete().in("id", ids);
+      const { error } = await context.supabase.from("products").update({ deleted_at: new Date().toISOString(), is_published: false, status: "inactive" }).in("id", ids);
       if (error) throw new Error(error.message);
       return { ok: true, count: ids.length };
     }

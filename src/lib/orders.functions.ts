@@ -52,11 +52,15 @@ export const createOrder = createServerFn({ method: "POST" })
       if (error || !product) throw new Error(`Product unavailable: ${item.product_name}`);
       const { data: variants, error: variantError } = await supabaseAdmin.from("product_variants").select("size,color,stock,price,sale_price,status").eq("product_id", product.id);
       if (variantError) throw new Error("Could not check product stock");
-      const variant = (variants ?? []).find((v) => v.size.toLowerCase() === (item.size ?? "").toLowerCase() && (!v.color || v.color.toLowerCase() === (item.color ?? "").toLowerCase()));
+      const matchingSize = (variants ?? []).filter(v => v.size.trim().toLowerCase() === (item.size ?? "").trim().toLowerCase());
+      const exactVariant = matchingSize.find(v => (v.color ?? "").trim().toLowerCase() === (item.color ?? "").trim().toLowerCase());
+      const variant = exactVariant ?? (matchingSize.every(v => !v.color) ? matchingSize[0] : undefined);
       if ((variants?.length ?? 0) > 0 && (!variant || variant.status === "inactive")) throw new Error(`Selected size/color unavailable: ${product.name}`);
       if (product.track_inventory && !product.allow_backorders && Number(variant?.stock ?? product.stock) < item.qty) throw new Error(`Not enough stock: ${product.name}`);
       const saleActive=saleIsActive(product);
-      resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number((saleActive?variant?.sale_price:null) ?? variant?.price ?? scheduledPrice(product)) });
+      const price = Number((saleActive?variant?.sale_price:null) ?? variant?.price ?? scheduledPrice(product));
+      if (Math.round(item.price * 100) !== Math.round(price * 100)) throw new Error(`The price of ${product.name} has changed. Refresh your cart before ordering.`);
+      resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price });
     }
     const subtotal = resolved.reduce((s, i) => s + i.qty * i.price, 0);
     if (!paymentAllowed(subtotal, data.payment_method, rules)) throw new Error("This payment method is unavailable for this order amount");

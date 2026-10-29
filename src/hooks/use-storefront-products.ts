@@ -1,20 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listPublishedProducts } from "@/lib/storefront.functions";
-import { products as staticProducts, type Product } from "@/data/products";
+import { type Product } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
 /**
- * Returns the merged storefront catalogue: admin-managed DB products first
- * (so they appear at the top of listings), then the static demo set as a
- * fallback. Subscribes to product / variant changes so newly added or
- * edited items appear live without a hard refresh.
+ * Published database products only. Changes refetch live, with timed recovery
+ * for missed events and scheduled price transitions.
  */
 export function useStorefrontProducts(): Product[] {
+  const client = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["storefront-products"],
     queryFn: () => listPublishedProducts(),
     staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 
   useEffect(() => {
@@ -22,14 +22,12 @@ export function useStorefrontProducts(): Product[] {
       .channel(`storefront-products-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "product_variants" }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => { refetch(); client.invalidateQueries({ queryKey: ["storefront-categories"] }); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [refetch]);
+  }, [refetch, client]);
 
-  if (!data || data.length === 0) return staticProducts;
-  // Merge: DB products shadow static by slug, then append remaining static demos.
-  const seen = new Set(data.map((p) => p.slug));
-  return [...data, ...staticProducts.filter((p) => !seen.has(p.slug))];
+  return data ?? [];
 }
 
 export function useProductBySlug(slug: string): Product | undefined {
