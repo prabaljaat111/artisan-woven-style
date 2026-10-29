@@ -156,3 +156,9 @@ export const checkoutRules = createServerFn({ method: "GET" }).handler(async () 
   const { readCheckoutRules } = await import("./checkout-rules.server");
   return readCheckoutRules();
 });
+export const shippingZoneQuote=createServerFn({method:'GET'}).inputValidator(d=>z.object({state:z.string().max(100),pincode:z.string().max(10),subtotal:z.number().min(0).max(50000000)}).parse(d)).handler(async({data})=>{
+  const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
+  const zones=await supabaseAdmin.from('shipping_zones').select('*').eq('active',true);
+  if(zones.error)throw new Error('Could not check shipping rates');
+  return zoneShipping(zones.data??[],data.state,data.pincode,data.subtotal);
+});

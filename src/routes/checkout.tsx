@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useCart, priceBreakdown } from "@/store/cart";
 import { useQuery } from "@tanstack/react-query";
 import { checkoutTotals, DEFAULT_CHECKOUT_RULES, paymentAllowed } from "@/lib/checkout-rules";
-import { checkoutRules, createOrder } from "@/lib/orders.functions";
+import { checkoutRules, createOrder, shippingZoneQuote } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { checkServiceability } from "@/lib/shiprocket.functions";
 import { useServerFn } from '@tanstack/react-start';
@@ -70,7 +70,9 @@ function CheckoutPage() {
   useEffect(() => { setMounted(true); }, []);
   const rulesQuery = useQuery({ queryKey: ["checkout-rules"], queryFn: () => checkoutRules() });
   const rules = rulesQuery.data ?? DEFAULT_CHECKOUT_RULES;
-  const { subtotal, shipping, gst, total } = checkoutTotals(totalPrice(), paymentMethod, rules);
+  const zoneQuery=useQuery({queryKey:['shipping-zone',address.state,address.pincode,totalPrice()],queryFn:()=>shippingZoneQuote({data:{state:address.state,pincode:address.pincode,subtotal:totalPrice()}}),enabled:address.pincode.length===6});
+  const effectiveRules=zoneQuery.data?{...rules,flat_rate:zoneQuery.data.rate,free_shipping_threshold:Number.MAX_SAFE_INTEGER}:rules;
+  const { subtotal, shipping, gst, total } = checkoutTotals(totalPrice(), paymentMethod, effectiveRules);
   useEffect(() => { if (!paymentAllowed(totalPrice(), paymentMethod, rules)) setPaymentMethod(paymentAllowed(totalPrice(), "cod", rules) ? "cod" : "razorpay"); }, [rules, paymentMethod, totalPrice]);
   const phoneValid = /^[6-9]\d{9}$/.test(address.phone.replace(/\D/g, ""));
   const pinValid = /^\d{6}$/.test(address.pincode);
@@ -285,7 +287,7 @@ function CheckoutPage() {
             {user&&<div className="flex flex-wrap gap-3 text-sm"><Link to="/rewards" className="text-primary underline">Use reward points</Link><label className="flex items-center gap-2"><input type="checkbox" aria-label="Email me cart reminders" onChange={e=>persistCart({data:{items,consent:e.target.checked}}).catch(()=>setError('Could not save reminder preference'))}/>Email me cart reminders</label></div>}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
-              disabled={items.length === 0 || processing || rulesQuery.isLoading || !!rulesQuery.error || !paymentAllowed(subtotal, paymentMethod, rules)}
+              disabled={items.length === 0 || processing || rulesQuery.isLoading || zoneQuery.isFetching || !!zoneQuery.error || !!rulesQuery.error || !paymentAllowed(subtotal, paymentMethod, rules)}
               onClick={handlePlaceOrder}
               className="w-full bg-primary text-primary-foreground py-3 rounded-full font-medium mt-3 disabled:opacity-50"
             >
