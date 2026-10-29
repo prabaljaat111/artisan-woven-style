@@ -45,7 +45,7 @@ describe("woo csv import validation", () => {
     expect(r.size).toBe("S"); expect(r.errors).toEqual([]);
   });
   it("resolves WooCommerce original ID parent references", () => {
-    const data = [{ ID: "42", Type: "variable", SKU: "P1", Name: "Kurti", Categories: "Kurtis" }, { Type: "variation", SKU: "P1-S", Parent: "id:42", "Regular price": "999", "Attribute 1 name": "Size", "Attribute 1 value(s)": "S" }];
+    const data: Record<string, string>[] = [{ ID: "42", Type: "variable", SKU: "P1", Name: "Kurti", Categories: "Kurtis" }, { Type: "variation", SKU: "P1-S", Parent: "id:42", "Regular price": "999", "Attribute 1 name": "Size", "Attribute 1 value(s)": "S" }];
     const rows = parseRows(data, autoMap(["ID", ...headers]), opts);
     expect(rows[1].parent).toBe("P1"); expect(rows[1].errors).toEqual([]); expect(rows[0].regular_price).toBe(999);
   });
