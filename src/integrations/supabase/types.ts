@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: number
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: never
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: never
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
@@ -112,6 +139,47 @@ export type Database = {
         }
         Relationships: []
       }
+      cart_recovery_deliveries: {
+        Row: {
+          cart_updated_at: string
+          created_at: string
+          error: string | null
+          id: string
+          provider_id: string | null
+          stage: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cart_updated_at: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_id?: string | null
+          stage: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cart_updated_at?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_id?: string | null
+          stage?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_recovery_deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -195,6 +263,27 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_groups: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       import_jobs: {
         Row: {
           created_at: string
@@ -240,8 +329,77 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          name: string
+          revoked_at: string | null
+          scope: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          name: string
+          revoked_at?: string | null
+          scope: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          name?: string
+          revoked_at?: string | null
+          scope?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      lead_routing_rules: {
+        Row: {
+          assigned_to: string
+          category: string
+          created_at: string
+          id: string
+          priority: number
+          source: string
+        }
+        Insert: {
+          assigned_to: string
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          source?: string
+        }
+        Update: {
+          assigned_to?: string
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_routing_rules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
+          assigned_to: string | null
           budget: string | null
           category: string | null
           conversation: Json
@@ -260,6 +418,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          assigned_to?: string | null
           budget?: string | null
           category?: string | null
           conversation?: Json
@@ -278,6 +437,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          assigned_to?: string | null
           budget?: string | null
           category?: string | null
           conversation?: Json
@@ -295,7 +455,60 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_ledger: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          order_id: string | null
+          points: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_id?: string | null
+          points: number
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_id?: string | null
+          points?: number
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_ledger_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -820,28 +1033,52 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          customer_group_id: string | null
           full_name: string | null
           id: string
           phone: string | null
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          customer_group_id?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          customer_group_id?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_customer_group_id_fkey"
+            columns: ["customer_group_id"]
+            isOneToOne: false
+            referencedRelation: "customer_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -883,6 +1120,41 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_customer_carts: {
+        Row: {
+          email: string | null
+          items: Json
+          recovered_at: string | null
+          recovery_consent: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email?: string | null
+          items?: Json
+          recovered_at?: string | null
+          recovery_consent?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string | null
+          items?: Json
+          recovered_at?: string | null
+          recovery_consent?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_customer_carts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -963,6 +1235,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shipping_zones: {
+        Row: {
+          active: boolean
+          courier: string
+          flat_rate: number
+          free_above: number | null
+          id: string
+          name: string
+          pincode_prefixes: string[]
+          priority: number
+          states: string[]
+        }
+        Insert: {
+          active?: boolean
+          courier?: string
+          flat_rate?: number
+          free_above?: number | null
+          id?: string
+          name: string
+          pincode_prefixes?: string[]
+          priority?: number
+          states?: string[]
+        }
+        Update: {
+          active?: boolean
+          courier?: string
+          flat_rate?: number
+          free_above?: number | null
+          id?: string
+          name?: string
+          pincode_prefixes?: string[]
+          priority?: number
+          states?: string[]
+        }
+        Relationships: []
       }
       stock_alerts: {
         Row: {
