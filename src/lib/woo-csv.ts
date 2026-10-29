@@ -4,26 +4,29 @@
 export type ImportField =
   | "type" | "sku" | "name" | "published" | "featured" | "short_description" | "description"
   | "regular_price" | "sale_price" | "categories" | "images" | "stock" | "parent"
-  | "weight" | "length" | "width" | "height";
+  | "weight" | "length" | "width" | "height" | "id" | "size" | "color";
 
 export const IMPORT_FIELDS: { key: ImportField; label: string; aliases: string[] }[] = [
   { key: "type", label: "Type", aliases: ["type", "product type"] },
   { key: "sku", label: "SKU", aliases: ["sku"] },
-  { key: "name", label: "Name", aliases: ["name", "product name", "title"] },
-  { key: "published", label: "Published", aliases: ["published", "status"] },
+  { key: "name", label: "Name", aliases: ["name", "product name", "product_name", "title"] },
+  { key: "published", label: "Published", aliases: ["published", "is_published", "status"] },
   { key: "featured", label: "Is featured?", aliases: ["is featured?", "featured"] },
   { key: "short_description", label: "Short description", aliases: ["short description", "short_description"] },
   { key: "description", label: "Description", aliases: ["description"] },
-  { key: "regular_price", label: "Regular price", aliases: ["regular price", "regular_price", "price", "mrp"] },
+  { key: "regular_price", label: "Regular price", aliases: ["regular price", "regular_price", "original_price", "mrp", "price", "selling_price"] },
   { key: "sale_price", label: "Sale price", aliases: ["sale price", "sale_price"] },
-  { key: "categories", label: "Categories", aliases: ["categories", "category"] },
-  { key: "images", label: "Images", aliases: ["images", "image", "image url"] },
+  { key: "categories", label: "Categories", aliases: ["categories", "category", "category_name", "category_slug"] },
+  { key: "images", label: "Images", aliases: ["images", "image", "image url", "image_url"] },
   { key: "stock", label: "Stock", aliases: ["stock", "stock quantity", "quantity", "qty"] },
   { key: "parent", label: "Parent", aliases: ["parent", "parent sku"] },
   { key: "weight", label: "Weight (kg)", aliases: ["weight (kg)", "weight"] },
   { key: "length", label: "Length (cm)", aliases: ["length (cm)", "length"] },
   { key: "width", label: "Width (cm)", aliases: ["width (cm)", "width"] },
   { key: "height", label: "Height (cm)", aliases: ["height (cm)", "height"] },
+  { key: "id", label: "Original ID", aliases: ["id"] },
+  { key: "size", label: "Size", aliases: ["size", "sizes"] },
+  { key: "color", label: "Color", aliases: ["color", "colour", "colors"] },
 ];
 
 export type Mapping = Partial<Record<ImportField, string>>;
@@ -32,7 +35,7 @@ export function autoMap(headers: string[]): Mapping {
   const m: Mapping = {};
   const norm = (s: string) => s.trim().toLowerCase();
   for (const f of IMPORT_FIELDS) {
-    const h = headers.find((x) => f.aliases.includes(norm(x)));
+    const h = f.aliases.map((alias) => headers.find((x) => alias === norm(x))).find(Boolean);
     if (h) m[f.key] = h;
   }
   return m;
@@ -67,29 +70,35 @@ export function leafCategory(cell: string | undefined): string | null {
 }
 
 function readAttributes(raw: Record<string, string>) {
+  const normalized = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k.trim().toLowerCase(), v]));
   const out: { name: string; values: string[] }[] = [];
   for (let i = 1; i <= 10; i++) {
-    const name = raw[`Attribute ${i} name`]?.trim();
-    const val = raw[`Attribute ${i} value(s)`] ?? raw[`Attribute ${i} value`];
+    const name = normalized[`attribute ${i} name`]?.trim();
+    const val = normalized[`attribute ${i} value(s)`] ?? normalized[`attribute ${i} value`];
     if (name) out.push({ name, values: (val ?? "").split(",").map((s) => s.trim()).filter(Boolean) });
   }
   return out;
 }
 
 export function parseRows(raw: Record<string, string>[], mapping: Mapping, opts: { knownCategories: string[]; createMissingCategories: boolean; existingSkus?: string[] }): ParsedRow[] {
-  const get = (r: Record<string, string>, k: ImportField) => (mapping[k] ? (r[mapping[k]!] ?? "").toString().trim() : "");
+  const get = (r: Record<string, string>, k: ImportField) => { const header = mapping[k]; return header ? (r[header] ?? "").toString().trim() : ""; };
+  const originalIds = new Map(raw.map((r) => [get(r, "id"), get(r, "sku")]).filter(([id, sku]) => id && sku));
   const known = new Set(opts.knownCategories.map((c) => c.toLowerCase()));
   const rows: ParsedRow[] = raw.map((r, i) => {
     const t = get(r, "type").toLowerCase();
     const type: ParsedRow["type"] = t.includes("variation") ? "variation" : t.includes("variable") ? "variable" : "simple";
     const attributes = readAttributes(r);
+    for (const key of ["size", "color"] as const) {
+      const value = get(r, key);
+      if (value && !attributes.some((a) => (key === "size" ? /size/i : /colou?r/i).test(a.name))) attributes.push({ name: key === "size" ? "Size" : "Color", values: value.split(/[,|]/).map((s) => s.trim()).filter(Boolean) });
+    }
     const pick = (re: RegExp) => attributes.find((a) => re.test(a.name))?.values[0] ?? null;
     const row: ParsedRow = {
       line: i + 2, type, sku: get(r, "sku"), name: get(r, "name"), published: truthy(get(r, "published")), featured: truthy(get(r, "featured")),
       short_description: get(r, "short_description"), description: get(r, "description"),
       regular_price: num(get(r, "regular_price")), sale_price: num(get(r, "sale_price")),
       category: leafCategory(get(r, "categories")), images: get(r, "images").split(",").map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s)),
-      stock: num(get(r, "stock")), parent: get(r, "parent").replace(/^id:/i, ""),
+      stock: num(get(r, "stock")), parent: /^id:/i.test(get(r, "parent")) ? originalIds.get(get(r, "parent").slice(3)) ?? get(r, "parent").slice(3) : get(r, "parent"),
       weight: num(get(r, "weight")), length: num(get(r, "length")), width: num(get(r, "width")), height: num(get(r, "height")),
       size: pick(/size/i), color: pick(/colou?r/i), attributes, errors: [],
     };
@@ -101,6 +110,7 @@ export function parseRows(raw: Record<string, string>[], mapping: Mapping, opts:
   const parentSkus = new Set(rows.filter((r) => r.type === "variable").map((r) => r.sku.toLowerCase()));
   (opts.existingSkus ?? []).forEach((s) => parentSkus.add(s.toLowerCase()));
 
+  const combinations = new Set<string>();
   for (const r of rows) {
     const e = r.errors;
     if (!r.sku) e.push("Missing SKU");
@@ -122,7 +132,18 @@ export function parseRows(raw: Record<string, string>[], mapping: Mapping, opts:
       if (!r.parent) e.push("Variation has no Parent SKU");
       else if (!parentSkus.has(r.parent.toLowerCase())) e.push(`Parent "${r.parent}" not found`);
       if (!r.size && !r.color) e.push("Variation needs a Size or Color attribute");
+      const combo = `${r.parent.toLowerCase()}|${(r.size ?? "One Size").toLowerCase()}|${(r.color ?? "").toLowerCase()}`;
+      if (combinations.has(combo)) e.push("Duplicate Size / Color combination");
+      combinations.add(combo);
     }
+  }
+  for (const parent of rows.filter((r) => r.type === "variable" && r.regular_price === null)) {
+    const children = rows.filter((r) => r.type === "variation" && r.parent.toLowerCase() === parent.sku.toLowerCase() && !r.errors.length && r.regular_price !== null);
+    if (children.length) {
+      parent.regular_price = Math.min(...children.map((r) => r.regular_price as number));
+      parent.sale_price = Math.min(...children.map((r) => r.sale_price ?? r.regular_price as number));
+      if (parent.sale_price >= parent.regular_price) parent.sale_price = null;
+    } else parent.errors.push("Variable product needs a price or valid priced variations");
   }
   return rows;
 }
