@@ -227,6 +227,39 @@ export type Database = {
           },
         ]
       }
+      conversion_events: {
+        Row: {
+          created_at: string
+          event_key: string
+          event_name: string
+          ga4_status: string
+          id: string
+          last_error: string | null
+          meta_status: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          event_key: string
+          event_name: string
+          ga4_status?: string
+          id?: string
+          last_error?: string | null
+          meta_status?: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          event_key?: string
+          event_name?: string
+          ga4_status?: string
+          id?: string
+          last_error?: string | null
+          meta_status?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
