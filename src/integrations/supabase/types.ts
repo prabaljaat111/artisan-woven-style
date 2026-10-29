@@ -510,6 +510,33 @@ export type Database = {
           },
         ]
       }
+      loyalty_rules: {
+        Row: {
+          enabled: boolean
+          id: boolean
+          minimum_redemption: number
+          point_value: number
+          referral_bonus: number
+          rupees_per_point: number
+        }
+        Insert: {
+          enabled?: boolean
+          id?: boolean
+          minimum_redemption?: number
+          point_value?: number
+          referral_bonus?: number
+          rupees_per_point?: number
+        }
+        Update: {
+          enabled?: boolean
+          id?: boolean
+          minimum_redemption?: number
+          point_value?: number
+          referral_bonus?: number
+          rupees_per_point?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1411,6 +1438,7 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_referral: { Args: { _code?: string }; Returns: string }
       can_approve: { Args: { _user_id: string }; Returns: boolean }
       dashboard_overview: {
         Args: { _from: string; _to: string }
@@ -1451,6 +1479,7 @@ export type Database = {
           variation_id: string
         }[]
       }
+      redeem_reward_points: { Args: { _points: number }; Returns: string }
       restore_catalog_backup: { Args: { _tables: Json }; Returns: Json }
       save_product_form: {
         Args: { _id: string; _product: Json; _variations: Json }
