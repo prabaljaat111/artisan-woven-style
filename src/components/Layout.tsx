@@ -7,7 +7,7 @@ import { useWishlist } from "@/store/wishlist";
 import { useUI } from "@/store/ui";
 import { BrandLogo, FullBrandLogo } from "./BrandLogo";
 import { LotusMark } from "./LotusMark";
-import { categories } from "@/data/products";
+import { useStorefrontCategories } from "@/hooks/use-storefront-categories";
 import { useStorefrontProducts } from "@/hooks/use-storefront-products";
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/contact";
@@ -65,6 +65,7 @@ function AnnouncementBar() {
 }
 
 function Header() {
+  const categories = useStorefrontCategories();
   const totalCount = useCart((s) => s.totalCount());
   const wishCount = useWishlist((s) => s.ids.length);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -379,6 +380,7 @@ function ExitIntent() {
 }
 
 function Footer() {
+  const categories = useStorefrontCategories();
   return (
     <footer className="bg-primary text-primary-foreground pb-36 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
