@@ -3,6 +3,7 @@ import { z } from "zod";
 import { checkoutTotals, paymentAllowed } from "./checkout-rules";
 import { createHmac } from "node:crypto";
 import { scheduledPrice, zoneShipping } from "./growth-rules";
+import { getRequestHeader } from '@tanstack/react-start/server';
 
 const ItemSchema = z.object({
   product_id: z.string().uuid().nullable().optional(),
@@ -36,6 +37,9 @@ export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => CreateOrderSchema.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const bearer=getRequestHeader('authorization')?.replace(/^Bearer /,'');
+    let authenticatedUserId: string|null=null;
+    if(bearer){const {data:identity,error:identityError}=await supabaseAdmin.auth.getUser(bearer);if(identityError)throw new Error('Please sign in again');authenticatedUserId=identity.user?.id??null;}
     const { readCheckoutRules } = await import("./checkout-rules.server");
     const rules = await readCheckoutRules();
     const signingKey = process.env.RAZORPAY_KEY_SECRET;
@@ -84,7 +88,7 @@ export const createOrder = createServerFn({ method: "POST" })
     const { data: order, error } = await supabaseAdmin
       .from("orders")
       .insert({
-        user_id: null,
+        user_id: authenticatedUserId,
         customer_name: data.customer_name,
         customer_email: data.customer_email,
         customer_phone: data.customer_phone,
