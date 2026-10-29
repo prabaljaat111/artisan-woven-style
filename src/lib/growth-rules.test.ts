@@ -1,10 +1,12 @@
 import { describe,it,expect } from 'vitest';
-import { scheduledPrice,zoneShipping,pointBalance,recoveryStage } from './growth-rules';
+import { scheduledPrice,saleIsActive,zoneShipping,pointBalance,recoveryStage } from './growth-rules';
 describe('Scheduled sales',()=>{
   const p={price:1500,original_price:2000,sale_starts_at:'2026-10-30T00:00:00Z',sale_ends_at:'2026-10-31T00:00:00Z'};
   it('keeps regular price before the sale',()=>expect(scheduledPrice(p,Date.parse('2026-10-29T12:00:00Z'))).toBe(2000));
   it('activates the sale at its start',()=>expect(scheduledPrice(p,Date.parse(p.sale_starts_at))).toBe(1500));
   it('ends the sale at its end',()=>expect(scheduledPrice(p,Date.parse(p.sale_ends_at))).toBe(2000));
+  it('keeps variant sales inactive before start even when parent prices match',()=>expect(saleIsActive({...p,price:2000},Date.parse('2026-10-29T12:00:00Z'))).toBe(false));
+  it('activates variation sale prices at the scheduled start',()=>expect(saleIsActive(p,Date.parse(p.sale_starts_at))).toBe(true));
 });
 describe('Shipping zones',()=>{
   const z={states:['Uttar Pradesh'],pincode_prefixes:['226'],flat_rate:50,free_above:2000,priority:1,active:true,courier:'Preferred'};

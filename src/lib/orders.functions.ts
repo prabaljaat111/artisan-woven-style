@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { checkoutTotals, paymentAllowed } from "./checkout-rules";
 import { createHmac } from "node:crypto";
-import { scheduledPrice, zoneShipping } from "./growth-rules";
+import { scheduledPrice, saleIsActive, zoneShipping } from "./growth-rules";
 import { getRequestHeader } from '@tanstack/react-start/server';
 
 const ItemSchema = z.object({
@@ -55,7 +55,7 @@ export const createOrder = createServerFn({ method: "POST" })
       const variant = (variants ?? []).find((v) => v.size.toLowerCase() === (item.size ?? "").toLowerCase() && (!v.color || v.color.toLowerCase() === (item.color ?? "").toLowerCase()));
       if ((variants?.length ?? 0) > 0 && (!variant || variant.status === "inactive")) throw new Error(`Selected size/color unavailable: ${product.name}`);
       if (product.track_inventory && !product.allow_backorders && Number(variant?.stock ?? product.stock) < item.qty) throw new Error(`Not enough stock: ${product.name}`);
-      const saleActive=scheduledPrice(product)===Number(product.price);
+      const saleActive=saleIsActive(product);
       resolved.push({ ...item, product_id: product.id, product_slug: product.slug, product_name: product.name, price: Number((saleActive?variant?.sale_price:null) ?? variant?.price ?? scheduledPrice(product)) });
     }
     const subtotal = resolved.reduce((s, i) => s + i.qty * i.price, 0);

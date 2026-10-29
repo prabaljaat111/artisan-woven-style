@@ -1,6 +1,8 @@
+export function saleIsActive(product: { sale_starts_at?: string | null; sale_ends_at?: string | null }, now = Date.now()) {
+  return (!product.sale_starts_at || Date.parse(product.sale_starts_at) <= now) && (!product.sale_ends_at || Date.parse(product.sale_ends_at) > now);
+}
 export function scheduledPrice(product: { price: number | string; original_price?: number | string | null; sale_starts_at?: string | null; sale_ends_at?: string | null }, now = Date.now()) {
-  const active = (!product.sale_starts_at || Date.parse(product.sale_starts_at) <= now) && (!product.sale_ends_at || Date.parse(product.sale_ends_at) > now);
-  return active ? Number(product.price) : Number(product.original_price ?? product.price);
+  return saleIsActive(product, now) ? Number(product.price) : Number(product.original_price ?? product.price);
 }
 export type ShippingZone = { states: string[]; pincode_prefixes: string[]; flat_rate: number; free_above: number | null; priority: number; active: boolean; courier: string };
 export function zoneShipping(zones: ShippingZone[], state: string, pin: string, subtotal: number) {
