@@ -9,8 +9,8 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]:
 export const getSetting = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .inputValidator((d: { key: string }) => ({ key: KeySchema.parse(d.key) }))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = context.supabase;
     const { data: row, error } = await supabaseAdmin
       .from("app_settings")
       .select("value")
@@ -26,8 +26,8 @@ export const saveSetting = createServerFn({ method: "POST" })
     key: KeySchema.parse(d.key),
     value: d.value,
   }))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = context.supabase;
     const { error } = await supabaseAdmin
       .from("app_settings")
       .upsert({ key: data.key, value: data.value as never, updated_at: new Date().toISOString() }, { onConflict: "key" });
@@ -37,8 +37,8 @@ export const saveSetting = createServerFn({ method: "POST" })
 
 export const listAdmins = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  .handler(async ({ context }) => {
+    const supabaseAdmin = context.supabase;
     const { data: roles } = await supabaseAdmin
       .from("user_roles")
       .select("user_id, role, created_at")
@@ -68,8 +68,8 @@ export const setUserRole = createServerFn({ method: "POST" })
       action: z.enum(["add", "remove"]),
     }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = context.supabase;
     if (data.action === "add") {
       const { error } = await supabaseAdmin
         .from("user_roles")
